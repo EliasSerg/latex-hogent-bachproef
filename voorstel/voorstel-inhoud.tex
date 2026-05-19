@@ -32,27 +32,54 @@
 
 %Schrijf ook iets over de doelstelling. Wat zie je als het concrete eindresultaat van je onderzoek, naast de uitgeschreven scriptie? Is het een proof-of-concept, een rapport met aanbevelingen, \ldots Met welk eindresultaat kan je je bachelorproef als een succes beschouwen?
 
-In de hedendaagse digitale wereld spelen digitale bestanden een grote rol zowel in privé als in een bedrijfscontext \autocite{MaritimeSurvey2022}. Documenten, onderzoeksgegevens en administratieve dossiers worden digitaal opgemaakt, bijgehouden en wereldwijd verspreid. Papieren documenten en boeken worden gedigitaliseerd om makkelijk te verspreiden en te refereren. Alhoewel dit het makkelijk maakt voor particulieren en bedrijven om hun eigen bilbiotheek aan informatie bij te houden, brengt dit ook complicaties met zich mee. 
+In de hedendaagse digitale wereld spelen digitale bestanden een grote rol, zowel in privé- als in bedrijfscontext \autocite{MaritimeSurvey2022}. Documenten, onderzoeksgegevens en administratieve dossiers worden digitaal opgemaakt, bijgehouden en wereldwijd verspreid. Papieren documenten en boeken worden gedigitaliseerd om ze eenvoudig te verspreiden en te raadplegen. Hoewel dit het voor particulieren en bedrijven gemakkelijker maakt om een eigen bibliotheek aan informatie bij te houden, brengt dit ook complicaties met zich mee.
 
-De grootste hiervan is toegankelijkheid. Wat gebeurt er als je in een gebied woont waarin je geen betrouwbare verbinding hebt met het globale netwerk? Wat gebeurt er tijdens rampen, wanneer de infrastructuur weggevaagd wordt door tsunamies of aardbevingen \autocite{WinlinkEmcomm}? Wat gebeurt er op zee \autocite{MaritimeSurvey2022}? etc... 
+De grootste hiervan is toegankelijkheid. Wat gebeurt er wanneer men zich in een gebied bevindt zonder betrouwbare verbinding met het globale netwerk? Wat gebeurt er tijdens rampen, wanneer de infrastructuur wordt weggevaagd door tsunamis of aardbevingen \autocite{WinlinkEmcomm}? Wat zijn de beperkingen op zee, waar connectiviteit structureel onbetrouwbaar is \autocite{MaritimeSurvey2022}?
 
-Alhoewel er reeds toepassingen bestaan zoals starlink en oneweb, zijn deze vaak financieel of praktisch ontoereikend voor particulieren en kleine bedrijven. De alternatieven voor deze particulieren en kleine bedrijven zijn nog onvoldoende onderzocht om een goed antwoord te vinden. 
+Hoewel er reeds oplossingen bestaan zoals Starlink en OneWeb, zijn deze voor particulieren en kleine bedrijven vaak financieel of praktisch ontoereikend. De alternatieven voor deze doelgroep zijn onvoldoende onderzocht. Bestaande draadloze communicatietechnologieën, zoals radioverbindingen, bieden potentieel een haalbaar alternatief, maar de toepasbaarheid ervan voor bestandsoverdracht op afstand is nog niet grondig in kaart gebracht.
 
-Met deze casus hoop ik een antwoord te kunnen brengen op de vraag: 
+\subsection*{Probleemstelling}
+
+De centrale onderzoeksvraag luidt:
+
 \begin{quote}
-  \textit{Hoe kan je een verbinding opzetten met een eigen fileserver via een radioverbinding?}
+  \textit{Hoe kan een verbinding worden opgezet met een eigen fileserver via een radioverbinding, en wat zijn de technische randvoorwaarden en maximale afstandsbeperkingen voor een werkende implementatie?}
 \end{quote}
 
-Deze casus wordt benadert vanuit het perspectief van een beginnende radio amateur/netwerk professional, zonder voldoende ervaring in beide gebieden.  
-Het onderzoek kan 3 mogelijke uitkomsten opleveren: 
+Bijkomende deelvragen die het onderzoek structureren, zijn:
+
 \begin{itemize}
-  \item Een werkend proof of concept. 
-  \item Een theoretische oplossing die de oplossing mogelijk maakt.
-  \item De uitsluiting van radio communicatie als oplossing voor dit probleem. 
+  \item Welke radioprotocollen (zoals AX.25, Winlink, of IP-over-radio) zijn geschikt voor bestandsoverdracht, en wat zijn hun kenmerken op het vlak van bandbreedte, betrouwbaarheid en bereik?
+  \item Welke multiplexingtechnieken — zoals \textit{frequency division multiplexing} (FDM) en \textit{time division multiplexing} (TDM) — zijn van toepassing binnen radiogebaseerde datacommunicatie, en welke beperkingen leggen zij op?
+  \item Wat is de maximale praktische afstand waarover een bestandsoverdracht via radioverbinding haalbaar is, afhankelijk van frequentieband en omgevingsfactoren?
+  \item Welke infrastructuur en configuratie zijn minimaal vereist voor een werkend proof-of-concept?
 \end{itemize}
 
-Naast het beantwoorden van de onderzoeksvraag, beoogt deze casus een basis te vormen voor verder onderzoek of verdere technolgische ontwikkelingen, binnen dit gebied. 
+\subsection*{Doelgroep}
 
+Dit onderzoek richt zich op IT-professionals en netwerkingenieurs die actief zijn in omgevingen met beperkte of onbetrouwbare internetconnectiviteit — zoals maritieme operatoren, hulpverleningsorganisaties in rampgebieden, of bedrijven in afgelegen regio's. De inzichten zijn tevens relevant voor radiocommunicatiespecialisten die netwerktoepassingen willen integreren in bestaande radioinfrastructuur.
+
+\subsection*{Onderzoeksdoelstelling en methodologie}
+
+Het doel van dit onderzoek is na te gaan of en hoe een fileserver bereikbaar gemaakt kan worden via een radioverbinding, met aandacht voor de technische haalbaarheid, de vereiste protocollen en de praktische beperkingen zoals maximale afstand en doorvoersnelheid.
+
+De gehanteerde onderzoeksmethode omvat drie fasen:
+
+\begin{enumerate}
+  \item \textbf{Literatuurstudie:} Een grondige verkenning van relevante radioprotocollen (AX.25, Winlink, IP-over-radio), netwerktopologieën voor draadloze communicatie, en multiplexingtechnieken (FDM, TDM). Tevens worden de fysische eigenschappen van radiogolven bestudeerd, waaronder de invloed van frequentieband op bereik en datadoorvoer \autocite{Tanenbaum2021}.
+  \item \textbf{Vergelijkende analyse:} De geïdentificeerde protocollen en technieken worden vergeleken op criteria zoals maximale afstand, bandbreedte, hardwarevereisten en complexiteit van implementatie.
+  \item \textbf{Proof-of-concept:} Op basis van de analyse wordt een minimale werkende opstelling gebouwd en getest, bestaande uit een radiozender/-ontvanger en een fileserver, om de theoretische bevindingen empirisch te valideren.
+\end{enumerate}
+
+Het onderzoek kan drie mogelijke uitkomsten opleveren:
+
+\begin{itemize}
+  \item Een werkend proof-of-concept dat aantoont hoe een fileserver via radioverbinding bereikbaar gemaakt kan worden.
+  \item Een theoretisch onderbouwde oplossingsarchitectuur die de implementatie mogelijk maakt, indien een volledig werkende opstelling buiten bereik valt.
+  \item De gemotiveerde uitsluiting van radioverbindingen als haalbare oplossing voor dit probleem, op basis van vastgestelde technische beperkingen.
+\end{itemize}
+
+Naast het beantwoorden van de onderzoeksvraag beoogt dit onderzoek een basis te vormen voor verdere technologische ontwikkelingen en vervolgonderzoek binnen het domein van radiogebaseerde datacommunicatie.
 %---------- Stand van zaken ---------------------------------------------------
 
 \section{Literatuurstudie}%
@@ -77,27 +104,48 @@ Naast het beantwoorden van de onderzoeksvraag, beoogt deze casus een basis te vo
 
 % Je mag deze sectie nog verder onderverdelen in subsecties als dit de structuur van de tekst kan verduidelijken.
 
-In deze literatuurstudie onderzoeken we de huidige stand van zaken binnen radio gebasseerde communicatie, met nadruk op mogelijke oplossingen voor het zenden en ontvangen van digitale bestanden. Met deze literatuur hoop ik het conceptueel kader te schetsen waar deze casus over gaat. 
+In deze literatuurstudie wordt de huidige stand van zaken binnen radiogebaseerde communicatie onderzocht, met nadruk op mogelijke oplossingen voor het zenden en ontvangen van digitale bestanden. Het doel is een conceptueel kader te schetsen dat als theoretische onderbouwing dient voor dit onderzoek.
 
-\subsection{Connectiviteit in afgelegen gebieden en noodsituaties} 
+\subsection{Connectiviteit in afgelegen gebieden en noodsituaties}
 
-Toegang tot digitale bestanden is in de hedendaagse samenleving essentieel \autocite{MaritimeSurvey2022}, maar blijft in vele situaties een uitdaging. Bestaande oplossingen zoals satellietnetwerken blijven beperkt door hoge kosten, latency problemen en beperkte toegangkelijkheid voor particulieren en kleine bedrijven. Ook in noodistuaties waar de bestaande infrastructuur uitgevallen is, blijft robuuste digitale communicatie belangrijk \autocite{WinlinkEmcomm}. 
-Deze beperkingen tonen aan dat er een behoefte is aan alternatieve methoden die onafhankelijk zijn van een centrale infrastructuur, die toch voldoende capaciteit kan garanderen voor het raadplegen van digitale bestanden. 
+Toegang tot digitale bestanden is in de hedendaagse samenleving essentieel \autocite{MaritimeSurvey2022}, maar blijft in uiteenlopende situaties een uitdaging. Satellietnetwerken zoals Starlink en OneWeb bieden weliswaar globale dekking, maar kampen met hoge abonnementskosten, aanzienlijke latency en beperkte toegankelijkheid voor particulieren en kleine bedrijven \autocite{MaritimeSurvey2022}. In noodsituaties waarbij de bestaande infrastructuur is uitgevallen, blijft robuuste digitale communicatie bovendien een kritieke behoefte \autocite{WinlinkEmcomm}.
 
-\subsection{Radio-gebaseerde dataoverdracht}
+Deze beperkingen tonen aan dat er behoefte is aan alternatieve methoden die onafhankelijk zijn van een centrale infrastructuur, maar toch voldoende capaciteit kunnen garanderen voor het raadplegen van digitale bestanden.
 
-Binnen de amateurradio gemeenschap bestaan reeds systemen voor dataoverdracht via radiogolven. Het meest gekende systeem hiervoor is Winlink. Winlink is de naam van een wereldwijd netwerk dat gebruik maakt van HF, VHF en UHF radio frequenties om e-mail communicatie toe te staan \autocite{WinlinkOverview}. Winlink wordt beschreven als een hybride radiosysteem, ontworpen voor communicatie in afgelegen gebieden en in noodsituaties \autocite{WinlinkEmcomm} \autocite{WinlinkHybrid}. Alhoewel Winlink reeds beperkte bijlagen ondersteunt is het een systeem dat voornamelijk dient voor berichten en dus niet geschikt als volwaardige oplossing voor deze casus. 
-Deze beperking zorgt ervoor dat alhoewel het concept bevestigt dat radiocommunicatie een goede oplossing is, Winlink zelf nog te beperkt blijft in functionaliteit om een volwaardige oplossing te zijn. 
+\subsection{Radiofrequenties en signaalpropagatie}
 
-\subsection{Straalverbindingen}
+Radiogebaseerde communicatie maakt gebruik van elektromagnetische golven die zich door de lucht voortplanten. De keuze van frequentieband heeft een directe invloed op zowel het maximale bereik als de beschikbare bandbreedte \autocite{Tanenbaum2021}. Lagere frequenties, zoals HF-banden (3--30 MHz), kunnen grote afstanden overbruggen via reflecties op de ionosfeer, maar bieden slechts een beperkte doorvoersnelheid. Hogere frequenties, zoals de VHF- (30--300 MHz) en UHF-banden (300 MHz--3 GHz), laten hogere datasnelheden toe, maar hebben een kleiner bereik en vereisen doorgaans een vrije zichtlijn tussen zender en ontvanger \autocite{Tanenbaum2021}.
 
-Alhoewel het bereiken van afgelegen gebieden gebeurt via reflecties op de ioniserende lagen in de atmosfeer, gaan we voor dit onderzoek kijken naar straalverbindingen. Straalverbindingen zorgen voor een grotere bandbreedte van het gebruikte radiosignaal \autocite{WirelessBackhaulSurvey} \autocite{MicrowavePtP5G}, maar hebben als nadeel dat de antennes line of sight moeten hebben met elkaar \autocite{MicrowavePtP5G}. 
-Desondanks is deze opstelling een ideale proof of concept omdat het toepasbaar is op kleine schaal en dezelfde technolgie gebruikt als toepassingen op grotere schaal \autocite{WirelessBackhaulSurvey}. 
+De maximale praktische afstand van een radioverbinding wordt bepaald door een combinatie van factoren: zendvermogen, antenneversterking, frequentieband, terreinprofiel en atmosferische omstandigheden. Voor microwave point-to-point verbindingen in de GHz-range geldt een typisch operationeel bereik van enkele tientallen kilometers, mits er sprake is van \textit{line of sight} \autocite{MicrowavePtP5G}.
 
-\subsection{Gaten in de bestaande kennis}
+\subsection{Multiplextechnieken in radiogebaseerde datacommunicatie}
 
-Terwijl er reeds diverse technologiën bestaan voor radio gebasseerde communicatie \autocite{MaritimeSurvey2022}, bespreekt geen van de onderzochte bronnen het gebruik van deze technologiën om toegang te bieden tot een persoonlijke fileserver. De bestaande literatuur richt zich voornamelijk op noodcommunicatie \autocite{WinlinkEmcomm}, professionele backhaul \autocite{MicrowavePtP5G, WirelessBackhaulSurvey} of beperkte diensten zoals e-mail \autocite{WinlinkOverview}. Deze casus richt zich op een duidelijke ontbrekende link tussen al deze oplossingen.
+Om meerdere signalen efficiënt over een gedeeld radiokanaal te transporteren, worden multiplextechnieken toegepast \autocite{Tanenbaum2021}. De twee meest voorkomende zijn:
 
+\begin{itemize}
+  \item \textbf{Frequency Division Multiplexing (FDM):} Het beschikbare frequentiespectrum wordt opgedeeld in meerdere subbanden, elk toegewezen aan een afzonderlijk kanaal. Signalen worden gelijktijdig verzonden zonder elkaar te storen, op voorwaarde dat de subbanden voldoende van elkaar gescheiden zijn. FDM wordt veel gebruikt in analoge en digitale radiosystemen, waaronder FM-radio en 4G/LTE \autocite{Tanenbaum2021}.
+  \item \textbf{Time Division Multiplexing (TDM):} Meerdere signalen maken gebruik van hetzelfde frequentiekanaal, maar worden afwisselend verzonden in vaste tijdsloten. TDM vereist nauwkeurige tijdssynchronisatie tussen zender en ontvanger, maar laat een efficiënter gebruik van de beschikbare bandbreedte toe wanneer niet alle kanalen continu actief zijn \autocite{Tanenbaum2021}.
+\end{itemize}
+
+In de praktijk worden deze technieken gecombineerd: moderne systemen zoals OFDM (\textit{Orthogonal Frequency Division Multiplexing}) integreren elementen van beide benaderingen en vormen de basis van hedendaagse draadloze standaarden \autocite{Tanenbaum2021}.
+
+\subsection{Protocollen voor radiogebaseerde dataoverdracht}
+
+Binnen de amateurradio-gemeenschap bestaan reeds systemen voor dataoverdracht via radiogolven. Een veelgebruikt protocol op de datalinklaag is AX.25, een pakketradioprotocol dat is afgeleid van het X.25-standaard en specifiek is ontworpen voor amateurradiocommunicatie \autocite{Tanenbaum2021}. AX.25 biedt foutdetectie en beperkte foutcorrectie, maar kent een lage doorvoersnelheid die het minder geschikt maakt voor grote bestandsoverdrachten.
+
+Bovenop dergelijke protocollen zijn bredere systemen gebouwd, waarvan Winlink het meest gekende voorbeeld is. Winlink is een wereldwijd netwerk dat gebruikmaakt van HF-, VHF- en UHF-radiofrequenties om e-mailcommunicatie mogelijk te maken \autocite{WinlinkOverview}. Het wordt beschreven als een hybride radiosysteem, ontworpen voor communicatie in afgelegen gebieden en in noodsituaties \autocite{WinlinkEmcomm, WinlinkHybrid}. Hoewel Winlink beperkte bijlagen ondersteunt, is het primair ontworpen voor berichtuitwisseling en daarmee ontoereikend als volwaardige oplossing voor toegang tot een fileserver.
+
+Een verdere optie is IP-over-radio: het tunnelen van standaard IP-verkeer over een radioverbinding, waardoor bestaande netwerktoepassingen — waaronder bestandsoverdrachten via protocollen zoals FTP of SMB — in principe over een radiokanaal kunnen worden aangeboden \autocite{Tanenbaum2021}. Dit concept vormt de theoretische basis voor de in dit onderzoek voorgestelde opstelling.
+
+\subsection{Straalverbindingen als proof-of-concept}
+
+Voor dit onderzoek wordt gefocust op straalverbindingen (\textit{point-to-point wireless links}), waarbij twee antennes rechtstreeks op elkaar gericht zijn. Deze opstelling biedt een grotere bandbreedte dan ionosferische propagatie \autocite{WirelessBackhaulSurvey, MicrowavePtP5G}, maar vereist een vrije zichtlijn (\textit{line of sight}) tussen beide antennes \autocite{MicrowavePtP5G}. In de praktijk worden dergelijke verbindingen al op grote schaal ingezet als draadloze backhaul in telecomnetwerken \autocite{WirelessBackhaulSurvey}.
+
+De keuze voor een straalverbinding als proof-of-concept is verantwoord omdat dezelfde technologie en protocollen worden gebruikt als in grootschalige toepassingen, waardoor de resultaten overdraagbaar zijn naar bredere implementaties \autocite{WirelessBackhaulSurvey}.
+
+\subsection{Lacunes in de bestaande kennis}
+
+Hoewel diverse technologieën bestaan voor radiogebaseerde communicatie \autocite{MaritimeSurvey2022}, bespreekt geen van de onderzochte bronnen het gebruik ervan om toegang te bieden tot een persoonlijke fileserver. De bestaande literatuur richt zich voornamelijk op noodcommunicatie \autocite{WinlinkEmcomm}, professionele backhaul \autocite{MicrowavePtP5G, WirelessBackhaulSurvey} of beperkte diensten zoals e-mail \autocite{WinlinkOverview}. Dit onderzoek richt zich op de ontbrekende verbinding tussen deze deeldomeinen: de technische haalbaarheid van persoonlijke bestandstoegang via een zelfopgezette radioverbinding.
 
 %---------- Methodologie ------------------------------------------------------
 \section{Methodologie}%
@@ -115,24 +163,67 @@ Terwijl er reeds diverse technologiën bestaan voor radio gebasseerde communicat
 
 %Probeer ook een tijdschatting te maken. Hoe lang zal je met elke fase van je onderzoek bezig zijn en wat zijn de concrete \emph{deliverables} in elke fase?
 
-Voor dit onderzoek zullen we een experimenteel-technische aanpak gebruiken om te bepalen of we een betrouwbare verbinding kunnen opzetten met onze fileserver via een radioverbinding. Om dit te bewerkstellen zullen we 4 fasen doorlopen. 
+Dit onderzoek hanteert een experimenteel-technische aanpak om te bepalen of een betrouwbare verbinding met een eigen fileserver via een radioverbinding haalbaar is. Het onderzoek is opgebouwd uit vier opeenvolgende fasen, elk met concrete deliverables en een geschatte doorlooptijd.
 
-\subsection{Literatuurstudie}
+\subsection{Fase 1: Literatuurstudie}
 
-Als eerste fase zullen we ons verder verdiepen in de vakliteratuur rond straalverbindingen, radio-datarates en fileserver installaties. Daarnaast zullen we de beperkingen van radioamateurbanden bekijken en bestaande systemen zoals Winlink. Op deze manier bouwen we een theoretisch kader bouwen en afgebakende technische vereisten ontdekken. 
+In de eerste fase wordt de vakliteratuur rond radiogebaseerde dataoverdracht, straalverbindingen en fileserverprotocollen systematisch in kaart gebracht. Concreet komen de volgende onderwerpen aan bod:
 
-\subsection{Requirementsanalyse}
+\begin{itemize}
+  \item Eigenschappen en beperkingen van radiofrequentiebanden (HF, VHF, UHF, microwave) met betrekking tot bandbreedte en maximaal bereik.
+  \item Dataprotocollen voor radioverbindingen: AX.25, IP-over-radio en Winlink.
+  \item Multiplextechnieken (FDM, TDM) en hun impact op doorvoersnelheid en kanaalbezetting.
+  \item Wettelijke beperkingen voor radioamateurbanden in België (BIPT-regelgeving).
+  \item Bestandsoverdrachtsprotocollen (FTP, SMB, SCP) en hun vereisten op netwerkniveau.
+\end{itemize}
 
-Op basis van de literatuurstudie zullen we meetbare eisen opstellen zoals minimale bandbreedte, maximale latency, verbindingsstabiliteit en wettelijke beperkingen. Op basis van deze requirements zullen we de criteria bepalen voor de proefopstelling. 
+\textbf{Deliverable:} Een uitgewerkte literatuurstudie met een theoretisch kader en een overzicht van technische randvoorwaarden.
 
-\subsection{Proof-of-Concept}
+\subsection{Fase 2: Requirementsanalyse}
 
-Aan de hand van de vorige 2 fasen zullen we 2 computer opzetten waarvan 1 zal dienen als fileserver en 1 als client. Tussen deze toestellen zullen we proberen een verbinding op te zetten aan de hand van straalantennes. Indien deze opstelling geslaagd is kunnen we metingen uitvoeren om de bandbreedte, packet loss en bestandsoverdrachttijden te controleren. 
+Op basis van de literatuurstudie worden meetbare functionele en niet-functionele eisen opgesteld waaraan de proefopstelling moet voldoen. Deze requirements omvatten onder meer:
 
-\subsection{Evaluatie}
+\begin{itemize}
+  \item \textbf{Minimale bandbreedte:} voldoende doorvoersnelheid voor het ophalen van bestanden binnen een aanvaardbare tijdsspanne.
+  \item \textbf{Maximale latency:} de verbindingsvertraging mag de werking van het gekozen bestandsoverdrachtsprotocol niet verstoren.
+  \item \textbf{Verbindingsstabiliteit:} maximaal aanvaardbaar packet loss percentage tijdens een overdracht.
+  \item \textbf{Wettelijke conformiteit:} de gebruikte frequenties en zendvermogens voldoen aan de Belgische radioamateurregelgeving.
+  \item \textbf{Maximale afstand:} de beoogde afstand tussen zender en ontvanger, bepaald op basis van de gekozen frequentieband en antenneconfiguratie.
+\end{itemize}
 
-In de laatste fase zullen we de resultaten van de vorige fase controleren om zo te bepalen of het technisch haalbaar is. Dit zal uitwijzen wat het resultaat is van het gehele onderzoek. 
+\textbf{Deliverable:} Een gestructureerd requirements-document dat als toetsingskader dient voor de evaluatie van de proof-of-concept.
 
+\subsection{Fase 3: Proof-of-Concept}
+
+In de derde fase wordt een minimale werkende opstelling gebouwd en getest. De hardware bestaat uit twee computers — één geconfigureerd als fileserver, één als client — verbonden via een punt-tot-punt straalantenne-opstelling. De volgende stappen worden doorlopen:
+
+\begin{enumerate}
+  \item \textbf{Hardwareselectie en -configuratie:} keuze van geschikte straalantennes, radiohardware (zoals SDR-modules of dedicated radiomodems) en bekabeling op basis van de requirements.
+  \item \textbf{Netwerklaagconfiguratie:} opzetten van IP-over-radio of een equivalent protocol zodat standaard TCP/IP-verkeer over de radioverbinding kan worden gerouteerd.
+  \item \textbf{Fileserverconfiguratie:} installatie en configuratie van een fileserverdienst (bv. een FTP- of SFTP-server) op de servernode.
+  \item \textbf{Testoverdrachten:} uitvoeren van gecontroleerde bestandsoverdrachten van variërende bestandsgroottes om de prestaties te meten.
+\end{enumerate}
+
+Tijdens de testfase worden de volgende metrieken geregistreerd:
+
+\begin{itemize}
+  \item Gemeten bandbreedte (Mbit/s of Kbit/s) bij verschillende bestandsgroottes.
+  \item Packet loss percentage via \texttt{ping} en \texttt{iperf}.
+  \item Bestandsoverdrachttijden voor een representatieve set testbestanden.
+  \item Verbindingsstabiliteit over een langere meetperiode.
+\end{itemize}
+
+\textbf{Gebruikte tools:} Linux (serveromgeving), \texttt{iperf3} (bandbreedtemeting), \texttt{vsftpd} of \texttt{OpenSSH} (fileserverdienst).
+
+\textbf{Deliverable:} Een werkende proof-of-concept opstelling met gedocumenteerde meetresultaten, of een onderbouwde technische verklaring waarom een werkende opstelling niet haalbaar bleek.
+
+\subsection{Fase 4: Evaluatie en conclusie}
+
+In de laatste fase worden de meetresultaten uit de proof-of-concept getoetst aan de requirements die in fase 2 zijn opgesteld. Per requirement wordt bepaald of aan de gestelde eis is voldaan. Op basis van deze analyse wordt een eindconclusie geformuleerd over de technische haalbaarheid van radiogebaseerde toegang tot een persoonlijke fileserver.
+
+Indien de proof-of-concept niet volledig slaagt, worden de vastgestelde knelpunten gedocumenteerd en worden aanbevelingen geformuleerd voor vervolgonderzoek of alternatieve benaderingen.
+
+\textbf{Deliverable:} Een evaluatierapport met een haalbaarheidsoordeel, een overzicht van de bereikte en niet-bereikte requirements, en aanbevelingen voor verdere ontwikkeling.
 %---------- Verwachte resultaten ----------------------------------------------
 \section{Verwacht resultaat, conclusie}%
 \label{sec:verwachte_resultaten}
@@ -143,7 +234,58 @@ In de laatste fase zullen we de resultaten van de vorige fase controleren om zo 
 
 % Hier beschrijf je wat je verwacht uit je onderzoek, met de motivatie waarom. Het is \textbf{niet} erg indien uit je onderzoek andere resultaten en conclusies vloeien dan dat je hier beschrijft: het is dan juist interessant om te onderzoeken waarom jouw hypothesen niet overeenkomen met de resultaten.
 
-Het verwachte resultaat van dit onderzoek is een antwoord op de onderzoekvraag of het mogelijk is om een verbinding op te zetten naar de fileserver aan de hand van een radioverbinding. Afhankelijk van de resultaten van alle voorgaande fasen, kan dit antwoord anders zijn. 
-Indien het onderzoek een werkende proof of concept voortbrengt, kan deze casus als een basis dienen om verdere systemen te ontwerpen en uit te bouwen. Indien er geen werkende proof of concept kan opgezet worden, dient deze casus als een verklaring waarom deze technologie niet werkt, of kan deze casus dienen als een startblok voor een andere oplossing. Ongeacht de uitkomst van het onderzoek, levert deze casus dus nuttige informatie op. 
-Omwille van deze redenen heb ik maar 1 verwachting voor dit onderzoek, het verdiepen van kennis in de wereld van digitale communicatie. 
+Op basis van de literatuurstudie en de geformuleerde onderzoeksvraag worden de volgende resultaten verwacht.
 
+\subsection{Technische haalbaarheid}
+
+Gezien de bestaande toepassingen van punt-tot-punt straalverbindingen in professionele backhaul-omgevingen \autocite{WirelessBackhaulSurvey, MicrowavePtP5G}, is de verwachting dat een radioverbinding met voldoende bandbreedte voor bestandsoverdracht technisch haalbaar is op korte afstand. De grootste onzekerheid ligt niet in het radiogedeelte zelf, maar in de integratie van IP-over-radio met een fileserverprotocol, en de stabiliteit van die gecombineerde opstelling onder reële omstandigheden.
+
+\subsection{Verwachte meetresultaten}
+
+Tijdens de proof-of-concept worden metingen uitgevoerd over bandbreedte, latency, packet loss en bestandsoverdrachttijden. Figuur~\ref{fig:mock_bandbreedte} toont een schematische weergave van de verwachte relatie tussen bestandsgrootte en overdrachttijd bij een geschatte effectieve bandbreedte van 1--10 Mbit/s, afhankelijk van de gekozen frequentieband en antenneafstand.
+
+% Mock-up grafiek 1: overdrachttijd vs bestandsgrootte
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Bestandsgrootte (MB)},
+      ylabel={Overdrachttijd (s)},
+      xmin=0, xmax=100,
+      ymin=0, ymax=800,
+      legend pos=north west,
+      grid=major
+    ]
+    \addplot[blue, thick] coordinates {(0,0)(10,80)(25,200)(50,400)(100,800)};
+    \addlegendentry{1 Mbit/s (worst case)}
+    \addplot[green!60!black, thick] coordinates {(0,0)(10,8)(25,20)(50,40)(100,80)};
+    \addlegendentry{10 Mbit/s (best case)}
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Mock-up: verwachte overdrachttijd in functie van bestandsgrootte bij twee bandbreedtescenario's.}
+  \label{fig:mock_bandbreedte}
+\end{figure}
+
+Een tweede relevante meting betreft de packet loss in functie van de afstand tussen zender en ontvanger. Op basis van de eigenschappen van straalverbindingen wordt verwacht dat het packet loss percentage laag blijft zolang er een vrije zichtlijn aanwezig is, en sterk toeneemt bij obstructies of bij het overschrijden van de maximale operationele afstand \autocite{MicrowavePtP5G}.
+
+% Mock-up grafiek 2: packet loss vs afstand
+\begin{figure}[h]
+  \centering
+  \begin{tikzpicture}
+    \begin{axis}[
+      xlabel={Afstand (m)},
+      ylabel={Packet loss (\%)},
+      xmin=0, xmax=1000,
+      ymin=0, ymax=100,
+      grid=major
+    ]
+    \addplot[red, thick] coordinates {(0,0)(200,1)(400,2)(600,5)(800,20)(1000,80)};
+    \end{axis}
+  \end{tikzpicture}
+  \caption{Mock-up: verwacht packet loss percentage in functie van de afstand bij een vaste antenneconfiguratie.}
+  \label{fig:mock_packetloss}
+\end{figure}
+
+\subsection{Meerwaarde voor de doelgroep}
+
+Ongeacht de concrete uitkomst levert dit onderzoek bruikbare informatie op voor IT-professionals en netwerkingenieurs die actief zijn in omgevingen met beperkte connectiviteit. Een werkende proof-of-concept biedt een concreet vertrekpunt voor de uitbouw van robuuste, infrastructuuronafhankelijke bestandstoegangssystemen. Een negatieve uitkomst documenteert de technische grenzen van de huidige aanpak en formuleert aanbevelingen voor alternatieve oplossingsrichtingen. In beide gevallen vult het onderzoek een lacune in de bestaande vakliteratuur, die zich tot op heden niet expliciet heeft gericht op radiogebaseerde toegang tot persoonlijke fileservers.
