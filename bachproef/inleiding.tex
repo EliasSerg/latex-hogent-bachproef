@@ -5,32 +5,86 @@
 \chapter{\IfLanguageName{dutch}{Inleiding}{Introduction}}%
 \label{ch:inleiding}
 
-De inleiding moet de lezer net genoeg informatie verschaffen om het onderwerp te begrijpen en in te zien waarom de onderzoeksvraag de moeite waard is om te onderzoeken. In de inleiding ga je literatuurverwijzingen beperken, zodat de tekst vlot leesbaar blijft. Je kan de inleiding verder onderverdelen in secties als dit de tekst verduidelijkt. Zaken die aan bod kunnen komen in de inleiding~\autocite{Pollefliet2011}:
+In de hedendaagse digitale samenleving zijn digitale bestanden alomtegenwoordig, zowel in privé- als
+in bedrijfscontext. Documenten, onderzoeksgegevens en administratieve dossiers worden digitaal
+opgemaakt, bijgehouden en wereldwijd verspreid. Deze digitalisering vergemakkelijkt het beheer van
+informatie, maar brengt ook een kritieke afhankelijkheid met zich mee: toegang tot die bestanden
+vereist een betrouwbare netwerkverbinding.
 
-\begin{itemize}
-  \item context, achtergrond
-  \item afbakenen van het onderwerp
-  \item verantwoording van het onderwerp, methodologie
-  \item probleemstelling
-  \item onderzoeksdoelstelling
-  \item onderzoeksvraag
-  \item \ldots
-\end{itemize}
+Die verbinding is echter niet altijd gegarandeerd. In afgelegen gebieden, op zee of tijdens
+rampen waarbij de infrastructuur wegvalt, is conventionele internetconnectiviteit onvoldoende of
+volledig afwezig~\autocite{Xia2022}. Bestaande alternatieven zoals commerciële satellietdiensten
+zijn voor particulieren en kleine organisaties vaak financieel of praktisch ontoereikend.
+
+Radioverbindingen bieden een potentieel alternatief. Ze zijn infrastructuuronafhankelijk, hebben
+een breed gedocumenteerde geschiedenis in noodcommunicatie, en vereisen relatief eenvoudige
+hardware. Toch is de toepasbaarheid van radioverbindingen voor toegang tot een persoonlijke
+fileserver nog niet grondig onderzocht. Deze bachelorproef vult die lacune op.
 
 \section{\IfLanguageName{dutch}{Probleemstelling}{Problem Statement}}%
 \label{sec:probleemstelling}
 
-Uit je probleemstelling moet duidelijk zijn dat je onderzoek een meerwaarde heeft voor een concrete doelgroep. De doelgroep moet goed gedefinieerd en afgelijnd zijn. Doelgroepen als ``bedrijven,'' ``KMO's'', systeembeheerders, enz.~zijn nog te vaag. Als je een lijstje kan maken van de personen/organisaties die een meerwaarde zullen vinden in deze bachelorproef (dit is eigenlijk je steekproefkader), dan is dat een indicatie dat de doelgroep goed gedefinieerd is. Dit kan een enkel bedrijf zijn of zelfs één persoon (je co-promotor/opdrachtgever).
+% Uit je probleemstelling moet duidelijk zijn dat je onderzoek een meerwaarde heeft voor een concrete doelgroep. De doelgroep moet goed gedefinieerd en afgelijnd zijn. Doelgroepen als ``bedrijven,'' ``KMO's'', systeembeheerders, enz.~zijn nog te vaag. Als je een lijstje kan maken van de personen/organisaties die een meerwaarde zullen vinden in deze bachelorproef (dit is eigenlijk je steekproefkader), dan is dat een indicatie dat de doelgroep goed gedefinieerd is. Dit kan een enkel bedrijf zijn of zelfs één persoon (je co-promotor/opdrachtgever).
+
+De doelgroep van dit onderzoek bestaat uit IT-professionals en netwerkingenieurs die actief zijn
+in omgevingen met beperkte of onbetrouwbare internetconnectiviteit. Concreet gaat het om:
+
+\begin{itemize}
+  \item maritieme operatoren die op zee werken en geen stabiele breedbandverbinding hebben;
+  \item hulpverleningsorganisaties die in rampgebieden opereren waar de netwerkinfrastructuur
+        is uitgevallen;
+  \item bedrijven of onderzoekers die actief zijn in afgelegen regio's zonder
+        vaste netwerkinfrastructuur;
+  \item radioamateurs die bestaande radioinfrastructuur willen uitbreiden met
+        netwerktoepassingen.
+\end{itemize}
+
+Voor deze groepen zijn bestaande oplossingen zoals Starlink of vaste breedbandverbindingen
+geen haalbare optie. Er is behoefte aan een methode om via een zelfopgezette radioverbinding
+toegang te krijgen tot een eigen fileserver, zonder afhankelijkheid van commerciële of
+gecentraliseerde infrastructuur.
 
 \section{\IfLanguageName{dutch}{Onderzoeksvraag}{Research question}}%
 \label{sec:onderzoeksvraag}
 
-Wees zo concreet mogelijk bij het formuleren van je onderzoeksvraag. Een onderzoeksvraag is trouwens iets waar nog niemand op dit moment een antwoord heeft (voor zover je kan nagaan). Het opzoeken van bestaande informatie (bv. ``welke tools bestaan er voor deze toepassing?'') is dus geen onderzoeksvraag. Je kan de onderzoeksvraag verder specifiëren in deelvragen. Bv.~als je onderzoek gaat over performantiemetingen, dan 
+% Wees zo concreet mogelijk bij het formuleren van je onderzoeksvraag. Een onderzoeksvraag is trouwens iets waar nog niemand op dit moment een antwoord heeft (voor zover je kan nagaan). Het opzoeken van bestaande informatie (bv. ``welke tools bestaan er voor deze toepassing?'') is dus geen onderzoeksvraag. Je kan de onderzoeksvraag verder specifiëren in deelvragen. Bv.~als je onderzoek gaat over performantiemetingen, dan 
+
+De centrale onderzoeksvraag luidt:
+
+\begin{quote}
+  \textit{Hoe kan een verbinding worden opgezet met een eigen fileserver via een
+  radioverbinding, en wat zijn de technische randvoorwaarden en maximale
+  afstandsbeperkingen voor een werkende implementatie?}
+\end{quote}
+
+Deze vraag wordt verder opgesplitst in de volgende deelvragen:
+
+\begin{itemize}
+  \item Welke radioprotocollen (zoals AX.25, Winlink of IP-over-radio) zijn geschikt voor
+        bestandsoverdracht, en wat zijn hun kenmerken op het vlak van bandbreedte,
+        betrouwbaarheid en bereik?
+  \item Welke multiplextechnieken zijn van toepassing binnen radiogebaseerde
+        datacommunicatie, en welke beperkingen leggen zij op?
+  \item Wat is de maximale praktische afstand waarover een bestandsoverdracht via
+        radioverbinding haalbaar is, afhankelijk van frequentieband en omgevingsfactoren?
+  \item Welke minimale infrastructuur en configuratie zijn vereist voor een werkend
+        proof-of-concept?
+\end{itemize}
 
 \section{\IfLanguageName{dutch}{Onderzoeksdoelstelling}{Research objective}}%
 \label{sec:onderzoeksdoelstelling}
 
-Wat is het beoogde resultaat van je bachelorproef? Wat zijn de criteria voor succes? Beschrijf die zo concreet mogelijk. Gaat het bv.\ om een proof-of-concept, een prototype, een verslag met aanbevelingen, een vergelijkende studie, enz.
+% Wat is het beoogde resultaat van je bachelorproef? Wat zijn de criteria voor succes? Beschrijf die zo concreet mogelijk. Gaat het bv.\ om een proof-of-concept, een prototype, een verslag met aanbevelingen, een vergelijkende studie, enz.
+
+Het beoogde eindresultaat van deze bachelorproef is een werkende proof-of-concept waarbij een
+fileserver bereikbaar wordt gemaakt via een punt-tot-punt radioverbinding. Het succes van het
+onderzoek wordt beoordeeld aan de hand van meetbare criteria: de gerealiseerde bandbreedte,
+het packet loss percentage, de verbindingsstabiliteit en de maximale operationele afstand.
+
+Indien een volledig werkende opstelling niet haalbaar blijkt, wordt dit beschouwd als een
+waardevol resultaat op zich: de bachelorproef levert dan een theoretisch onderbouwde verklaring
+op van de technische grenzen van radiogebaseerde bestandsoverdracht, aangevuld met
+aanbevelingen voor vervolgonderzoek of alternatieve benaderingen.
 
 \section{\IfLanguageName{dutch}{Opzet van deze bachelorproef}{Structure of this bachelor thesis}}%
 \label{sec:opzet-bachelorproef}
@@ -41,10 +95,16 @@ Wat is het beoogde resultaat van je bachelorproef? Wat zijn de criteria voor suc
 
 De rest van deze bachelorproef is als volgt opgebouwd:
 
-In Hoofdstuk~\ref{ch:stand-van-zaken} wordt een overzicht gegeven van de stand van zaken binnen het onderzoeksdomein, op basis van een literatuurstudie.
+In Hoofdstuk~\ref{ch:stand-van-zaken} wordt een overzicht gegeven van de stand van zaken
+binnen het onderzoeksdomein, op basis van een literatuurstudie. Aan bod komen radioprotocollen,
+frequentiebanden, multiplextechnieken en bestaande systemen voor radiogebaseerde dataoverdracht.
 
-In Hoofdstuk~\ref{ch:methodologie} wordt de methodologie toegelicht en worden de gebruikte onderzoekstechnieken besproken om een antwoord te kunnen formuleren op de onderzoeksvragen.
+In Hoofdstuk~\ref{ch:methodologie} wordt de methodologie toegelicht en worden de gebruikte
+onderzoekstechnieken besproken: de requirementsanalyse, de opbouw van de proefopstelling
+en de meetmethoden die gehanteerd worden om de onderzoeksvragen te beantwoorden.
 
-% TODO: Vul hier aan voor je eigen hoofstukken, één of twee zinnen per hoofdstuk
+% TODO: voeg hier hoofdstukken toe voor je proof-of-concept en resultaten
 
-In Hoofdstuk~\ref{ch:conclusie}, tenslotte, wordt de conclusie gegeven en een antwoord geformuleerd op de onderzoeksvragen. Daarbij wordt ook een aanzet gegeven voor toekomstig onderzoek binnen dit domein.
+In Hoofdstuk~\ref{ch:conclusie}, tenslotte, wordt de conclusie gegeven en een antwoord
+geformuleerd op de onderzoeksvragen. Daarbij wordt ook een aanzet gegeven voor toekomstig
+onderzoek binnen dit domein.
