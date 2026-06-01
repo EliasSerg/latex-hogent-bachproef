@@ -119,4 +119,15 @@
         "--shell-escape",
         "%DOC%"
     ],
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/.DS_Store": true,
+        "**/Thumbs.db": true,
+        "**/c:\\Users\\elias\\Documents\\GitHub\\latex-hogent-bachproef\\voorstel\\SergoyneElias-BPvoorstel.aux": true,
+        "**/c:\\Users\\elias\\Documents\\GitHub\\latex-hogent-bachproef\\voorstel\\SergoyneElias-BPvoorstel.log": true,
+        "**/c:\\Users\\elias\\Documents\\GitHub\\latex-hogent-bachproef\\voorstel\\SergoyneElias-BPvoorstel.gz": true,
+        "**/c:\\Users\\elias\\Documents\\GitHub\\latex-hogent-bachproef\\voorstel\\SergoyneElias-BPvoorstel.out": true
+    },
 }
