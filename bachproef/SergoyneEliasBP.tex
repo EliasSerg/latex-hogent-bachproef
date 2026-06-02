@@ -12,7 +12,8 @@
 %   explicit approval!), remove the option "dutch," or replace with "english".
 
 \usepackage{lipsum} % For blind text, can be removed after adding actual content
-
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.18}
 %% Pictures to include in the text can be put in the graphics/ folder
 \graphicspath{{../graphics/}}
 
@@ -21,7 +22,9 @@
 %% \usepackage[chapter]{minted}
 %% If you compile with the make_thesis.{bat,sh} script, use the following
 %% import instead:
-\usepackage[chapter,outputdir=../output]{minted}
+% \usepackage[chapter,outputdir=../output]{minted}
+\usepackage[chapter]{minted}
+\PassOptionsToPackage{outputdir=./output}{minted}
 \usemintedstyle{solarized-light}
 
 %% Formatting for minted environments.
