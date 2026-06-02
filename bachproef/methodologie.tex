@@ -26,5 +26,106 @@
 %% Maak voor elke fase (behalve het literatuuronderzoek) een NIEUW HOOFDSTUK aan
 %% en geef het een gepaste titel.
 
-\lipsum[21-25]
+Dit hoofdstuk beschrijft de systematische en empirische aanpak die is gehanteerd om de
+centrale onderzoeksvraag met betrekking tot radiogebaseerde bestandstoegang te 
+beantwoorden. Om de technische haalbaarheid en de operationele grenzen van een 
+IP-over-radioverbinding met een private fileserver objectief te kunnen kwantificeren, is 
+het onderzoek opgedeeld in vier opeenvolgende, logisch met elkaar verbonden fasen. 
+Elke fase kent een specifieke doelstelling, onderzoeksdoel en tastbare deliverable. 
+Dit gestructureerde proces waarborgt dat de uiteindelijke empirische metingen direct 
+kunnen worden getoetst aan vooraf gedefinieerde, harde netwerkeisen.
+
+\section{Fase 1: Literatuurstudie (State-of-the-Art)}
+\label{sec:meth-fase1}
+
+De eerste fase had als doel het creëren van een sluitend theoretisch en conceptueel kader.
+Radiogebaseerde datacommunicatie bevindt zich op het snijvlak van informatietheorie en 
+toegepaste netwerkarchitectuur, waardoor een diepgaande theoretische verkenning van 
+de fysieke laag en de transportlaag noodzakelijk was.
+
+\begin{itemize}
+    \item \textbf{Onderzoeksmethode:} Systematisch literatuuronderzoek (*desk research*) 
+    waarbij gebruik is gemaakt van peer-reviewed artikelen, academische handboeken en 
+    officiële specificatiedocumenten van instanties zoals de ITU en het BIPT.
+    \item \textbf{Inhoudelijke focus:} Analyse van de wet van Shannon-Hartley, atmosferische 
+    propagatieverschijnselen (troposferische ducting en Sporadic-E), robuuste modulatieschema's 
+    (OFDM versus single-carrier QPSK), netwerkprotocollen (AX.25, Winlink, native IP-over-radio) 
+    en de fysieke limieten van specifieke spectrums (zoals de 60~GHz zuurstofabsorptie).
+    \item \textbf{Deliverable:} Het reeds uitgewerkte Hoofdstuk~\ref{ch:stand-van-zaken} 
+    (Stand van zaken), dat de theoretische randvoorwaarden voor de rest van dit onderzoek vastlegt.
+\end{itemize}
+
+\section{Fase 2: Requirementsanalyse en Spectrumvergelijking}
+\label{sec:meth-fase2}
+
+In de tweede fase is de transitie gemaakt van abstracte theorie naar concrete, meetbare 
+systeemeisen. Voordat een fysieke testopstelling kan worden ontworpen, moeten de 
+minimale prestatie-indicatoren van het netwerk en de meest geschikte frequentiebanden 
+worden gedefinieerd.
+
+\begin{itemize}
+    \item \textbf{Onderzoeksmethode:} Requirementsanalyse gecombineerd met een 
+    kwalitatieve vergelijkende studie. De eisen zijn opgesteld volgens de industriestandaard 
+    voor netwerkprotocollen (RFC-stijl).
+    \item \textbf{Inhoudelijke focus:} Het definiëren van harde netwerktoleranties 
+    met betrekking tot minimale doorvoersnelheid (*throughput*), maximaal latency- en jitterbudget, 
+    en het maximaal toelaatbare packet loss-percentage waaronder stateful transportprotocollen 
+    (zoals TCP) stabiel blijven functioneren. Tegelijkertijd worden de functionele trade-offs 
+    tussen gelicentieerde radioamateurfrequenties en licentievrije ISM-banden gecatalogiseerd.
+    \item \textbf{Deliverable:} Een gestructureerde architectuur- en requirementsmatrix die de 
+    basis vormt voor het hierop volgende Hoofdstuk~\ref{ch:requirementsanalyse} (Requirementsanalyse).
+\end{itemize}
+
+\section{Fase 3: Ontwerp en Realisatie van de Proof-of-Concept}
+\label{sec:meth-fase3}
+
+De derde fase beslaat het praktische en experimentele kernonderdeel van deze bachelorproef. 
+Om te verifiëren of bestandsoverdrachtsprotocollen daadwerkelijk kunnen functioneren over 
+een draadloos radiomedium, is een representatieve fysieke testomgeving onmisbaar.
+
+\begin{itemize}
+    \item \textbf{Onderzoeksmethode:} Experimenteel-technisch ontwerponderzoek (*design science research*). 
+    Er is bewust gekozen voor het bouwen van een fysieke proof-of-concept (PoC) in plaats van 
+    een puur gesimuleerde netwerkomgeving, aangezien reële atmosferische demping en 
+    hardware-overhead via simulatiesoftware moeilijk betrouwbaar te modelleren zijn.
+    \item \textbf{Inhoudelijke focus:} Selectie en configuratie van de radiohardware (bijvoorbeeld 
+    radiomodems of gerichte Point-to-Point straalantennes) en de netwerkinfrastructuur. Dit omvat 
+    het opzetten van een transparante IP-tunnel over de radioverbinding, het inrichten van een 
+    Linux-gebaseerde fileserver (met protocollen zoals SFTP, SMB of WebDAV) en het configureren 
+    van de clientnode.
+    \item \textbf{Deliverable:} Een functionele, infrastructuuronafhankelijke netwerkopstelling, 
+    volledig gedocumenteerd in Hoofdstuk~\ref{ch:proof-of-concept} (Ontwerp en Realisatie).
+\end{itemize}
+
+\section{Fase 4: Empirische Evaluatie en Data-analyse}
+\label{sec:meth-fase4}
+
+In de finale fase zijn gecontroleerde praktijktests uitgevoerd om de prestaties van de 
+gebouwde proof-of-concept kwantitatief in kaart te brengen en te valideren.
+
+\begin{itemize}
+    \item \textbf{Onderzoeksmethode:} Kwantitatief empirisch experimenteel onderzoek. 
+    Door middel van systematische stresstests zijn de netwerkprestaties gemeten onder 
+    wisselende onafhankelijke variabelen (zoals afstand, bestandstype en transmissie-omstandigheden).
+    \item \textbf{Inhoudelijke focus:} Het verzamelen van harde netwerkmetrieken met behulp van 
+    diagnostische netwerktools. De primaire focus ligt op het meten van de effectieve bitsnelheid 
+    bij variërende bestandsgroottes, de invloed van packet loss op de TCP-venstergrootte (*window size*), 
+    en de totale overdrachttijd. Hierbij worden tevens praktijkobservaties omtrent langere-afstandsverbindingen 
+    (zoals troposferische propagatie-invloeden op de UHF-band) geanalyseerd.
+    \item \textbf{Deliverable:} Een statistische evaluatie, grafische prestatieplots en een finaal 
+    haalbaarheidsoordeel, uitgewerkt in Hoofdstuk~\ref{ch:resultaten-en-evaluatie} (Resultaten en Evaluatie).
+\end{itemize}
+
+\section{Verantwoording van de Aanpak}
+\label{sec:meth-verantwoording}
+
+De keuze voor een opeenvolgende, fasegewijze benadering is essentieel om de interne 
+en externe validiteit van dit toegepaste IT-onderzoek te garanderen. Radiokanalen zijn van nature 
+stochastisch en onderhevig aan omgevingsfactoren, wat een strikte isolatie van parameters 
+vereist. Door eerst de theoretische limieten te analyseren (Fase 1) en om te zetten in harde 
+netwerkeisen (Fase 2), wordt voorkomen dat de daaropvolgende testfase (Fase 3) ad-hoc of 
+onvolledig verloopt. De empirische data-analyse (Fase 4) fungeert tot slot als de ultieme, 
+objectieve verificatie. Deze methodologische keten zorgt ervoor dat de uiteindelijke 
+conclusies van deze bachelorproef niet berusten op anekdotische praktijkervaringen, maar op 
+reproduceerbare, wetenschappelijk onderbouwde meetresultaten.
 

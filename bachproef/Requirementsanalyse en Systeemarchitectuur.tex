@@ -1,0 +1,189 @@
+%%=============================================================================
+%% Requirementsanalyse en Systeemarchitectuur
+%%=============================================================================
+
+\chapter{\IfLanguageName{dutch}{Requirementsanalyse en Systeemarchitectuur}{Requirements Analysis and System Architecture}}%
+\label{ch:requirementsanalyse}
+
+%% TODO: In dit hoofstuk geef je een korte toelichting over hoe je te werk bent
+%% gegaan. Verdeel je onderzoek in grote fasen, en licht in elke fase toe wat
+%% de doelstelling was, welke deliverables daar uit gekomen zijn, en welke
+%% onderzoeksmethoden je daarbij toegepast hebt. Verantwoord waarom je
+%% op deze manier te werk gegaan bent.
+%% 
+%% Voorbeelden van zulke fasen zijn: literatuurstudie, opstellen van een
+%% requirements-analyse, opstellen long-list (bij vergelijkende studie),
+%% selectie van geschikte tools (bij vergelijkende studie, "short-list"),
+%% opzetten testopstelling/PoC, uitvoeren testen en verzamelen
+%% van resultaten, analyse van resultaten, ...
+%%
+%% !!!!! LET OP !!!!!
+%%
+%% Het is uitdrukkelijk NIET de bedoeling dat je het grootste deel van de corpus
+%% van je bachelorproef in dit hoofstuk verwerkt! Dit hoofdstuk is eerder een
+%% kort overzicht van je plan van aanpak.
+%%
+%% Maak voor elke fase (behalve het literatuuronderzoek) een NIEUW HOOFDSTUK aan
+%% en geef het een gepaste titel.
+
+Dit hoofdstuk vertaalt de theoretische kaders en wetmatigheden uit de literatuurstudie 
+naar concrete, meetbare functionele en niet-functionele systeemeisen. Het doel van deze 
+requirementsanalyse is het vastleggen van een objectief toetsingskader waaraan de 
+fysieke proof-of-concept (PoC) in een latere fase wordt gevalideerd. Vervolgens wordt 
+op basis van deze eisen de logische en fysieke systeemarchitectuur ontworpen, waarbij 
+de geselecteerde netwerkprotocollen, transportmechanismen en spectrumkeuzes 
+structureel worden gedefinieerd.
+
+\section{Netwerktechnische Requirements (RFC-Stijl)}
+\label{sec:req-netwerk}
+
+Om te waarborgen dat stateful applicatielaagprotocollen stabiel kunnen functioneren over 
+een stochastisch radiomedium, moeten de prestatie-indicatoren van de netwerklaag en 
+transportlaag binnen strikte limieten blijven. Op basis van de netwerkarchitecturen 
+beschreven door \textcite{Tanenbaum2021} zijn de volgende niet-functionele 
+netwerkeisen gedefinieerd.
+
+\subsection{Minimale bandbreedte (REQ-01)}
+Gezien het theorema van \textcite{Shannon1948}, waarin de kanaalcapaciteit inherent 
+gelimiteerd wordt door de bandbreedte ($W$) en de signaal-ruisverhouding ($S/N$), moet 
+de opstelling een minimale netto bitsnelheid (*goodput*) garanderen op de transportlaag. 
+\begin{itemize}
+    \item \textbf{Eis:} De effectieve doorvoersnelheid voor bestandsoverdracht moet minimaal 
+    $1\text{ Mbit/s}$ bedragen onder suboptimale condities (smalle band/lange afstand) en 
+    minimaal $10\text{ Mbit/s}$ onder optimale *Line-of-Sight*-condities.
+    \item \textbf{Verantwoording:} Deze bandbreedte is de ondergrens om moderne administratieve 
+    en technische dossiers binnen een acceptabel tijdstvenster te kunnen synchroniseren, 
+    in tegenstelling tot de trage, puur op tekst gerichte legacy-systemen zoals Winlink 
+    \autocite{WinlinkOverview}.
+\end{itemize}
+
+\subsection{Maximale latency (REQ-02)}
+In tegenstelling tot UDP-gebaseerde mediastromen, maken bestandsoverdrachtsprotocollen 
+veelal gebruik van TCP op de transportlaag voor betrouwbare aflevering \autocite{Tanenbaum2021}. 
+TCP-venstergrootte-algoritmen (*sliding window*) zijn extreem gevoelig voor de 
+*Round-Trip Time* (RTT).
+\begin{itemize}
+    \item \textbf{Eis:} De gemiddelde RTT (latency) over de radioverbinding mag niet hoger 
+    zijn dan $150\text{ ms}$, met een maximale jitter (variantie in latency) van $\pm 20\text{ ms}$.
+    \item \textbf{Verantwoording:} Boven deze drempelwaarde treedt er door de interactieve 
+    aard van protocollen zoals SMB of SFTP een exponentiële degradatie van de effectieve 
+    doorvoersnelheid op, onafhankelijk van de beschikbare rauwe bandbreedte \autocite{Pollefliet2011}.
+\end{itemize}
+
+\subsection{Packet Loss Tolerantie (REQ-03)}
+Atmosferische storingen en multi-path fading veroorzaken bitfouten op de fysieke laag van 
+draadloze verbindingen \autocite{Tanenbaum2021}. 
+\begin{itemize}
+    \item \textbf{Eis:} Het netwerk moet een packet loss-percentage van maximaal $2\%$ tolereren 
+    tijdens continue bestandsoverdracht, zonder dat de onderliggende TCP-sessie onherstelbaar 
+    afbreekt.
+    \item \textbf{Verantwoording:} Wanneer packet loss deze grens overschrijdt, interpreteert het 
+    TCP-congestie-algoritme dit als netwerkcongestie, waarna de verzendsnelheid (*congestion window*) 
+    drastisch wordt gereduceerd tot een fractie van de kanaalcapaciteit.
+\end{itemize}
+
+\section{Wettelijke en Reglementaire Randvoorwaarden}
+\label{sec:req-wettelijk}
+
+De fysieke implementatie van de radioverbinding is gebonden aan dwingende nationale wetgeving 
+om interferentie met primaire communicatiediensten uit te sluiten. Dit leidt tot harde 
+randvoorwaarden voor de hardwareconfiguratie.
+
+\subsection{Conformiteit met het BIPT-frequentieplan (REQ-04)}
+\begin{itemize}
+    \item \textbf{Eis:} De proof-of-concept mag uitsluitend opereren binnen de frequenties, 
+    transmissiemodi en maximale vermogenslimieten (ERP/PEP) zoals wettelijk vastgelegd in het 
+    \textcite{BIPT2019}.
+    \item \textbf{Specificatie:} Bij gebruik van het radioamateurspectrum (bijvoorbeeld de 70~cm-band) 
+    moet voldaan worden aan de specifieke bandplannen gecureerd door de Unie van Belgische 
+    Zendamateurs \autocite{UBAFrequenties}. Indien wordt uitgeweken naar licentievrije 
+    alternatieven (2.4~GHz of 5.6~GHz), moet de hardware strikt begrensd zijn op de wettelijke 
+    EIRP-limieten voor ISM-toepassingen om sancties te vermijden.
+\end{itemize}
+
+\section{Tussentijdse Conclusie}
+\label{sec:req-tussentijdse-conclusie}
+
+De requirementsanalyse en de daaruit voortvloeiende spectrum- en protocolvergelijking 
+leiden tot een eenduidige blauwdruk voor de te realiseren proof-of-concept. Om een 
+degelijke, performante en infrastructuuronafhankelijke netwerkverbinding met een 
+fileserver op te zetten, is de combinatie van een **5.6~GHz Point-to-Point straalverbinding** op de fysieke laag en het **SFTP-protocol** op de applicatielaag de meest optimale 
+architectuur.
+
+De 5.6~GHz-band levert via breedbandige OFDM-modulatie de noodzakelijke kanaalcapaciteit 
+om consistent aan de hoge doorvoersnelheid (REQ-01) te voldoen, zonder de extreme 
+atmosferische zuurstofabsorptie te ondergaan die de 60~GHz-band kenmerkt. Op het vlak van 
+regelgeving kent deze band in België een belangrijk duaal karakter conform het 
+\textcite{BIPT2019}:
+\begin{itemize}
+    \item \textbf{Licentievrij (RLAN/ISM):} Binnen het segment $5470\text{--}5725\text{ MHz}$ 
+    is \textbf{geen radioamateurvergunning vereist}, mits het zendvermogen strikt begrensd 
+    blijft op maximaal \textbf{1~Watt ($30\text{ dBm}$) EIRP} en de hardware verplicht gebruikmaakt 
+    van *Dynamic Frequency Selection* (DFS) om interferentie met weerradars te voorkomen.
+    \item \textbf{Gelicentieerd (Amateursubband):} Indien men gebruikmaakt van het secundaire 
+    radioamateursegment ($5650\text{--}5850\text{ MHz}$) vervalt de DFS-verplichting en stijgt 
+    het wettelijke vermogensprivilege tot maximaal \textbf{200~Watt PEP} (voor Klasse A/HAREC), 
+    wat echter een strikte persoonlijke vergunningsplicht met zich meebrengt \autocite{UBAFrequenties}.
+\end{itemize}
+Voor de basisopstelling van de PoC wordt uitgegaan van de licentievrije limieten ($1\text{~W EIRP}$), 
+zodat de oplossing universeel inzetbaar blijft.
+
+Op de applicatielaag is SFTP onmisbaar gebleken: het omzeilt de *chattiness* en de daaruit 
+voortvloeiende throughput-instorting van protocollen zoals SMB bij latency- en jitter-fluctuaties 
+(REQ-02). Bovendien blijft SFTP stabiel functioneren binnen het gestelde packet loss-budget van 
+maximaal 2\% (REQ-03), terwijl het direct de vereiste databeveiliging introduceert.
+
+Wat betreft het operationele bereik is deze 5.6~GHz/SFTP-architectuur opgedeeld in de 
+volgende specifieke afstandssegmenten:
+\begin{itemize}
+    \item \textbf{0 tot 15 kilometer (Optimaal bereik):} Binnen deze range functioneert de 
+    architectuur maximaal. Zolang er een vrije optische zichtlijn (*Line-of-Sight*) is en de 
+    eerste Fresnel-zone vrij is van obstructies, wordt de *high-performance* baseline van 
+    $10\text{ Mbit/s}$ tot over de $100\text{ Mbit/s}$ stabiel behaald met minimale latency ($<10\text{ ms}$).
+    \item \textbf{15 tot 30 kilometer (Horizonlimiet):} De verbinding blijft bruikbaar en 
+    voldoet aan de minimale ondergrens van $1\text{ Mbit/s}$ (REQ-01), mits de antennes op 
+    voldoende hoogte (masten, daken of heuvels) worden geplaatst om de fysieke kromming van de 
+    aarde te compenseren. SFTP vangt hier de incidentele stijging in packet loss door vrije-ruimtedemping op.
+    \item \textbf{Groter dan 30 kilometer (Suboptimaal/Extreme afstand):} Dit bereik valt buiten 
+    het betrouwbare toepassingsgebied voor permanente bestandstoegang wegens atmosferische 
+    onvoorspelbaarheid, waardoor hier multi-hop routing of een overstap naar het smalbandige UHF-spectrum noodzakelijk wordt.
+\end{itemize}
+
+\subsection{Impact van de Licentievrije Limieten op het Projectontwerp}
+\label{sec:req-impact-licentievrij}
+
+Het operationeel inzetten van de 5.6~GHz-band zonder licentie (binnen het $5470\text{--}5725\text{ MHz}$ RLAN-segment) legt een aantal dwingende wettelijke en technische restricties op. Deze limieten hebben een directe impact op de configuratie en de te verwachten netwerkprestaties van de proof-of-concept:
+
+\begin{enumerate}
+    \item \textbf{EIRP-Vermogenslimiet (Max. 1 Watt / $30\text{ dBm}$):} \\
+    De absolute juridische grens voor het effectief uitgestraalde vermogen (EIRP) beperkt het totale *link-budget*. In de praktijk betekent dit dat bij de inzet van high-gain richtantennes (essentieel voor afstanden van $15\text{--}30\text{ km}$), het zendvermogen van de radiofrequentie-uitgang softwarematig moet worden teruggeschroefd om de 1~Watt-grens niet te overschrijden. Dit begrenst de signaalmarge bij slechte weersomstandigheden.
+    
+    \item \textbf{DFS-Verplichting (*Dynamic Frequency Selection*):} \\
+    De hardware is wettelijk verplicht om passief te scannen naar prioritair spectrumgebruik, zoals weerradars. Indien een radarsignaal wordt gedetecteerd, dwingt de wet de straalverbinding om onmiddellijk van frequentie te wisselen. Hoewel het SFTP/TCP-protocol door zijn stateful karakter bestand is tegen de hieruit voortvloeiende korte onderbrekingen, introduceert dit incidentele latency-pieken en jitter (REQ-02) tijdens het heronderhandelen van de link.
+    
+    \item \textbf{Gedeeld Medium (*Shared Spectrum* en Congestie):} \\
+    Omdat de band vrij toegankelijk is voor commerciële en private toepassingen, is er in dichtbevolkte gebieden geen garantie op een storingsvrij transmissiekanaal. Eventuele *co-channel interferentie* verhoogt de bitfoutfrequentie (BER) en daarmee het packet loss-percentage. Om de packet loss binnen het budget van maximaal 2\% (REQ-03) te houden, dwingt deze limiet het project tot het selecteren van smallere kanaalbreedtes (bijv. $20\text{ MHz}$ in plaats van $80\text{ MHz}$), wat de theoretische maximale doorvoersnelheid reduceert maar de link-robuustheid maximaliseert.
+\end{enumerate}
+
+Ter synthese toont de onderstaande matrix de directe correlatie tussen de wettelijke bepalingen en de netwerktechnische requirements van dit onderzoek:
+
+\begin{table}[h]
+    \centering
+    \small
+    \begin{tabular}{lll}
+        \toprule
+        \textbf{BIPT-Limiet (Licentievrij)} & \textbf{Technisch gevolg voor de PoC} & \textbf{Impact op Requirements} \\
+        \midrule
+        Max. 1~W EIRP & Beperkt de maximale signaalmarge & Maakt afstanden $>15\text{ km}$ topografisch kritiek \\
+        DFS-Verplichting & Abrupte kanaalwissels bij radardetectie & Veroorzaakt tijdelijke latency-pieken (REQ-02) \\
+        Gedeeld Spectrum & Risico op co-channel interferentie & Verhoogt packet loss (REQ-03); dwingt tot smalle kanalen \\
+        \bottomrule
+    \end{tabular}
+    \caption{Synthese van licentievrije restricties en de impact op de netwerkrequirements.}
+    \label{tab:limiet-impact-matrix}
+\end{table}
+
+Dit afgebakende theoretische, functionele en wettelijke kader minimaliseert de architecturale 
+risico's. Het vormt de directe deliverablesleutel voor het volgende hoofdstuk, waarin de fysieke 
+assemblage, de hardwareconfiguratie en het daadwerkelijke netwerkontwerp van de testopstelling 
+worden gerealiseerd.
