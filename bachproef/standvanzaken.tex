@@ -17,17 +17,17 @@
 
 Dit hoofdstuk bouwt verder op de probleemstelling uit de inleiding en biedt een diepgaand
 overzicht van de huidige stand van zaken binnen het onderzoeksdomein. Achtereenvolgens
-komen de connectiviteitsproblematiek in afgelegen gebieden en noodsituaties, de fysische
-eigenschappen van radiofrequenties en signaalpropagatie, multiplextechnieken,
-protocollen voor radiogebaseerde dataoverdracht, en de toepassing van straalverbindingen
-aan bod. Tot slot worden de wettelijke randvoorwaarden voor radioamateurs in België
-besproken. Dit theoretisch kader vormt de basis voor de methodologie en de
-proof-of-concept die in de volgende hoofdstukken worden uitgewerkt.
+komen de connectiviteitsproblematiek in afgelegen gebieden, de fysische eigenschappen 
+van radiofrequenties en atmosferische signaalpropagatie aan bod. Vervolgens worden 
+multiplextechnieken, modulatieschema's en protocollen voor radiogebaseerde datacommunicatie 
+geanalyseerd. Tot slot worden de technische trade-offs van straalverbindingen in zowel 
+het gelicentieerde als het licentievrije spectrum (inclusief WiFi- en millimetergolfbanden) 
+en de wettelijke randvoorwaarden voor radioamateurs in België besproken. Dit theoretisch kader 
+vormt het fundament voor de methodologie en de eigen empirische realisatie in de 
+volgende hoofdstukken.
 
-\section{Connectiviteit in afgelegen gebieden en noodsituaties
-}
-\label{sec:Connectiviteit in afgelegen gebieden en noodsituaties
-}
+\section{Connectiviteit in afgelegen gebieden en noodsituaties}
+\label{sec:Connectiviteit in afgelegen gebieden en noodsituaties}
 
 De beschikbaarheid van digitale bestanden is in de hedendaagse samenleving een kritieke
 vereiste, maar blijft in uiteenlopende situaties een aanzienlijke uitdaging. In maritieme
@@ -49,56 +49,161 @@ op robuuste, gedistribueerde systemen die zonder vaste infrastructuur kunnen
 functioneren. Radiogebaseerde communicatie wordt in de literatuur herhaaldelijk naar
 voren geschoven als een veelbelovend alternatief, mede omdat radioamateurs en
 hulpverleningsorganisaties al decennialang gebruikmaken van radioverbindingen als
-ruggengraat voor noodcommunicatie~\autocite{WinlinkEmcomm}.
+ruggengraat voor noodcommunicatie~\autocite{WinlinkEmcomm}. De International Telecommunication 
+Union~\autocite{ITU2021} onderstreept in haar beleidslijnen dat het strategisch inzetten 
+van digitale technologieën en radiocommunicatie de impact van rampen drastisch kan inperken 
+en de continuïteit van de informatievoorziening waarborgt.
 
-\section{Radiofrequenties en signaalpropagatie}
+\section{Radiofrequenties en atmosferische signaalpropagatie}
 \label{sec:Radiofrequenties en signaalpropagatie}
 
-\section{Multiplextechnieken in radiogebaseerde datacommunicatie}
+Om data succesvol via radiogolven te transporteren, is een fundamenteel begrip van de 
+fysische laag van computercommunicatie essentieel, waarbij elektromagnetische golven worden 
+gebruikt om bitstromen door de ether te sturen~\autocite{Tanenbaum2021}. De capaciteit 
+van dit transportkanaal is onderhevig aan fundamentele theoretische limieten. \textcite{Hartley1928} 
+toonde aan dat de maximale hoeveelheid informatie rechtstreeks evenredig is met de beschikbare 
+bandbreedte en de transmissietijd. Dit concept werd geformaliseerd door \textcite{Shannon1948}, 
+wiens wet met betrekking tot kanaalcapaciteit ($C$) aantoont dat de bovengrens van foutloze 
+dataoverdracht afhankelijk is van de bandbreedte ($W$) en de signaal-ruisverhouding ($S/N$):
+
+$$C = W \log_2 \left(1 + \frac{S}{N}\right)$$
+
+In \textcite{Shannon1948PartII} wordt dieper ingegaan op de impact van continue kanalen 
+met ruis, wat direct relevant is voor radiogebaseerde systemen. In de praktijk is 
+signaalpropagatie sterk afhankelijk van de gekozen frequentieband en veranderlijke atmosferische 
+omstandigheden~\autocite{Di Lorenzo2018}. Binnen de lagere frequentiebanden, zoals de kortegolf (HF), 
+wordt het bereik bepaald door ionosferische omstandigheden die variëren naargelang het uur van de dag, 
+het seizoen en de zonnecyclus. Een specifiek fenomeen binnen de hogere HF-banden (zoals 10 meter) 
+en lagere VHF-banden (zoals 6 meter) is *Sporadic-E*. Hierbij ontstaan plotseling sterk 
+geïoniseerde wolken in de E-laag van de ionosfeer, waardoor signalen met relatief lage vermogens 
+over extreme afstanden gereflecteerd kunnen worden. Hoewel dit toestaat om duizenden kilometers 
+te overbruggen, zijn deze condities inherent onvoorspelbaar en seizoensgebonden.
+
+Voor kortere afstanden op hogere frequenties, zoals de VHF- en UHF-banden (bijvoorbeeld 70 centimeter), 
+is de propagatie in principe beperkt tot de visuele horizon, tenzij er zich *troposferische propagatie* voordoet. Door specifieke meteorologische omstandigheden, zoals temperatuurinversies, ontstaan er 
+brekingsindices in de lagere atmosfeer (*troposferische ducting*). Dit fenomeen stelt breedbandige 
+radiosignalen in staat om de kromming van de aarde te volgen en honderden kilometers af te leggen. 
+In tegenstelling tot ionosferische HF-reflecties vertoont troposferische propagatie in gematigde 
+klimaten een relatief hoge en stabiele regelmaat, waardoor het bruikbaar is voor semi-permanente 
+datacommunicatie over middellange afstanden.
+
+\section{Multiplex- en modulatietechnieken in datacommunicatie}
 \label{sec:Multiplextechnieken in radiogebaseerde datacommunicatie}
 
-\section{Protocollen voor radiogebaseerde
-dataoverdracht}
-\label{sec:Protocollen voor radiogebaseerde
-dataoverdracht}
+Wanneer meerdere knooppunten binnen een radionetwerk gelijktijdig gebruikmaken van het 
+beschikbare spectrum, moeten multiplextechnieken worden toegepast om interferentie te voorkomen. 
+\textcite{Tanenbaum2021} beschrijven hoe traditionele technieken zoals *Frequency Division Multiplexing* (FDM) en *Time Division Multiplexing* (TDM) het fysieke kanaal opdelen in aparte frequentiebanden of 
+tijdsloten. Binnen moderne draadloze netwerkinfrastructuren wordt de capaciteit verder vergroot via 
+spectrumaggregatie, waarbij niet-aaneengesloten frequentiebanden dynamisch worden gecombineerd 
+tot één logisch kanaal~\autocite{MicrowavePtP5G}.
 
-\section{Straalverbindingen als proof-of-concept}
+Bij het overdragen van data via atmosferische kanalen speelt de keuze van het modulatieschema een 
+sleutelrol. Binnen toepassingen zoals Digitale Amateur Televisie (D-ATV) wordt vaak gewerkt met 
+single-carrier modulatietechnieken zoals *Quadrature Phase Shift Keying* (QPSK) binnen de DVB-S2 
+standaard om interfaces te simplificeren. Voor pure, robuuste IP-datacommunicatie over instabiele 
+radiokanalen is *Orthogonal Frequency Division Multiplexing* (OFDM) echter superieur. OFDM verdeelt 
+de datastroom over een groot aantal loodrechte subdraaggolven. Dit maakt het signaal extreem 
+resistent tegen *multi-path fading* en looptijdverschillen (*delay spread*), fenomenen die inherent 
+aanwezig zijn bij lange-afstandsverbindingen die gebruikmaken van atmosferische reflecties of 
+troposferische breking.
+
+\section{Protocollen voor radiogebaseerde dataoverdracht}
+\label{sec:Protocollen voor radiogebaseerde dataoverdracht}
+
+Waar de fysische laag de radiogolven beheert, bepalen de protocollen op de hogere lagen van het 
+OSI-model hoe data logisch geordend en foutloos overgedragen wordt~\autocite{Tanenbaum2021}. 
+Binnen de amateurradio- en noodcommunicatiewereld is *packet radio* historisch gezien de standaard 
+voor data-over-radio~\autocite{ICTPPacketRadio}. Packet radio maakt gebruik van het AX.25-protocol 
+om data op te delen in frames, wat efficiënt hergebruik van de frequentie mogelijk maakt en bovendien 
+toestaat om het TCP/IP-protocol in te kapselen~\autocite{QSLPacketTCPIP}. Hierdoor kunnen standaard 
+internetapplicaties draaien via het zogeheten AMPRNet (*Amateur Packet Radio Network*).
+
+Voor grootschalige, gedistribueerde noodcommunicatie heeft het Winlink-ecosysteem zich ontwikkeld 
+tot de wereldwijde standaard~\autocite{WinlinkOverview}. Winlink fungeert als een wereldwijd 
+radio-e-mailsysteem dat met name zijn kracht ontleent aan het *Winlink Hybrid Network*~\autocite{WinlinkHybrid}. 
+Dit netwerk combineert klassieke internetgateways met een autonoom radio-omleidingssysteem. 
+Wanneer lokale internetinfrastructuur uitvalt, schakelt het systeem naadloos over op HF- of 
+VHF/UHF-verbindingen om berichten via naburige, nog operationele radio-relayservers (RMS) te 
+routeren~\autocite{WinlinkEmcomm}. Hoewel systemen zoals Winlink uitermate robuust zijn, zijn hun 
+doorvoersnelheden door de beperkte bandbreedte laag. Voor applicaties die veel data verbruiken, 
+zoals gecentraliseerde cloudomgevingen, zijn breedbandige alternatieven noodzakelijk~\autocite{Creeger2009}.
+
+\section{Straalverbindingen: Privileges, ISM-banden en Millimetergolven}
 \label{sec:Straalverbindingen als proof-of-concept}
 
+Wanneer grote hoeveelheden data over middellange tot lange afstanden getransporteerd moeten worden 
+zonder fysieke kabels, bieden point-to-point (PtP) straalverbindingen een onmisbaar, kosteneffectief 
+en snel uit te rollen alternatief voor glasvezel~\autocite{AcomeMicrowaveFibre}. Moderne breedbandige 
+straalverbindingen zijn in staat om gigabit-capaciteiten te overbruggen met minimale 
+latency~\autocite{HighCapacityLongDistance}. Bij het ontwerp van zo'n netwerkarchitectuur moet 
+een fundamentele afweging worden gemaakt tussen het gebruik van exclusieve radioamateurfrequenties 
+en licentievrije spectrumalternatieven.
 
+Het gebruik van de amateurbanden biedt unieke privileges, zoals hogere toegestane vermogens en 
+specifieke propagatievoordelen, maar vereist dat elke gebruiker in het bezit is van een geldige 
+radioamateurvergunning. Bovendien zijn deze banden in de praktijk gevoelig voor onvoorziene storingen 
+van medegebruikers. Als alternatief kan worden uitgeweken naar licentievrije ISM-banden (*Industrial, 
+Scientific and Medical*) op 2.4 GHz en 5.6 GHz via standaard WiFi-protocollen (zoals IEEE 802.11)~\autocite{LongRangePtP5GHz}. 
+Hoewel deze hardware goedkoop en breed beschikbaar is, kampen deze banden met zware spectrumcongestie 
+in dichtbevolkte gebieden.
 
+Om aan deze congestie te ontsnappen en grotere bandbreedtes te realiseren, kan de licentievrije 
+60 GHz-band (de V-band) worden ingezet, waar zeer brede kanalen beschikbaar zijn voor gigabit-doorvoer. 
+De bruikbaarheid hiervan voor lange afstanden wordt echter fundamenteel begrensd door atmosferische 
+fysica. Rond de 60 GHz treedt een sterke elektromagnetische resonantie op met zuurstofmoleculen ($O_2$), 
+wat resulteert in een specifieke piek in atmosferische absorptie (tot wel 15 dB/km). Zelfs bij een 
+perfecte optische zichtverbinding (*Line-of-Sight*) beperkt deze moleculaire demping het bereik 
+van 60 GHz-straalverbindingen inherent tot zeer korte afstanden, waardoor ze ongeschikt zijn voor 
+interstedelijke backhaullinks~\autocite{Di Lorenzo2018}.
 
-\begin{figure}
-  \centering
-  \includegraphics[width=0.8\textwidth]{grail.jpg}
-  \caption[Voorbeeld figuur.]{\label{fig:grail}Voorbeeld van invoegen van een figuur. Zorg altijd voor een uitgebreid bijschrift dat de figuur volledig beschrijft zonder in de tekst te moeten gaan zoeken. Vergeet ook je bronvermelding niet!}
-\end{figure}
+\section{Wettelijk kader en regelgeving in België}
+\label{sec:Wettelijk kader en regelgeving in België}
 
-\begin{listing}
-  \begin{minted}{python}
-    import pandas as pd
-    import seaborn as sns
+Elk technisch ontwerp dat gebruikmaakt van het radiospectrum moet strikt voldoen aan de nationale 
+en internationale wetgeving om schadelijke interferentie met primaire diensten te voorkomen. In 
+België wordt het gebruik van radiofrequenties door radioamateurs formeel gereguleerd door het 
+Belgisch Instituut voor Postdiensten en Telecommunicatie~\autocite{BIPT2019}. Het wettelijk besluit 
+definieert nauwkeurig welke frequentiebanden openstaan voor de verschillende amateurlicenties, 
+welke transmissiemodi zijn toegestaan, en begrenst strikt het maximaal toegestane zendvermogen.
 
-    penguins = sns.load_dataset('penguins')
-    sns.relplot(data=penguins, x="flipper_length_mm", y="bill_length_mm", hue="species")
-  \end{minted}
-  \caption[Voorbeeld codefragment]{Voorbeeld van het invoegen van een codefragment.}
-\end{listing}
+Voor de praktische vertaling van deze wetgeving naar werkbare bandplannen vertrouwen Belgische 
+radioamateurs op de richtlijnen van de Unie van Belgische Zendamateurs~\autocite{UBAFrequenties}. 
+De UBA stemt de nationale frequentieverdelingen af met de International Amateur Radio Union (IARU) 
+en de overheid om ervoor te zorgen dat experimentele datacommunicatie binnen de wettelijk 
+vastgelegde grenzen blijft. Een succesvolle proof-of-concept moet derhalve expliciet ontworpen worden 
+binnen de vermogens- en frequentiebeperkingen die door deze instanties zijn opgelegd~\autocite{BIPT2019, UBAFrequenties}.
 
-\lipsum[7-20]
+% \begin{figure}
+%   \centering
+%   \includegraphics[width=0.8\textwidth]{grail.jpg}
+%   \caption[Voorbeeld figuur.]{\label{fig:grail}Voorbeeld van invoegen van een figuur. Zorg altijd voor een uitgebreid bijschrift dat de figuur volledig beschrijft zonder in de tekst te moeten gaan zoeken. Vergeet ook je bronvermelding niet!}
+% \end{figure}
 
-\begin{table}
-  \centering
-  \begin{tabular}{lcr}
-    \toprule
-    \textbf{Kolom 1} & \textbf{Kolom 2} & \textbf{Kolom 3} \\
-    $\alpha$         & $\beta$          & $\gamma$         \\
-    \midrule
-    A                & 10.230           & a                \\
-    B                & 45.678           & b                \\
-    C                & 99.987           & c                \\
-    \bottomrule
-  \end{tabular}
-  \caption[Voorbeeld tabel]{\label{tab:example}Voorbeeld van een tabel.}
-\end{table}
+% \begin{listing}
+%   \begin{minted}{python}
+%     import pandas as pd
+%     import seaborn as sns
+
+%     penguins = sns.load_dataset('penguins')
+%     sns.relplot(data=penguins, x="flipper_length_mm", y="bill_length_mm", hue="species")
+%   \end{minted}
+%   \caption[Voorbeeld codefragment]{Voorbeeld van het invoegen van een codefragment.}
+% \end{listing}
+
+% \lipsum[7-20]
+
+% \begin{table}
+%   \centering
+%   \begin{tabular}{lcr}
+%     \toprule
+%     \textbf{Kolom 1} & \textbf{Kolom 2} & \textbf{Kolom 3} \\
+%     $\alpha$         & $\beta$          & $\gamma$         \\
+%     \midrule
+%     A                & 10.230           & a                \\
+%     B                & 45.678           & b                \\
+%     C                & 99.987           & c                \\
+%     \bottomrule
+%   \end{tabular}
+%   \caption[Voorbeeld tabel]{\label{tab:example}Voorbeeld van een tabel.}
+% \end{table}
 
