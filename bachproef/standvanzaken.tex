@@ -7,19 +7,49 @@
 
 % Pas na deze inleidende paragraaf komt de eerste sectiehoofding.
 
-Dit hoofdstuk bevat je literatuurstudie. De inhoud gaat verder op de inleiding, maar zal het onderwerp van de bachelorproef *diepgaand* uitspitten. De bedoeling is dat de lezer na lezing van dit hoofdstuk helemaal op de hoogte is van de huidige stand van zaken (state-of-the-art) in het onderzoeksdomein. Iemand die niet vertrouwd is met het onderwerp, weet nu voldoende om de rest van het verhaal te kunnen volgen, zonder dat die er nog andere informatie moet over opzoeken \autocite{Pollefliet2011}.
+% Dit hoofdstuk bevat je literatuurstudie. De inhoud gaat verder op de inleiding, maar zal het onderwerp van de bachelorproef *diepgaand* uitspitten. De bedoeling is dat de lezer na lezing van dit hoofdstuk helemaal op de hoogte is van de huidige stand van zaken (state-of-the-art) in het onderzoeksdomein. Iemand die niet vertrouwd is met het onderwerp, weet nu voldoende om de rest van het verhaal te kunnen volgen, zonder dat die er nog andere informatie moet over opzoeken \autocite{Pollefliet2011}.
 
-Je verwijst bij elke bewering die je doet, vakterm die je introduceert, enz.\ naar je bronnen. In \LaTeX{} kan dat met het commando \texttt{$\backslash${textcite\{\}}} of \texttt{$\backslash${autocite\{\}}}. Als argument van het commando geef je de ``sleutel'' van een ``record'' in een bibliografische databank in het Bib\LaTeX{}-formaat (een tekstbestand). Als je expliciet naar de auteur verwijst in de zin (narratieve referentie), gebruik je \texttt{$\backslash${}textcite\{\}}. Soms is de auteursnaam niet expliciet een onderdeel van de zin, dan gebruik je \texttt{$\backslash${}autocite\{\}} (referentie tussen haakjes). Dit gebruik je bv.~bij een citaat, of om in het bijschrift van een overgenomen afbeelding, broncode, tabel, enz. te verwijzen naar de bron. In de volgende paragraaf een voorbeeld van elk.
+% Je verwijst bij elke bewering die je doet, vakterm die je introduceert, enz.\ naar je bronnen. In \LaTeX{} kan dat met het commando \texttt{$\backslash${textcite\{\}}} of \texttt{$\backslash${autocite\{\}}}. Als argument van het commando geef je de ``sleutel'' van een ``record'' in een bibliografische databank in het Bib\LaTeX{}-formaat (een tekstbestand). Als je expliciet naar de auteur verwijst in de zin (narratieve referentie), gebruik je \texttt{$\backslash${}textcite\{\}}. Soms is de auteursnaam niet expliciet een onderdeel van de zin, dan gebruik je \texttt{$\backslash${}autocite\{\}} (referentie tussen haakjes). Dit gebruik je bv.~bij een citaat, of om in het bijschrift van een overgenomen afbeelding, broncode, tabel, enz. te verwijzen naar de bron. In de volgende paragraaf een voorbeeld van elk.
 
-\textcite{Knuth1998} schreef een van de standaardwerken over sorteer- en zoekalgoritmen. Experten zijn het erover eens dat cloud computing een interessante opportuniteit vormen, zowel voor gebruikers als voor dienstverleners op vlak van informatietechnologie~\autocite{Creeger2009}.
+% \textcite{Knuth1998} schreef een van de standaardwerken over sorteer- en zoekalgoritmen. Experten zijn het erover eens dat cloud computing een interessante opportuniteit vormen, zowel voor gebruikers als voor dienstverleners op vlak van informatietechnologie~\autocite{Creeger2009}.
 
-Let er ook op: het \texttt{cite}-commando voor de punt, dus binnen de zin. Je verwijst meteen naar een bron in de eerste zin die erop gebaseerd is, dus niet pas op het einde van een paragraaf.
+% Let er ook op: het \texttt{cite}-commando voor de punt, dus binnen de zin. Je verwijst meteen naar een bron in de eerste zin die erop gebaseerd is, dus niet pas op het einde van een paragraaf.
 
+Dit hoofdstuk bouwt verder op de probleemstelling uit de inleiding en biedt een diepgaand
+overzicht van de huidige stand van zaken binnen het onderzoeksdomein. Achtereenvolgens
+komen de connectiviteitsproblematiek in afgelegen gebieden en noodsituaties, de fysische
+eigenschappen van radiofrequenties en signaalpropagatie, multiplextechnieken,
+protocollen voor radiogebaseerde dataoverdracht, en de toepassing van straalverbindingen
+aan bod. Tot slot worden de wettelijke randvoorwaarden voor radioamateurs in België
+besproken. Dit theoretisch kader vormt de basis voor de methodologie en de
+proof-of-concept die in de volgende hoofdstukken worden uitgewerkt.
 
 \section{Connectiviteit in afgelegen gebieden en noodsituaties
 }
 \label{sec:Connectiviteit in afgelegen gebieden en noodsituaties
 }
+
+De beschikbaarheid van digitale bestanden is in de hedendaagse samenleving een kritieke
+vereiste, maar blijft in uiteenlopende situaties een aanzienlijke uitdaging. In maritieme
+omgevingen, afgelegen regio's en rampgebieden is betrouwbare internetconnectiviteit
+structureel onvoldoende of volledig afwezig~\autocite{Xia2022}. \textcite{Zaballos2022}
+beschrijven hoe noodsituaties zoals overstromingen, bosbranden en terroristische aanslagen
+bijzonder hoge eisen stellen aan communicatiesystemen op het vlak van flexibiliteit,
+mobiliteit, betrouwbaarheid en snelheid van inzet. Tegelijkertijd zijn net in dergelijke
+situaties de conventionele communicatie-infrastructuren het meest kwetsbaar: mobiele
+netwerken overbelasten, kabelinfrastructuur valt weg en satellietdiensten zijn niet altijd
+beschikbaar of betaalbaar~\autocite{Zaballos2022}.
+
+Commerciële satellietoplossingen bieden weliswaar globale dekking, maar kampen met hoge
+abonnementskosten en aanzienlijke latency, waardoor ze voor particulieren en kleine
+organisaties vaak financieel of praktisch ontoereikend zijn~\autocite{Xia2022}.
+\textcite{Chaoub2021} argumenteren dat draadloze connectiviteit in afgelegen gebieden
+een sleutelrol zal spelen in toekomstige communicatiegeneraties, waarbij de nadruk ligt
+op robuuste, gedistribueerde systemen die zonder vaste infrastructuur kunnen
+functioneren. Radiogebaseerde communicatie wordt in de literatuur herhaaldelijk naar
+voren geschoven als een veelbelovend alternatief, mede omdat radioamateurs en
+hulpverleningsorganisaties al decennialang gebruikmaken van radioverbindingen als
+ruggengraat voor noodcommunicatie~\autocite{WinlinkEmcomm}.
 
 \section{Radiofrequenties en signaalpropagatie}
 \label{sec:Radiofrequenties en signaalpropagatie}
