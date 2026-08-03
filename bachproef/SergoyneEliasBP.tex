@@ -17,13 +17,17 @@
 %% Pictures to include in the text can be put in the graphics/ folder
 \graphicspath{{../graphics/}}
 
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{minted} % Vereist pdflatex -shell-escape
+
 %% For source code highlighting, requires pygments to be installed
 %% Compile with the -shell-escape flag!
 %% \usepackage[chapter]{minted}
 %% If you compile with the make_thesis.{bat,sh} script, use the following
 %% import instead:
 % \usepackage[chapter,outputdir=../output]{minted}
-\usepackage[chapter]{minted}
+% \usepackage[chapter]{minted}
 \PassOptionsToPackage{outputdir=./output}{minted}
 \usemintedstyle{solarized-light}
 
@@ -77,6 +81,8 @@
 \renewcommand{\arraystretch}{1.2}
 
 %% Content starts here.
+
+
 \begin{document}
 
 %---------- Front matter -------------------------------------------------------
@@ -145,7 +151,9 @@
 %\input{...}
 %...
 \input{Requirementsanalyse en Systeemarchitectuur}
-
+% \input{simulatie_airmax_poc}
+% \input{automatisering_poc}
+\input{poc}
 \input{conclusie}
 
 %---------- Bijlagen -----------------------------------------------------------

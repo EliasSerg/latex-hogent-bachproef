@@ -1,0 +1,172 @@
+%%=============================================================================
+%% Hoofdstuk 5: Proof-of-Concept en Implementatie
+%%=============================================================================
+
+\chapter{Proof-of-Concept en Implementatie}%
+\label{ch:proof-of-concept}
+
+Dit hoofdstuk behandelt de praktische realisatie van de voorgestelde netwerkarchitectuur. Op basis van de eisen uit Hoofdstuk~\ref{ch:requirementsanalyse} wordt de volledige testenomgeving opgebouwd, geautomatiseerd en voorbereid voor de metingen in Hoofdstuk~\ref{ch:resultaten-en-evaluatie}.
+
+\section{Probleemstelling en Methodologische Verantwoording}%
+\label{sec:sim-verantwoording}
+
+In Fase~3 van de methodologie (Sectie~\ref{sec:meth-fase3}) werd oorspronkelijk gekozen voor een fysieke proof-of-concept met Ubiquiti airMAX-hardware in de 5.6~GHz-band (zie Sectie~\ref{sec:req-tussentijdse-conclusie}). Gezien de hardwarebeperkingen en de beschikbare doorlooptijd van deze bachelorproef, is deze straalverbinding vervangen door een \emph{volledige netwerkemulatie}.
+
+Twee virtuele machines worden via VirtualBox gekoppeld aan een tussenliggende link-emulator die de fysieke eigenschappen van de antenneverbinding getrouw nabootst. Dit is een erkende netwerkonderzoeksmethode: het gedrag van de fysieke laag (doorvoersnelheid, latency, jitter, packet loss) wordt met een emulator gevormd, zodat het protocolgedrag (SFTP over TCP/IP) betrouwbaar geëvalueerd kan worden. Deze scope-aanpassing vormt een bekende randvoorwaarde en wordt als aanbeveling voor toekomstige veldtesten opgenomen in Hoofdstuk~\ref{ch:conclusie}.
+
+\section{Systeemarchitectuur: Dumbbell Link-Emulator Topologie}%
+\label{sec:sim-architectuur}
+
+Om de antenneverbinding te isoleren van de eindpunten, is gekozen voor een \emph{dumbbell-topologie} met een centrale netwerkemulator-VM (zie Figuur~\ref{fig:dumbbell-linkemulator}).
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{figs/dumbbell_linkemulator.pdf}
+  \caption{Dumbbell-topologie met een aparte link-emulator-VM die de twee airMAX-antennes vervangt. Enkel de link-emulator past \texttt{tc/netem} toe.}
+  \label{fig:dumbbell-linkemulator}
+\end{figure}
+
+De opzet bestaat uit drie VirtualBox-VM's:
+\begin{itemize}
+  \item \textbf{VM 'server':} Draait de SFTP-server (FR1--FR3) op \textit{Internal Network A}.
+  \item \textbf{VM 'link-emulator':} Een Linux-bridge met twee interfaces (\textit{Internal Network A} en \textit{B}) waarop onafhankelijk \texttt{netem}-qdiscs worden toegepast.
+  \item \textbf{VM 'client':} Draait de SFTP-client en testtools op \textit{Internal Network B}.
+\end{itemize}
+
+\section{Geautomatiseerde Opbouw van de Testomgeving}%
+\label{sec:automatisering-poc}
+
+Om de reproduceerbaarheid te garanderen (Sectie~\ref{sec:meth-verantwoording}), is de volledige uitrol herleid tot het script \texttt{build\_poc.sh} (zie Bijlage~\ref{app:poc-scripts}). Het script gebruikt een Ubuntu Server \textit{cloud-image} en provisioneert elke VM onbewaakt via \texttt{cloud-init}.
+
+\subsection{Overzicht van het Buildscript}%
+\label{subsec:automatisering-overzicht}
+
+Het script doorloopt vijf stappen: downloaden/converteren van het basisschijf-image, opruimen van oude VM-instanties, aanmaken van de drie VM's, wachten op SSH-bereikbaarheid, en het tonen van verbindingsgegevens.
+
+\begin{listing}[h]
+\begin{minted}{bash}
+# Aanmaak van de drie PoC-VM's via build_poc.sh
+create_vm "poc-server"        "server"        "poc-server"        "${SSH_PORT_SERVER}"  "${NET_LINK_A}"
+create_vm "poc-link-emulator" "link-emulator" "poc-link-emulator" "${SSH_PORT_LINKEMU}" "${NET_LINK_A}" "${NET_LINK_B}"
+create_vm "poc-client"        "client"        "poc-client"        "${SSH_PORT_CLIENT}"  "${NET_LINK_B}"
+\end{minted}
+\caption[Aanmaak van de drie PoC-VM's]{Aanroep van de \texttt{create\_vm}-functie voor de drie rollen.}
+\label{lst:create-vm-calls}
+\end{listing}
+
+De functie \texttt{create\_vm} configureert de schijven en netwerkadapters via \texttt{VBoxManage}:
+
+\begin{listing}[h]
+\begin{minted}{bash}
+VBoxManage createvm --name "${vmname}" --ostype Ubuntu_64 --register
+VBoxManage modifyvm "${vmname}" \
+    --memory "${VM_MEMORY_MB}" --cpus "${VM_CPUS}" \
+    --nic1 nat --natpf1 "ssh,tcp,127.0.0.1,${mgmt_ssh_hostport},,22" \
+    --nic2 intnet --intnet2 "${linkA_net}" \
+    --audio none --usb off
+
+VBoxManage storagectl "${vmname}" --name SATA --add sata --controller IntelAHCI
+VBoxManage storageattach "${vmname}" --storagectl SATA --port 0 --device 0 --type hdd --medium "${vm_disk}"
+VBoxManage storageattach "${vmname}" --storagectl SATA --port 1 --device 0 --type dvddrive --medium "${seed_iso}"
+VBoxManage startvm "${vmname}" --type headless
+\end{minted}
+\caption[VBoxManage-aanroepen voor VM-aanmaak]{VM-definitie, netwerkadapters en cloud-init-ISO koppeling.}
+\label{lst:vboxmanage-create}
+\end{listing}
+
+\subsection{Automatische Provisionering via cloud-init}%
+\label{subsec:automatisering-cloudinit}
+
+Op de server-VM richt \texttt{cloud-init} een beveiligde SFTP-gebruiker met een \texttt{chroot}-omgeving in (FR3, BR1, BR2):
+
+\begin{listing}[h]
+\begin{minted}{yaml}
+users:
+  - name: sftpuser
+    lock_passwd: false
+    plain_text_passwd: "sftp"
+    shell: /usr/sbin/nologin
+
+write_files:
+  - path: /etc/ssh/sshd_config.d/99-poc-sftp.conf
+    content: |
+      Match User sftpuser
+          ChrootDirectory /srv/sftp
+          ForceCommand internal-sftp
+          AllowTcpForwarding no
+          X11Forwarding no
+\end{minted}
+\caption[Cloud-init: SFTP-chroot op de server-VM]{Configuratie van de SFTP-chroot op de server-VM.}
+\label{lst:cloudinit-server-sftp}
+\end{listing}
+
+Op de link-emulator-VM bundelt Netplan de twee netwerkadapters tot een transparante Layer-2 bridge:
+
+\begin{listing}[h]
+\begin{minted}{bash}
+# Netplan bridge-configuratie op de link-emulator
+cat > /etc/netplan/60-poc.yaml <<NETPLAN
+network:
+  version: 2
+  ethernets:
+    ${MGMT_IF}:   { dhcp4: true }
+    ${LINK_A_IF}: { dhcp4: false }
+    ${LINK_B_IF}: { dhcp4: false }
+  bridges:
+    br0:
+      interfaces: [${LINK_A_IF}, ${LINK_B_IF}]
+      dhcp4: false
+NETPLAN
+netplan apply
+\end{minted}
+\caption[Cloud-init: L2-brug op de link-emulator]{Netplan Layer-2 bridging op de link-emulator-VM.}
+\label{lst:cloudinit-bridge}
+\end{listing}
+
+\section{Van Datasheet naar tc/netem Parameters}%
+\label{sec:sim-parameters}
+
+De emulatie-instellingen zijn rechtstreeks afgeleid van de Ubiquiti airMAX AC-datasheets~\autocite{AirMaxTDMA, UISPGPSSync}. Er zijn drie representatieve testscenario's gedefinieerd (zie Figuur~\ref{fig:airmax-scenarios}).
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{figs/airmax_scenarios.pdf}
+  \caption{Drie gesimuleerde kanaalscenario's afgeleid uit airMAX-datasheets.}
+  \label{fig:airmax-scenarios}
+\end{figure}
+
+\paragraph{Scenario 1 -- Ideaal (0--15 km, sterke Line-of-Sight):}
+\begin{verbatim}
+sudo tc qdisc add dev eth1 root netem delay 12ms 2ms distribution normal loss 0.1% rate 150mbit
+\end{verbatim}
+
+\paragraph{Scenario 2 -- Marginaal (15--30 km, verminderde signaalkwaliteit):}
+\begin{verbatim}
+sudo tc qdisc add dev eth1 root netem delay 22ms 3ms distribution normal loss 1.5% rate 35mbit
+\end{verbatim}
+
+\paragraph{Scenario 3 -- DFS-kanaalwissel (radardetectie en onderbreking):}
+Simuleert de verplichte DFS Channel Move Time en Availability Check (EN~301~893) om herstel en hervatting van de overdracht te valideren (FR6):
+\begin{verbatim}
+sudo tc qdisc change dev eth1 root netem loss 100%
+sleep 10
+sudo tc qdisc change dev eth1 root netem delay 22ms 3ms distribution normal loss 1.5% rate 35mbit
+\end{verbatim}
+
+\section{Uitvoering en Testmethodiek}%
+\label{sec:sim-uitvoering}
+
+Het wisselscript \texttt{scenario-select.sh} en het testscript \texttt{run-tests.sh} voeren voor elk scenario een geautomatiseerde meetreeks uit:
+
+\begin{listing}[h]
+\begin{minted}{bash}
+cd poc-scripts/
+./build_poc.sh                 # Bouwt en start de drie VM's
+./scenario-select.sh marginaal  # Schakelt het netem-kanaalscenario in
+./run-tests.sh                  # Voert iperf3, mtr en SFTP-overdrachten uit
+\end{minted}
+\caption[Volledige test-workflow]{De gestandaardiseerde workflow van uitrol tot meting.}
+\label{lst:workflow-volledig}
+\end{listing}
+
+Metingen met \texttt{iperf3} (doorvoersnelheid/REQ-01), \texttt{mtr} (latency en jitter/REQ-02) en \texttt{Wireshark} (TCP-windowing/REQ-03) worden verzameld en getoetst aan de kwaliteitsmatrix uit Hoofdstuk~\label{ch:requirementsanalyse}. De analyseresultaten worden gepresenteerd in Hoofdstuk~\ref{ch:resultaten-en-evaluatie}.
