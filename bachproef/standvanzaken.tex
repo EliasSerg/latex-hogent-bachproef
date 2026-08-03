@@ -17,13 +17,15 @@
 
 Dit hoofdstuk bouwt verder op de probleemstelling uit de inleiding en biedt een diepgaand
 overzicht van de huidige stand van zaken binnen het onderzoeksdomein. Achtereenvolgens
-komen de connectiviteitsproblematiek in afgelegen gebieden, de fysische eigenschappen 
-van radiofrequenties en atmosferische signaalpropagatie aan bod. Vervolgens worden 
-multiplextechnieken, modulatieschema's en protocollen voor radiogebaseerde datacommunicatie 
-geanalyseerd. Tot slot worden de technische trade-offs van straalverbindingen in zowel 
-het gelicentieerde als het licentievrije spectrum (inclusief WiFi- en millimetergolfbanden) 
-en de wettelijke randvoorwaarden voor radioamateurs in België besproken. Dit theoretisch kader 
-vormt het fundament voor de methodologie en de eigen empirische realisatie in de 
+komen de connectiviteitsproblematiek in afgelegen gebieden, de fysische eigenschappen
+van radiofrequenties en atmosferische signaalpropagatie aan bod. Vervolgens worden
+multiplextechnieken, modulatieschema's en protocollen voor radiogebaseerde datacommunicatie
+geanalyseerd. Tot slot worden de technische trade-offs van straalverbindingen in zowel
+het gelicentieerde als het licentievrije spectrum (inclusief WiFi- en millimetergolfbanden)
+en de wettelijke randvoorwaarden voor radioamateurs in België besproken, met bijzondere
+aandacht voor de line-of-sight-beperkingen van hogere frequentiebanden en de verplichte
+Dynamic Frequency Selection in de 5~GHz-band. Dit theoretisch kader
+vormt het fundament voor de methodologie en de eigen empirische realisatie in de
 volgende hoofdstukken.
 
 \section{Connectiviteit in afgelegen gebieden en noodsituaties}
@@ -49,129 +51,407 @@ op robuuste, gedistribueerde systemen die zonder vaste infrastructuur kunnen
 functioneren. Radiogebaseerde communicatie wordt in de literatuur herhaaldelijk naar
 voren geschoven als een veelbelovend alternatief, mede omdat radioamateurs en
 hulpverleningsorganisaties al decennialang gebruikmaken van radioverbindingen als
-ruggengraat voor noodcommunicatie~\autocite{WinlinkEmcomm}. De International Telecommunication 
-Union~\autocite{ITU2021} onderstreept in haar beleidslijnen dat het strategisch inzetten 
-van digitale technologieën en radiocommunicatie de impact van rampen drastisch kan inperken 
+ruggengraat voor noodcommunicatie~\autocite{WinlinkEmcomm}. De International Telecommunication
+Union~\autocite{ITU2021} onderstreept in haar beleidslijnen dat het strategisch inzetten
+van digitale technologieën en radiocommunicatie de impact van rampen drastisch kan inperken
 en de continuïteit van de informatievoorziening waarborgt.
 
 \section{Radiofrequenties en atmosferische signaalpropagatie}
 \label{sec:Radiofrequenties en signaalpropagatie}
 
-Om data succesvol via radiogolven te transporteren, is een fundamenteel begrip van de 
-fysische laag van computercommunicatie essentieel, waarbij elektromagnetische golven worden 
-gebruikt om bitstromen door de ether te sturen~\autocite{Tanenbaum2021}. De capaciteit 
-van dit transportkanaal is onderhevig aan fundamentele theoretische limieten. \textcite{Hartley1928} 
-toonde aan dat de maximale hoeveelheid informatie rechtstreeks evenredig is met de beschikbare 
-bandbreedte en de transmissietijd. Dit concept werd geformaliseerd door \textcite{Shannon1948}, 
-wiens wet met betrekking tot kanaalcapaciteit ($C$) aantoont dat de bovengrens van foutloze 
+Om data succesvol via radiogolven te transporteren, is een fundamenteel begrip van de
+fysische laag van computercommunicatie essentieel, waarbij elektromagnetische golven worden
+gebruikt om bitstromen door de ether te sturen~\autocite{Tanenbaum2021}. De capaciteit
+van dit transportkanaal is onderhevig aan fundamentele theoretische limieten. \textcite{Hartley1928}
+toonde aan dat de maximale hoeveelheid informatie rechtstreeks evenredig is met de beschikbare
+bandbreedte en de transmissietijd. Dit concept werd geformaliseerd door \textcite{Shannon1948},
+wiens wet met betrekking tot kanaalcapaciteit ($C$) aantoont dat de bovengrens van foutloze
 dataoverdracht afhankelijk is van de bandbreedte ($W$) en de signaal-ruisverhouding ($S/N$):
 
+\begin{equation}
 $$C = W \log_2 \left(1 + \frac{S}{N}\right)$$
+\label{eq:shannon-hartley}
+\end{equation}
 
-In \textcite{Shannon1948PartII} wordt dieper ingegaan op de impact van continue kanalen 
-met ruis, wat direct relevant is voor radiogebaseerde systemen. In de praktijk is 
-signaalpropagatie sterk afhankelijk van de gekozen frequentieband en veranderlijke atmosferische 
-omstandigheden~\autocite{Di Lorenzo2018}. Binnen de lagere frequentiebanden, zoals de kortegolf (HF), 
-wordt het bereik bepaald door ionosferische omstandigheden die variëren naargelang het uur van de dag, 
-het seizoen en de zonnecyclus. Een specifiek fenomeen binnen de hogere HF-banden (zoals 10 meter) 
-en lagere VHF-banden (zoals 6 meter) is *Sporadic-E*. Hierbij ontstaan plotseling sterk 
-geïoniseerde wolken in de E-laag van de ionosfeer, waardoor signalen met relatief lage vermogens 
-over extreme afstanden gereflecteerd kunnen worden. Hoewel dit toestaat om duizenden kilometers 
+In \textcite{Shannon1948PartII} wordt dieper ingegaan op de impact van continue kanalen
+met ruis, wat direct relevant is voor radiogebaseerde systemen. In de praktijk is
+signaalpropagatie sterk afhankelijk van de gekozen frequentieband en veranderlijke atmosferische
+omstandigheden~\autocite{Di Lorenzo2018}. Binnen de lagere frequentiebanden, zoals de kortegolf (HF),
+wordt het bereik bepaald door ionosferische omstandigheden die variëren naargelang het uur van de dag,
+het seizoen en de zonnecyclus. Een specifiek fenomeen binnen de hogere HF-banden (zoals 10 meter)
+en lagere VHF-banden (zoals 6 meter) is *Sporadic-E*. Hierbij ontstaan plotseling sterk
+geïoniseerde wolken in de E-laag van de ionosfeer, waardoor signalen met relatief lage vermogens
+over extreme afstanden gereflecteerd kunnen worden. Hoewel dit toestaat om duizenden kilometers
 te overbruggen, zijn deze condities inherent onvoorspelbaar en seizoensgebonden.
 
-Voor kortere afstanden op hogere frequenties, zoals de VHF- en UHF-banden (bijvoorbeeld 70 centimeter), 
-is de propagatie in principe beperkt tot de visuele horizon, tenzij er zich *troposferische propagatie* voordoet. Door specifieke meteorologische omstandigheden, zoals temperatuurinversies, ontstaan er 
-brekingsindices in de lagere atmosfeer (*troposferische ducting*). Dit fenomeen stelt breedbandige 
-radiosignalen in staat om de kromming van de aarde te volgen en honderden kilometers af te leggen. 
-In tegenstelling tot ionosferische HF-reflecties vertoont troposferische propagatie in gematigde 
-klimaten een relatief hoge en stabiele regelmaat, waardoor het bruikbaar is voor semi-permanente 
+Voor kortere afstanden op hogere frequenties, zoals de VHF- en UHF-banden (bijvoorbeeld 70 centimeter),
+is de propagatie in principe beperkt tot de visuele horizon, tenzij er zich *troposferische propagatie* voordoet. Door specifieke meteorologische omstandigheden, zoals temperatuurinversies, ontstaan er
+brekingsindices in de lagere atmosfeer (*troposferische ducting*). Dit fenomeen stelt breedbandige
+radiosignalen in staat om de kromming van de aarde te volgen en honderden kilometers af te leggen.
+In tegenstelling tot ionosferische HF-reflecties vertoont troposferische propagatie in gematigde
+klimaten een relatief hoge en stabiele regelmaat, waardoor het bruikbaar is voor semi-permanente
 datacommunicatie over middellange afstanden.
+
+\subsection{Waarom de frequentieband de haalbare bandbreedte begrenst}%
+\label{subsec:frequentie-kanaalbreedte}
+
+Vergelijking~\eqref{eq:shannon-hartley} toont dat de haalbare kanaalcapaciteit lineair
+toeneemt met de bandbreedte $W$, terwijl ze slechts logaritmisch toeneemt met de
+signaal-ruisverhouding. Dit heeft een belangrijke praktische consequentie die niet
+rechtstreeks uit de formule zelf blijkt: de \emph{reglementair toegelaten}
+kanaalbreedte neemt doorgaans toe naarmate de gekozen draagfrequentie hoger ligt. Op de
+klassieke HF-amateurbanden zijn kanalen van slechts enkele kHz breed toegelaten, terwijl
+in de hogere VHF-, UHF- en microgolfbanden kanalen van enkele honderden kHz tot
+tientallen MHz gebruikelijk zijn~\autocite{BIPT2019,UBAFrequenties}. De keuze van
+frequentieband is dus niet enkel een propagatiekeuze (zoals hierboven beschreven via
+Sporadic-E en troposferische ducting), maar tegelijk een keuze die rechtstreeks de
+haalbare datasnelheid van de proof-of-concept begrenst.
+
+\subsection{Line of sight, aardkromming en de Fresnelzone}%
+\label{subsec:line-of-sight}
+
+De hierboven vermelde beperking tot de "visuele horizon" voor VHF- en UHF-signalen
+verdient een preciezere technische omschrijving, aangezien ze rechtstreeks bepalend is
+voor de haalbare afstand van de proof-of-concept. Signalen vanaf VHF opwaarts planten
+zich in essentie rechtlijnig voort, net als licht, en vereisen dus een \textit{line-of-
+sight}-verbinding (LOS) tussen zender en ontvanger. Twee factoren begrenzen deze
+zichtlijn:
+
+\begin{itemize}
+  \item \textbf{Aardkromming}: door de bolvorm van de aarde is de maximale
+        LOS-afstand tussen twee antennes op hoogte $h_1$ en $h_2$ (in meter) bij
+        benadering $d \approx 3{,}57 \left(\sqrt{h_1} + \sqrt{h_2}\right)$ kilometer.
+        Hogere antenneposities (bijvoorbeeld op een mast of dak) vergroten dus
+        rechtstreeks het haalbare bereik.
+  \item \textbf{Fresnelzone}: naast een volledig vrije zichtlijn moet ook een
+        ellipsvormig volume rond die rechte lijn -- de eerste Fresnelzone -- grotendeels
+        vrij van obstakels blijven (bomen, gebouwen, terreinreliëf). Een gedeeltelijke
+        blokkering van deze zone veroorzaakt bijkomende signaalverzwakking, zelfs wanneer
+        er strikt genomen nog een directe zichtlijn bestaat.
+\end{itemize}
+
+Voor de 6m-band geldt, net zoals voor hogere VHF- en UHF-banden, dat de normale
+propagatie sterk LOS-gebonden is, zij het met een iets grotere diffractie rond obstakels
+dankzij de langere golflengte. Dit legt een harde bovengrens op aan de haalbare afstand
+van de proof-of-concept, behalve tijdens de hierboven beschreven, onvoorspelbare
+Sporadic-E- of troposferische openingen. Deze randvoorwaarde wordt meegenomen bij het
+bepalen van de testlocaties in Hoofdstuk~\ref{ch:proof-of-concept}.
+
+\subsection{Vergelijking van frequentiebanden}%
+\label{subsec:vergelijking-frequentiebanden}
+
+Tabel~\ref{tab:frequentiebanden} en Figuur~\ref{fig:spectrum} vatten de
+propagatie-eigenschappen van de hierboven besproken banden samen, aangevuld met de
+6m-amateurband (50--54~MHz) en de microgolfbanden die verderop in
+Sectie~\ref{sec:Straalverbindingen als proof-of-concept} aan bod komen.
+
+\begin{table}[h]
+  \centering
+  \small
+  \begin{tabular}{p{2.1cm}p{2.3cm}p{4.3cm}p{4.3cm}}
+    \toprule
+    \textbf{Band} & \textbf{Typisch bereik} & \textbf{Voordelen} & \textbf{Nadelen} \\
+    \midrule
+    HF (3--30~MHz) & Honderden tot duizenden km (via ionosfeer) &
+      Zeer lange afstanden zonder direct zicht; lage kostprijs van apparatuur &
+      Zeer smalle toegelaten kanalen (enkele kHz), sterk variabele propagatie, hoge
+      atmosferische ruis \\
+    VHF laag (50--54~MHz, "6m-band") & Lokaal (tientallen km, LOS) tot occasioneel
+      duizenden km (Sporadic-E) &
+      Bredere kanalen dan HF toegelaten; meestal stabiele, voorspelbare
+      lokale propagatie; lagere ruisvloer dan HF; minder drukke band dan 2m &
+      Nog steeds beperkte absolute bandbreedte; occasionele Sporadic-E-openingen zijn
+      niet betrouwbaar genoeg voor een permanente link \\
+    VHF/UHF (144~MHz--1,3~GHz) & Line-of-sight, tientallen km (meer met troposferische
+      ducting) &
+      Bredere kanalen, compacte antennes, veel bestaande amateurapparatuur &
+      Strikt line-of-sight, gevoelig voor obstakels en aardkromming \\
+    Microgolf (2,4/5,6/60~GHz) & Line-of-sight, tot tientallen km met gerichte
+      antennes (sterk beperkt bij 60~GHz) &
+      Zeer brede kanalen (tientallen MHz tot GHz), hoge datasnelheden mogelijk &
+      Zeer strikt line-of-sight, gevoelig voor regendemping en (bij 60~GHz)
+      zuurstofabsorptie; in delen van de 5~GHz-band verplichte DFS wegens
+      radartoepassingen (zie Sectie~\ref{subsec:dfs}) \\
+    \bottomrule
+  \end{tabular}
+  \caption{Vergelijking van frequentiebanden relevant voor radiogebaseerde
+  bestandsoverdracht.}
+  \label{tab:frequentiebanden}
+\end{table}
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{figs/spectrum_overzicht.pdf}
+  \caption{Overzicht van het radiospectrum, met aanduiding van de 6m-amateurband en de
+  5~GHz-banden waarin Dynamic Frequency Selection verplicht is.}
+  \label{fig:spectrum}
+\end{figure}
+
+Deze vergelijking verklaart waarom de 6m-amateurband in deze bachelorproef bijzondere
+aandacht krijgt. De band situeert zich net op de grens tussen HF en VHF, en combineert
+daardoor eigenschappen van beide werelden: ze laat, in tegenstelling tot de klassieke
+HF-banden, bredere kanalen toe -- wat volgens Vergelijking~\eqref{eq:shannon-hartley}
+rechtstreeks een hogere haalbare datasnelheid oplevert -- terwijl ze zich in normale
+omstandigheden gedraagt als een stabiele, voorspelbare LOS-band, eerder dan als de sterk
+variabele klassieke HF-banden. De occasionele Sporadic-E-propagatie die hierboven werd
+beschreven, is voor een permanente, betrouwbare datalink eerder een interessant
+neveneffect dan een bruikbare basis, aangezien deze openingen onvoorspelbaar en van
+beperkte duur zijn. Figuur~\ref{fig:shannon-hartley} illustreert bovendien nogmaals
+concreet hoeveel de bredere kanalen van hogere banden kunnen opleveren in termen van
+kanaalcapaciteit.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.95\textwidth]{figs/shannon_hartley.pdf}
+  \caption{Kanaalcapaciteit in functie van bandbreedte (links) en signaal-ruisverhouding
+  (rechts), volgens de wet van Shannon-Hartley uit Vergelijking~\eqref{eq:shannon-hartley}.}
+  \label{fig:shannon-hartley}
+\end{figure}
 
 \section{Multiplex- en modulatietechnieken in datacommunicatie}
 \label{sec:Multiplextechnieken in radiogebaseerde datacommunicatie}
 
-Wanneer meerdere knooppunten binnen een radionetwerk gelijktijdig gebruikmaken van het 
-beschikbare spectrum, moeten multiplextechnieken worden toegepast om interferentie te voorkomen. 
-\textcite{Tanenbaum2021} beschrijven hoe traditionele technieken zoals *Frequency Division Multiplexing* (FDM) en *Time Division Multiplexing* (TDM) het fysieke kanaal opdelen in aparte frequentiebanden of 
-tijdsloten. Binnen moderne draadloze netwerkinfrastructuren wordt de capaciteit verder vergroot via 
-spectrumaggregatie, waarbij niet-aaneengesloten frequentiebanden dynamisch worden gecombineerd 
+\subsection{Basisprincipes van modulatie}%
+\label{subsec:basis-modulatie}
+
+Digitale data (de bits die de fileserver moet versturen) kan niet rechtstreeks als
+elektrisch signaal over de lucht worden uitgezonden: antennes en de reglementair
+toegewezen frequentiebanden vereisen een sinusvormige draaggolf. \textit{Modulatie} is
+het proces waarbij een informatiesignaal één of meerdere eigenschappen van die
+draaggolf laat variëren, zodat de informatie mee "reist" met de radiogolf. Een
+sinusvormige draaggolf wordt volledig bepaald door drie grootheden: amplitude,
+frequentie en fase. Elke modulatietechniek varieert één (of een combinatie) van deze
+grootheden:
+
+\begin{itemize}
+  \item \textbf{Amplitudemodulatie (AM)}: de amplitude van de draaggolf varieert in
+        functie van het informatiesignaal. Eenvoudig te implementeren, maar gevoelig
+        voor ruis, aangezien ruis zich vaak als een amplitudeverandering manifesteert.
+  \item \textbf{Frequentiemodulatie (FM)}: de frequentie van de draaggolf varieert.
+        Robuuster tegen amplitude-gerelateerde ruis, maar vereist doorgaans meer
+        bandbreedte dan AM.
+  \item \textbf{Fasemodulatie (PM)}: de fase van de draaggolf varieert; in de praktijk
+        nauw verwant aan FM.
+\end{itemize}
+
+Voor digitale communicatie worden deze analoge principes vertaald naar hun discrete
+tegenhangers: \textbf{ASK} (\textit{Amplitude Shift Keying}, de digitale tegenhanger van
+AM), \textbf{FSK} (\textit{Frequency Shift Keying}, waarbij de draaggolf schakelt tussen
+discrete frequenties -- de techniek die RTTY en eenvoudige packet-radiomodems gebruiken,
+zie Sectie~\ref{subsec:rtty}) en \textbf{PSK} (\textit{Phase Shift Keying}, waarbij de
+fase van de draaggolf schakelt tussen discrete waarden). Deze basisprincipes vormen het
+uitgangspunt voor de meer geavanceerde technieken die hieronder aan bod komen.
+
+Wanneer meerdere knooppunten binnen een radionetwerk gelijktijdig gebruikmaken van het
+beschikbare spectrum, moeten multiplextechnieken worden toegepast om interferentie te voorkomen.
+\textcite{Tanenbaum2021} beschrijven hoe traditionele technieken zoals *Frequency Division Multiplexing* (FDM) en *Time Division Multiplexing* (TDM) het fysieke kanaal opdelen in aparte frequentiebanden of
+tijdsloten. Binnen moderne draadloze netwerkinfrastructuren wordt de capaciteit verder vergroot via
+spectrumaggregatie, waarbij niet-aaneengesloten frequentiebanden dynamisch worden gecombineerd
 tot één logisch kanaal~\autocite{MicrowavePtP5G}.
 
-Bij het overdragen van data via atmosferische kanalen speelt de keuze van het modulatieschema een 
-sleutelrol. Binnen toepassingen zoals Digitale Amateur Televisie (D-ATV) wordt vaak gewerkt met 
-single-carrier modulatietechnieken zoals *Quadrature Phase Shift Keying* (QPSK) binnen de DVB-S2 
-standaard om interfaces te simplificeren. Voor pure, robuuste IP-datacommunicatie over instabiele 
-radiokanalen is *Orthogonal Frequency Division Multiplexing* (OFDM) echter superieur. OFDM verdeelt 
-de datastroom over een groot aantal loodrechte subdraaggolven. Dit maakt het signaal extreem 
-resistent tegen *multi-path fading* en looptijdverschillen (*delay spread*), fenomenen die inherent 
-aanwezig zijn bij lange-afstandsverbindingen die gebruikmaken van atmosferische reflecties of 
+Bij het overdragen van data via atmosferische kanalen speelt de keuze van het modulatieschema een
+sleutelrol. Binnen toepassingen zoals Digitale Amateur Televisie (D-ATV) wordt vaak gewerkt met
+single-carrier modulatietechnieken zoals *Quadrature Phase Shift Keying* (QPSK) binnen de DVB-S2
+standaard om interfaces te simplificeren -- een uitbreiding van de basis-PSK hierboven, waarbij
+twee bits tegelijk in vier fasetoestanden worden gecodeerd. Voor pure, robuuste IP-datacommunicatie over instabiele
+radiokanalen is *Orthogonal Frequency Division Multiplexing* (OFDM) echter superieur. OFDM verdeelt
+de datastroom over een groot aantal loodrechte subdraaggolven. Dit maakt het signaal extreem
+resistent tegen *multi-path fading* en looptijdverschillen (*delay spread*), fenomenen die inherent
+aanwezig zijn bij lange-afstandsverbindingen die gebruikmaken van atmosferische reflecties of
 troposferische breking.
 
 \section{Protocollen voor radiogebaseerde dataoverdracht}
 \label{sec:Protocollen voor radiogebaseerde dataoverdracht}
 
-Waar de fysische laag de radiogolven beheert, bepalen de protocollen op de hogere lagen van het 
-OSI-model hoe data logisch geordend en foutloos overgedragen wordt~\autocite{Tanenbaum2021}. 
-Binnen de amateurradio- en noodcommunicatiewereld is *packet radio* historisch gezien de standaard 
-voor data-over-radio~\autocite{ICTPPacketRadio}. Packet radio maakt gebruik van het AX.25-protocol 
-om data op te delen in frames, wat efficiënt hergebruik van de frequentie mogelijk maakt en bovendien 
-toestaat om het TCP/IP-protocol in te kapselen~\autocite{QSLPacketTCPIP}. Hierdoor kunnen standaard 
+Waar de fysische laag de radiogolven beheert, bepalen de protocollen op de hogere lagen van het
+OSI-model hoe data logisch geordend en foutloos overgedragen wordt~\autocite{Tanenbaum2021}.
+
+\subsection{RTTY: de historische basis}%
+\label{subsec:rtty}
+
+De eenvoudigste en oudste vorm van digitale dataoverdracht via radio is
+\textit{Radioteletype} (RTTY), daterend uit de tijd van mechanische teleprinters. RTTY
+gebruikt tweewaardige FSK: een "mark"-toon (logische 1) en een "space"-toon (logische
+0), doorgaans met een frequentieverschuiving van 170~Hz en een symboolsnelheid van
+45,45~baud. De tekens worden gecodeerd met de 5-bit Baudot-code, wat het alfabet
+beperkt tot hoofdletters, cijfers en een beperkte set leestekens. RTTY bevat van
+zichzelf geen foutdetectie of foutcorrectie: een verstoorde toon leidt onmiddellijk tot
+een verminkt teken. Voor de doelstelling van deze bachelorproef -- betrouwbare
+bestandsoverdracht -- is RTTY dan ook vooral van belang als uitgangspunt: het
+illustreert de eenvoudigste vorm van digitale FSK-modulatie en verklaart meteen waarom
+de pakketgebaseerde protocollen hieronder werden ontwikkeld.
+
+Binnen de amateurradio- en noodcommunicatiewereld is *packet radio* historisch gezien de standaard
+voor data-over-radio~\autocite{ICTPPacketRadio}. Packet radio maakt gebruik van het AX.25-protocol
+om data op te delen in frames, wat efficiënt hergebruik van de frequentie mogelijk maakt en bovendien
+toestaat om het TCP/IP-protocol in te kapselen~\autocite{QSLPacketTCPIP}. Hierdoor kunnen standaard
 internetapplicaties draaien via het zogeheten AMPRNet (*Amateur Packet Radio Network*).
 
-Voor grootschalige, gedistribueerde noodcommunicatie heeft het Winlink-ecosysteem zich ontwikkeld 
-tot de wereldwijde standaard~\autocite{WinlinkOverview}. Winlink fungeert als een wereldwijd 
-radio-e-mailsysteem dat met name zijn kracht ontleent aan het *Winlink Hybrid Network*~\autocite{WinlinkHybrid}. 
-Dit netwerk combineert klassieke internetgateways met een autonoom radio-omleidingssysteem. 
-Wanneer lokale internetinfrastructuur uitvalt, schakelt het systeem naadloos over op HF- of 
-VHF/UHF-verbindingen om berichten via naburige, nog operationele radio-relayservers (RMS) te 
-routeren~\autocite{WinlinkEmcomm}. Hoewel systemen zoals Winlink uitermate robuust zijn, zijn hun 
-doorvoersnelheden door de beperkte bandbreedte laag. Voor applicaties die veel data verbruiken, 
+AX.25 (\textit{Amateur X.25}) is zelf afgeleid van het HDLC-protocol (\textit{High-Level
+Data Link Control}) en verstuurt data, in tegenstelling tot RTTY, in afgebakende frames
+met een adresveld (radioamateur-roepletters, eventueel aangevuld met een SSID om
+meerdere toestellen per station te onderscheiden) en een controlesomveld
+(\textit{Frame Check Sequence}) om transmissiefouten te detecteren. Het protocol kent
+twee werkingsmodi: \textit{connectionless} (UI-frames, zonder bevestiging, vergelijkbaar
+met UDP -- gebruikt voor bakens en APRS) en \textit{connection-oriented} (met
+sessieopbouw, genummerde en bevestigde frames, en automatische hertransmissie van
+verloren frames -- conceptueel dicht bij TCP). Op de fysieke laag wordt AX.25 doorgaans
+gedragen door AFSK (\textit{Audio Frequency Shift Keying}) op 1200~baud in de VHF/UHF-
+banden, of door FSK op 300~baud op de HF-banden.
+
+Voor grootschalige, gedistribueerde noodcommunicatie heeft het Winlink-ecosysteem zich ontwikkeld
+tot de wereldwijde standaard~\autocite{WinlinkOverview}. Winlink fungeert als een wereldwijd
+radio-e-mailsysteem dat met name zijn kracht ontleent aan het *Winlink Hybrid Network*~\autocite{WinlinkHybrid}.
+Dit netwerk combineert klassieke internetgateways met een autonoom radio-omleidingssysteem.
+Wanneer lokale internetinfrastructuur uitvalt, schakelt het systeem naadloos over op HF- of
+VHF/UHF-verbindingen om berichten via naburige, nog operationele radio-relayservers (RMS) te
+routeren~\autocite{WinlinkEmcomm}. Hoewel systemen zoals Winlink uitermate robuust zijn, zijn hun
+doorvoersnelheden door de beperkte bandbreedte laag. Voor applicaties die veel data verbruiken,
 zoals gecentraliseerde cloudomgevingen, zijn breedbandige alternatieven noodzakelijk~\autocite{Creeger2009}.
 
 \section{Straalverbindingen: Privileges, ISM-banden en Millimetergolven}
 \label{sec:Straalverbindingen als proof-of-concept}
 
-Wanneer grote hoeveelheden data over middellange tot lange afstanden getransporteerd moeten worden 
-zonder fysieke kabels, bieden point-to-point (PtP) straalverbindingen een onmisbaar, kosteneffectief 
-en snel uit te rollen alternatief voor glasvezel~\autocite{AcomeMicrowaveFibre}. Moderne breedbandige 
-straalverbindingen zijn in staat om gigabit-capaciteiten te overbruggen met minimale 
-latency~\autocite{HighCapacityLongDistance}. Bij het ontwerp van zo'n netwerkarchitectuur moet 
-een fundamentele afweging worden gemaakt tussen het gebruik van exclusieve radioamateurfrequenties 
+Wanneer grote hoeveelheden data over middellange tot lange afstanden getransporteerd moeten worden
+zonder fysieke kabels, bieden point-to-point (PtP) straalverbindingen een onmisbaar, kosteneffectief
+en snel uit te rollen alternatief voor glasvezel~\autocite{AcomeMicrowaveFibre}. Moderne breedbandige
+straalverbindingen zijn in staat om gigabit-capaciteiten te overbruggen met minimale
+latency~\autocite{HighCapacityLongDistance}. Bij het ontwerp van zo'n netwerkarchitectuur moet
+een fundamentele afweging worden gemaakt tussen het gebruik van exclusieve radioamateurfrequenties
 en licentievrije spectrumalternatieven.
 
-Het gebruik van de amateurbanden biedt unieke privileges, zoals hogere toegestane vermogens en 
-specifieke propagatievoordelen, maar vereist dat elke gebruiker in het bezit is van een geldige 
-radioamateurvergunning. Bovendien zijn deze banden in de praktijk gevoelig voor onvoorziene storingen 
-van medegebruikers. Als alternatief kan worden uitgeweken naar licentievrije ISM-banden (*Industrial, 
-Scientific and Medical*) op 2.4 GHz en 5.6 GHz via standaard WiFi-protocollen (zoals IEEE 802.11)~\autocite{LongRangePtP5GHz}. 
-Hoewel deze hardware goedkoop en breed beschikbaar is, kampen deze banden met zware spectrumcongestie 
-in dichtbevolkte gebieden.
+Het gebruik van de amateurbanden biedt unieke privileges, zoals hogere toegestane vermogens en
+specifieke propagatievoordelen, maar vereist dat elke gebruiker in het bezit is van een geldige
+radioamateurvergunning. Bovendien zijn deze banden in de praktijk gevoelig voor onvoorziene storingen
+van medegebruikers. Als alternatief kan worden uitgeweken naar licentievrije ISM-banden (*Industrial,
+Scientific and Medical*) op 2.4 GHz en 5.6 GHz via standaard WiFi-protocollen (zoals IEEE 802.11)~\autocite{LongRangePtP5GHz}.
+Hoewel deze hardware goedkoop en breed beschikbaar is, kampen deze banden met zware spectrumcongestie
+in dichtbevolkte gebieden. Zoals verder toegelicht in Sectie~\ref{subsec:dfs}, brengt het gebruik
+van delen van de 5.6~GHz-band bovendien een specifieke wettelijke verplichting met zich mee omwille
+van gedeeld gebruik met radartoepassingen.
 
-Om aan deze congestie te ontsnappen en grotere bandbreedtes te realiseren, kan de licentievrije 
-60 GHz-band (de V-band) worden ingezet, waar zeer brede kanalen beschikbaar zijn voor gigabit-doorvoer. 
-De bruikbaarheid hiervan voor lange afstanden wordt echter fundamenteel begrensd door atmosferische 
-fysica. Rond de 60 GHz treedt een sterke elektromagnetische resonantie op met zuurstofmoleculen ($O_2$), 
-wat resulteert in een specifieke piek in atmosferische absorptie (tot wel 15 dB/km). Zelfs bij een 
-perfecte optische zichtverbinding (*Line-of-Sight*) beperkt deze moleculaire demping het bereik 
-van 60 GHz-straalverbindingen inherent tot zeer korte afstanden, waardoor ze ongeschikt zijn voor 
+Om aan deze congestie te ontsnappen en grotere bandbreedtes te realiseren, kan de licentievrije
+60 GHz-band (de V-band) worden ingezet, waar zeer brede kanalen beschikbaar zijn voor gigabit-doorvoer.
+De bruikbaarheid hiervan voor lange afstanden wordt echter fundamenteel begrensd door atmosferische
+fysica. Rond de 60 GHz treedt een sterke elektromagnetische resonantie op met zuurstofmoleculen ($O_2$),
+wat resulteert in een specifieke piek in atmosferische absorptie (tot wel 15 dB/km). Zelfs bij een
+perfecte optische zichtverbinding (*Line-of-Sight*) beperkt deze moleculaire demping het bereik
+van 60 GHz-straalverbindingen inherent tot zeer korte afstanden, waardoor ze ongeschikt zijn voor
 interstedelijke backhaullinks~\autocite{Di Lorenzo2018}.
 
 \section{Wettelijk kader en regelgeving in België}
 \label{sec:Wettelijk kader en regelgeving in België}
 
-Elk technisch ontwerp dat gebruikmaakt van het radiospectrum moet strikt voldoen aan de nationale 
-en internationale wetgeving om schadelijke interferentie met primaire diensten te voorkomen. In 
-België wordt het gebruik van radiofrequenties door radioamateurs formeel gereguleerd door het 
-Belgisch Instituut voor Postdiensten en Telecommunicatie~\autocite{BIPT2019}. Het wettelijk besluit 
-definieert nauwkeurig welke frequentiebanden openstaan voor de verschillende amateurlicenties, 
+Elk technisch ontwerp dat gebruikmaakt van het radiospectrum moet strikt voldoen aan de nationale
+en internationale wetgeving om schadelijke interferentie met primaire diensten te voorkomen. In
+België wordt het gebruik van radiofrequenties door radioamateurs formeel gereguleerd door het
+Belgisch Instituut voor Postdiensten en Telecommunicatie~\autocite{BIPT2019}. Het wettelijk besluit
+definieert nauwkeurig welke frequentiebanden openstaan voor de verschillende amateurlicenties,
 welke transmissiemodi zijn toegestaan, en begrenst strikt het maximaal toegestane zendvermogen.
 
-Voor de praktische vertaling van deze wetgeving naar werkbare bandplannen vertrouwen Belgische 
-radioamateurs op de richtlijnen van de Unie van Belgische Zendamateurs~\autocite{UBAFrequenties}. 
-De UBA stemt de nationale frequentieverdelingen af met de International Amateur Radio Union (IARU) 
-en de overheid om ervoor te zorgen dat experimentele datacommunicatie binnen de wettelijk 
-vastgelegde grenzen blijft. Een succesvolle proof-of-concept moet derhalve expliciet ontworpen worden 
+Voor de praktische vertaling van deze wetgeving naar werkbare bandplannen vertrouwen Belgische
+radioamateurs op de richtlijnen van de Unie van Belgische Zendamateurs~\autocite{UBAFrequenties}.
+De UBA stemt de nationale frequentieverdelingen af met de International Amateur Radio Union (IARU)
+en de overheid om ervoor te zorgen dat experimentele datacommunicatie binnen de wettelijk
+vastgelegde grenzen blijft. Een succesvolle proof-of-concept moet derhalve expliciet ontworpen worden
 binnen de vermogens- en frequentiebeperkingen die door deze instanties zijn opgelegd~\autocite{BIPT2019, UBAFrequenties}.
+
+\subsection{Dynamic Frequency Selection en de radar van Zaventem}%
+\label{subsec:dfs}
+
+Zoals aangehaald in Sectie~\ref{sec:Straalverbindingen als proof-of-concept}, wordt een
+deel van de licentievrije 5~GHz-band gedeeld met radartoepassingen: delen van de band
+(met name 5250--5350~MHz en 5470--5725~MHz) waren oorspronkelijk toegewezen aan
+militaire radar, satellietverbindingen, en meteorologische (weer)radar. Toen deze
+frequenties later ook voor Wi-Fi en andere puntverbindingen werden vrijgegeven, werd
+\textit{Dynamic Frequency Selection} (DFS) als verplichte beveiligingsmaatregel
+ingevoerd: een zendtoestel moet voortdurend controleren of de gebruikte frequentie niet
+ook door een radar wordt gebruikt, en moet bij detectie van een radarsignaal
+onmiddellijk overschakelen naar een andere, vrije frequentie.
+
+Deze problematiek is voor deze bachelorproef niet louter theoretisch. Het Belgisch
+Instituut voor Postdiensten en Telecommunicatie werkt samen met het Koninklijk
+Meteorologisch Instituut (KMI) om storingen op de weerradar op te sporen: de
+radarbeelden kunnen verstoord worden door zendtoestellen die dezelfde frequentieband
+rond 5~GHz gebruiken, vaak krachtige Wi-Fi-puntverbindingen tussen twee
+locaties~\autocite{BIPTKMI2017}. De weerradar in de omgeving van Zaventem is expliciet
+een van de installaties die op deze manier bewaakt wordt. Een zendtoestel dat op een
+storende frequentie blijft uitzenden zonder de vereiste DFS-functionaliteit, riskeert
+dus niet enkel de meteorologische radarwaarnemingen te verstoren, maar ook een
+handhavingsactie vanwege het BIPT.
+
+Voor deze bachelorproef betekent dit concreet dat, indien de proof-of-concept
+(gedeeltelijk) in de 5~GHz-band wordt uitgevoerd, de gebruikte apparatuur ofwel een
+werkende DFS-implementatie moet bevatten, ofwel handmatig beperkt moet worden tot
+kanalen buiten de radar-gereserveerde subbanden (bijvoorbeeld de lagere U-NII-1-band).
+Deze laatste aanpak -- het a priori uitsluiten van de gevoelige frequenties in plaats
+van te vertrouwen op automatische detectie -- is de veiligste en eenvoudigste manier om
+regelgevende blootstelling te vermijden binnen de scope van een proof-of-concept, en
+wordt meegenomen als harde randvoorwaarde in de requirementsanalyse van
+Hoofdstuk~\ref{ch:requirementsanalyse}.
+
+\section{Ontwerpvraag: waarom een modem aan de zenderzijde?}%
+\label{sec:modem-zender}
+
+De fileserver levert digitale data (bits) aan, terwijl het radiokanaal, zoals hierboven
+uiteengezet, een analoog medium is dat een gemoduleerde draaggolf vereist. Er is dus,
+ergens in de keten tussen fileserver en antenne, een \textit{modem}
+(modulator-demodulator) nodig die digitale data omzet naar een analoog signaal dat via
+de radiozender kan worden uitgestuurd -- en, aan de ontvangstzijde, dat proces weer
+omkeert.
+
+Deze vaststelling roept een aantal ontwerpvragen op die in
+Hoofdstuk~\ref{ch:proof-of-concept} concreet beantwoord worden, maar die hier reeds
+als leidraad worden gesteld:
+
+\begin{itemize}
+  \item Waar precies ligt de grens tussen de digitale wereld (fileserver, IP-tunnel) en
+        de analoge wereld (radiofrequent signaal)? Met andere woorden: welk deel van de
+        modulatie gebeurt in software (bijvoorbeeld via een \textit{Software Defined
+        Radio}) en welk deel in de bestaande hardware van een standaardtransceiver?
+  \item Volstaat een modem aan de zenderzijde alleen, of is een symmetrische opstelling
+        (modem aan zowel zender- als ontvangstzijde) noodzakelijk voor een
+        tweerichtingsverbinding zoals vereist voor bestandsoverdracht (upload \'{e}n
+        download)?
+  \item Moet de modem als apart tussenstuk tussen computer en transceiver worden
+        geplaatst (zoals bij klassieke packet-radio TNC's), of kan deze functie
+        volledig in software op de computer zelf worden uitgevoerd?
+  \item Welke invloed heeft de plaats van de modem in de keten op de uiteindelijke
+        betrouwbaarheid en latentie van de verbinding, en hoe verhoudt zich dat tot de
+        eisen die in Hoofdstuk~\ref{ch:requirementsanalyse} worden vastgelegd?
+\end{itemize}
+
+Deze vragen tonen aan dat de plaatsing van de modem geen triviale implementatiedetail
+is, maar een architecturale keuze die rechtstreeks de haalbare betrouwbaarheid,
+bandbreedte en complexiteit van de proof-of-concept bepaalt.
+
+\section{Besluit}%
+\label{sec:stand-van-zaken-besluit}
+
+Dit hoofdstuk bracht de theoretische, technische en regelgevende bouwstenen samen die
+nodig zijn om een radiogebaseerde verbinding met een private fileserver te ontwerpen.
+Bestaande communicatie-infrastructuur schiet tekort in afgelegen gebieden, op zee en in
+rampsituaties, wat de nood aan een infrastructuuronafhankelijk alternatief onderbouwt.
+De wet van Shannon-Hartley toont aan dat de haalbare datasnelheid rechtstreeks
+samenhangt met de beschikbare bandbreedte, en dus onrechtstreeks met de gekozen
+frequentieband, terwijl aardkromming en de Fresnelzone een harde fysieke grens opleggen
+aan het bereik van line-of-sight-gebonden banden. Modulatietechnieken -- van eenvoudige
+AM/FM/PM tot ASK/FSK/PSK en verder tot QPSK en OFDM -- bepalen hoe digitale data
+effectief op een radiogolf wordt gecodeerd, met een afweging tussen spectrale
+efficiëntie, robuustheid en complexiteit. Protocollen zoals RTTY en AX.25 illustreren,
+van eenvoudig naar complexer, hoe digitale informatie via radio kan worden
+gestructureerd en foutbestendig gemaakt, met AX.25 als historische voorloper van
+IP-over-radio en Winlink als hedendaagse standaard voor noodcommunicatie. De
+vergelijking van frequentiebanden toont aan dat de 6m-amateurband een aantrekkelijk
+compromis biedt tussen bandbreedte en voorspelbare propagatie, terwijl straalverbindingen
+in ISM- en millimetergolfbanden hogere capaciteiten bieden ten koste van strengere
+line-of-sight-vereisten. Tot slot brengt het gebruik van de 5GHz-band een specifieke
+regelgevende verplichting met zich mee -- Dynamic Frequency Selection -- om storing van
+meteorologische radar zoals die van Zaventem te vermijden, net zoals elk ontwerp zich
+moet houden aan de door het BIPT en de UBA vastgelegde frequentie- en
+vermogensgrenzen. Samen vormen deze inzichten de theoretische basis voor de
+requirementsanalyse in Hoofdstuk~\ref{ch:requirementsanalyse} en het ontwerp van de
+proof-of-concept in Hoofdstuk~\ref{ch:proof-of-concept}.
 
 % \begin{figure}
 %   \centering
@@ -206,4 +486,3 @@ binnen de vermogens- en frequentiebeperkingen die door deze instanties zijn opge
 %   \end{tabular}
 %   \caption[Voorbeeld tabel]{\label{tab:example}Voorbeeld van een tabel.}
 % \end{table}
-

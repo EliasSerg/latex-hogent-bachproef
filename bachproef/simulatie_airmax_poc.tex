@@ -1,0 +1,162 @@
+%%=============================================================================
+%% Virtuele simulatie van de straalverbinding (bij ontstentenis van fysieke hardware)
+%% Dit fragment is bedoeld voor Hoofdstuk~\ref{ch:proof-of-concept}, als vervolg op
+%% Sectie~\ref{sec:plan-van-aanpak-virtualbox} uit de requirementsanalyse.
+%%=============================================================================
+
+\section{Volledige virtuele simulatie van de 5.6~GHz airMAX-straalverbinding}%
+\label{sec:virtuele-simulatie-airmax}
+
+\subsection{Probleemstelling en methodologische verantwoording}%
+\label{subsec:sim-verantwoording}
+
+In Fase~3 van de methodologie (Sectie~\ref{sec:meth-fase3}) werd expliciet gekozen voor
+een fysieke proof-of-concept boven een zuiver gesimuleerde netwerkomgeving, net omdat
+reële atmosferische demping en hardware-overhead moeilijk betrouwbaar te modelleren
+zijn. In de praktijk bleek de aankoop van de vooropgestelde Ubiquiti airMAX-apparatuur
+(werkzaam in de 5.6~GHz Wi-Fi-band, zie de Tussentijdse Conclusie in
+Sectie~\ref{sec:req-tussentijdse-conclusie}) echter niet haalbaar binnen het tijdsbestek
+en budget van deze bachelorproef. Om toch een tastbare, functionele en meetbare
+praktijkuitwerking te kunnen voorleggen, wordt de straalverbinding zelf vervangen door
+een \emph{volledige netwerkemulatie}: twee virtuele machines die via
+\texttt{VirtualBox} gekoppeld worden op een manier die de eigenschappen van de
+antenneverbinding zo getrouw mogelijk nabootst, zonder dat er effectief radiogolven aan
+te pas komen.
+
+Dit is een erkende en gangbare onderzoeksmethode in netwerkonderzoek: waar de fysieke
+laag (modulatie, propagatie, antennegain) niet zelf kan worden opgebouwd, wordt het
+\emph{gedrag} van die fysieke laag op de hogere lagen (doorvoersnelheid, latency,
+jitter, packet loss) nagebootst met een netwerkemulator, zodat de protocollaag (in dit
+geval SFTP over TCP/IP) wél op een realistische manier getest kan worden. Dit is
+expliciet \textbf{geen vervanging} van de oorspronkelijke onderzoeksdoelstelling om een
+fysieke radioverbinding te realiseren, maar een pragmatische aanpassing van de scope,
+die als dusdanig moet worden opgenomen als beperking van dit onderzoek: de resultaten
+in Hoofdstuk~\ref{ch:resultaten-en-evaluatie} valideren het functionele en
+protocolgedrag van de architectuur onder \emph{verwachte, uit datasheets afgeleide}
+kanaalcondities, maar bevestigen niet de effectieve RF-prestaties (antennealignment,
+werkelijke propagatie, weersinvloed) van een fysieke airMAX-link in het veld. Dit wordt
+expliciet aangehaald als aanbeveling voor toekomstig onderzoek in
+Hoofdstuk~\ref{ch:conclusie}.
+
+\subsection{Architectuur: een link-emulator tussen twee eindpunten}%
+\label{subsec:sim-architectuur}
+
+De eenvoudigste opzet uit Sectie~\ref{sec:plan-van-aanpak-virtualbox} past
+\texttt{tc/netem} rechtstreeks toe op de netwerkinterface van de fileserver-VM. Om de
+antenneverbinding echter zo zuiver mogelijk te isoleren van de eindpunten zelf -- net
+zoals twee airMAX-radio's elk hun eigen apparaat zijn, met de lucht als gedeeld medium
+ertussen -- verdient een \emph{dumbbell-topologie} met een derde, tussenliggende VM de
+voorkeur. Figuur~\ref{fig:dumbbell-linkemulator} toont deze opzet.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{figs/dumbbell_linkemulator.pdf}
+  \caption{Dumbbell-topologie met een aparte link-emulator-VM die de rol van de twee
+  airMAX-antennes overneemt. De server- en client-VM draaien onveranderde SFTP-software;
+  enkel de link-emulator past \texttt{tc/netem} toe.}
+  \label{fig:dumbbell-linkemulator}
+\end{figure}
+
+Deze opzet vereist drie VirtualBox-VM's:
+
+\begin{itemize}
+  \item \textbf{VM 'server'}: draait de SFTP-server (conform FR-01--FR-03), met één
+        netwerkinterface gekoppeld aan \textit{Internal Network A}.
+  \item \textbf{VM 'link-emulator'}: een minimale Linux-VM met \emph{twee}
+        netwerkinterfaces -- één op \textit{Internal Network A} (richting server), één
+        op \textit{Internal Network B} (richting client) -- die als Linux-bridge
+        (\texttt{brctl}/\texttt{bridge-utils} of \texttt{systemd-networkd}) fungeert.
+        Op beide interfaces wordt onafhankelijk een \texttt{netem}-qdisc toegepast, wat
+        toelaat om de verbinding zelfs asymmetrisch te simuleren (zoals in de praktijk
+        vaak het geval is bij een reëel airMAX-PtP-link met licht verschillende
+        signaalkwaliteit in beide richtingen).
+  \item \textbf{VM 'client'}: draait de SFTP-client en testtools, gekoppeld aan
+        \textit{Internal Network B}.
+\end{itemize}
+
+Deze scheiding heeft als voordeel dat de server- en client-VM's volledig ongewijzigd
+blijven -- zij "zien" enkel een gewoon Ethernet-segment, precies zoals ze een
+antenne-interface zouden zien in de fysieke opstelling -- terwijl alle kanaalemulatie
+geconcentreerd blijft in één centrale, makkelijk aan te passen VM.
+
+\subsection{Van datasheet naar netem-parameters}%
+\label{subsec:sim-parameters}
+
+Om de emulatie inhoudelijk te onderbouwen, worden de \texttt{netem}-parameters niet
+willekeurig gekozen, maar afgeleid uit de publieke technische specificaties van het
+airMAX-platform zelf. Ubiquiti's TDMA-gebaseerde airMAX-protocol vermijdt de
+verborgen-node-problematiek van klassieke CSMA/CA-Wi-Fi en levert daardoor
+gedocumenteerde prestatiewaarden: in punt-tot-puntmodus haalt airMAX-apparatuur een
+reële TCP/IP-doorvoersnelheid van meer dan 150~Mbit/s onder goede
+omstandigheden~\autocite{AirMaxTDMA}. De latency van airMAX-AC-apparatuur is rechtstreeks
+gekoppeld aan de ingestelde TDD-framingduur: bij een framing van 5~ms bedraagt de
+gemiddelde latency ongeveer 10 tot 15~ms, en bij een framing van 8~ms ongeveer 16 tot
+24~ms~\autocite{UISPGPSSync}. Deze waarden vormen de basis voor drie representatieve
+simulatiescenario's, samengevat in Figuur~\ref{fig:airmax-scenarios}.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{figs/airmax_scenarios.pdf}
+  \caption{Drie gesimuleerde kanaalscenario's voor de airMAX-link, met
+  \texttt{netem}-doelwaarden afgeleid uit de airMAX-datasheets.}
+  \label{fig:airmax-scenarios}
+\end{figure}
+
+\paragraph{Scenario 1 -- Ideaal (korte afstand, sterk signaal).} Representatief voor het
+optimale bereik uit Sectie~\ref{sec:req-tussentijdse-conclusie} (0--15~km, vrije
+Fresnelzone): hoge modulatie, 5~ms TDD-framing, verwaarloosbaar packet loss.
+\begin{verbatim}
+sudo tc qdisc add dev eth1 root netem \
+    delay 12ms 2ms distribution normal \
+    loss 0.1% \
+    rate 150mbit
+\end{verbatim}
+
+\paragraph{Scenario 2 -- Marginaal (langere afstand, lagere modulatie).}
+Representatief voor het horizonlimiet-segment (15--30~km): de adaptieve modulatie van
+airMAX schakelt terug naar een robuustere, minder efficiënte modulatiewijze, de
+TDD-framing wordt verlengd, en er treedt meetbaar packet loss op door een lagere
+signaal-ruisverhouding.
+\begin{verbatim}
+sudo tc qdisc add dev eth1 root netem \
+    delay 22ms 3ms distribution normal \
+    loss 1.5% \
+    rate 35mbit
+\end{verbatim}
+
+\paragraph{Scenario 3 -- DFS-kanaalwissel (radardetectie).} Zoals toegelicht in
+Sectie~\ref{subsec:dfs}, verplicht de detectie van een radarsignaal (bijvoorbeeld van de
+weerradar bij Zaventem) een onmiddellijke kanaalwissel. Volgens de Europese
+DFS-regelgeving (EN~301~893) moet de zender de uitzending binnen enkele honderden
+milliseconden staken (\textit{Channel Move Time}) en mag pas op het nieuwe kanaal
+worden uitgezonden na een \textit{Channel Availability Check}, die op de meeste kanalen
+zo'n 60~seconden duurt maar op bepaalde radar-gevoelige kanalen kan oplopen tot
+10~minuten. Voor de TCP-sessie van SFTP gedraagt dit zich niet als verhoogde latency,
+maar als een \emph{volledige, tijdelijke onderbreking} van de verbinding. Dit wordt
+gesimuleerd door de \texttt{netem}-qdisc tijdelijk te vervangen door een volledig
+pakketverlies, gevolgd door herstel:
+\begin{verbatim}
+# Simuleer de onderbreking (bv. 10 seconden channel move + hertest)
+sudo tc qdisc change dev eth1 root netem loss 100%
+sleep 10
+sudo tc qdisc change dev eth1 root netem \
+    delay 22ms 3ms distribution normal loss 1.5% rate 35mbit
+\end{verbatim}
+Dit scenario laat toe om FR-06 (hervatten van onderbroken overdrachten) concreet te
+testen: een SFTP-sessie die deze onderbreking overleeft en de bestandsoverdracht
+nadien hervat, toont aan dat de architectuur bestand is tegen een reële DFS-gebeurtenis.
+
+\subsection{Uitvoering en interpretatie van de resultaten}%
+\label{subsec:sim-uitvoering}
+
+Voor elk van de drie scenario's wordt, net zoals in het stappenplan van
+Sectie~\ref{sec:plan-van-aanpak-virtualbox}, een representatieve bestandsoverdracht via
+SFTP uitgevoerd en gemeten met \texttt{iperf3} (doorvoersnelheid), \texttt{ping}/
+\texttt{mtr} (latency) en \texttt{Wireshark} (TCP-venstergedrag, hertransmissies). De
+resultaten worden getoetst aan REQ-01 tot en met REQ-03 en aan
+Tabel~\ref{tab:requirementsmatrix}, op exact dezelfde manier alsof het om metingen op
+een fysieke straalverbinding zou gaan. Waar in Hoofdstuk~\ref{ch:resultaten-en-evaluatie}
+naar "de proof-of-concept" wordt verwezen, betreft dit dus deze volledig virtuele
+dumbbell-opstelling, met de expliciete kanttekening uit
+Sectie~\ref{subsec:sim-verantwoording} dat dit een emulatie van de verwachte
+airMAX-prestaties is, en geen fysieke RF-meting.

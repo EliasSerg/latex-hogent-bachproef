@@ -1,0 +1,208 @@
+%%=============================================================================
+%% Geautomatiseerde opbouw van de virtuele testomgeving
+%% Aanvulling op Sectie sec:virtuele-simulatie-airmax in Hoofdstuk~\ref{ch:proof-of-concept}.
+%% Verwijst naar de scripts in bijlage (map poc-scripts/), die hier gedeeltelijk
+%% als codefragment worden getoond via minted.
+%%=============================================================================
+
+\section{Geautomatiseerde opbouw van de testomgeving}%
+\label{sec:automatisering-poc}
+
+Om de virtuele testomgeving uit Sectie~\ref{sec:virtuele-simulatie-airmax}
+reproduceerbaar te maken -- een vereiste voor de wetenschappelijke onderbouwing van
+deze bachelorproef (Sectie~\ref{sec:meth-verantwoording}) -- werd de volledige opbouw
+van de drie VM's herleid tot één enkel script,
+\texttt{build\_poc.sh}\footnote{Volledige broncode in Bijlage~\ref{app:poc-scripts} en in de
+digitale bijlagen, map \texttt{poc-scripts/}.}. Dit script vereist geen manuele
+installatiestappen: het gebruikt de officiële Ubuntu Server \textit{cloud-image} als
+basis en configureert elke VM volledig automatisch via \texttt{cloud-init}, een
+industriestandaard-mechanisme voor het onbewaakt provisioneren van VM's dat de
+klassieke, manuele ISO-installatiewizard overbodig maakt.
+
+\subsection{Overzicht van het buildscript}%
+\label{subsec:automatisering-overzicht}
+
+Figuur~\ref{fig:dumbbell-linkemulator} (Sectie~\ref{subsec:sim-architectuur}) toont de
+beoogde topologie. \texttt{build\_poc.sh} realiseert deze in vijf stappen:
+
+\begin{enumerate}
+  \item het downloaden en converteren van de Ubuntu Server cloud-image naar een
+        VirtualBox VDI-basisschijf (eenmalig; nadien hergebruikt voor elke VM);
+  \item het opruimen van een eventuele vorige testopstelling, zodat het script
+        idempotent herhaalbaar is;
+  \item het aanmaken van de drie VM's (\texttt{poc-server}, \texttt{poc-link-emulator},
+        \texttt{poc-client}) met de netwerktopologie uit
+        Sectie~\ref{subsec:sim-architectuur};
+  \item het wachten tot elke VM zijn \texttt{cloud-init}-provisionering heeft
+        afgerond, gedetecteerd via de bereikbaarheid van de SSH-poort;
+  \item het weergeven van de verbindingsgegevens en de vervolgcommando's.
+\end{enumerate}
+
+Elke VM krijgt twee (of, voor de link-emulator, drie) netwerkadapters: een eerste NAT-
+adapter, uitsluitend voor beheer (SSH vanaf de hostmachine via een poort-forward, zodat
+geen extra host-only netwerkconfiguratie op de hostmachine nodig is), en één of twee
+\textit{Internal Network}-adapters die samen de "radiolink" vormen. Onderstaand
+fragment uit \texttt{build\_poc.sh} toont hoe de drie VM's met deze topologie worden
+aangemaakt:
+
+\begin{listing}[h]
+\begin{minted}{bash}
+# create_vm <vmname> <role> <hostname> <mgmt_ssh_hostport> <linkA_net> [<linkB_net>]
+create_vm "poc-server"        "server"        "poc-server"        \
+    "${SSH_PORT_SERVER}"  "${NET_LINK_A}"
+create_vm "poc-link-emulator" "link-emulator" "poc-link-emulator" \
+    "${SSH_PORT_LINKEMU}" "${NET_LINK_A}" "${NET_LINK_B}"
+create_vm "poc-client"        "client"        "poc-client"        \
+    "${SSH_PORT_CLIENT}"  "${NET_LINK_B}"
+\end{minted}
+\caption[Aanmaak van de drie PoC-VM's]{Aanroep van de \texttt{create\_vm}-functie voor
+elk van de drie rollen, met hun respectievelijke netwerktopologie.}
+\label{lst:create-vm-calls}
+\end{listing}
+
+De functie \texttt{create\_vm} zelf (in \texttt{lib/functions.sh}) kloont de
+basisschijf, genereert een \texttt{cloud-init}-\textit{seed}-ISO op maat van de rol
+(zie Sectie~\ref{subsec:automatisering-cloudinit}), en roept vervolgens
+\texttt{VBoxManage} aan om de VM effectief aan te maken en op te starten:
+
+\begin{listing}[h]
+\begin{minted}{bash}
+VBoxManage createvm --name "${vmname}" --ostype Ubuntu_64 --register
+VBoxManage modifyvm "${vmname}" \
+    --memory "${VM_MEMORY_MB}" --cpus "${VM_CPUS}" \
+    --nic1 nat --natpf1 "ssh,tcp,127.0.0.1,${mgmt_ssh_hostport},,22" \
+    --nic2 intnet --intnet2 "${linkA_net}" \
+    --audio none --usb off
+# (derde NIC enkel voor de link-emulator, zie functions.sh)
+
+VBoxManage storagectl "${vmname}" --name SATA --add sata --controller IntelAHCI
+VBoxManage storageattach "${vmname}" --storagectl SATA \
+    --port 0 --device 0 --type hdd    --medium "${vm_disk}"
+VBoxManage storageattach "${vmname}" --storagectl SATA \
+    --port 1 --device 0 --type dvddrive --medium "${seed_iso}"
+
+VBoxManage startvm "${vmname}" --type headless
+\end{minted}
+\caption[VBoxManage-aanroepen voor VM-aanmaak]{Kern van de \texttt{create\_vm}-functie:
+VM-definitie, netwerkadapters, opslag (schijf + cloud-init-ISO) en opstart.}
+\label{lst:vboxmanage-create}
+\end{listing}
+
+\subsection{Automatische provisionering via cloud-init}%
+\label{subsec:automatisering-cloudinit}
+
+Elke rol (\texttt{server}, \texttt{link-emulator}, \texttt{client}) heeft een eigen
+\texttt{cloud-init}-configuratiebestand (\texttt{cloud-init/<rol>-user-data.yaml}) dat
+bepaalt welke pakketten geïnstalleerd worden, welke gebruikers aangemaakt worden, en
+welke configuratiebestanden weggeschreven worden. Dit vervangt elke vorm van manuele
+installatie-interactie volledig.
+
+Op de fileserver-VM installeert \texttt{cloud-init} onder meer een SFTP-gebruiker met
+een \texttt{chroot}-omgeving (FR-03, BR-01, BR-02) en een \texttt{iperf3}-server voor
+de doorvoersnelheidsmetingen uit REQ-01:
+
+\begin{listing}[h]
+\begin{minted}{yaml}
+users:
+  - name: sftpuser
+    lock_passwd: false
+    plain_text_passwd: "sftp"
+    shell: /usr/sbin/nologin
+
+write_files:
+  - path: /etc/ssh/sshd_config.d/99-poc-sftp.conf
+    content: |
+      Match User sftpuser
+          ChrootDirectory /srv/sftp
+          ForceCommand internal-sftp
+          AllowTcpForwarding no
+          X11Forwarding no
+\end{minted}
+\caption[Cloud-init: SFTP-chroot op de server-VM]{Fragment uit
+\texttt{server-user-data.yaml}: een SFTP-gebruiker die volledig binnen
+\texttt{/srv/sftp} opgesloten blijft.}
+\label{lst:cloudinit-server-sftp}
+\end{listing}
+
+Op de link-emulator-VM detecteert een klein hulpscript automatisch welke
+netwerkinterface bij welk segment hoort (onafhankelijk van de exacte namen die
+VirtualBox toekent), brugt de twee "radiolink"-interfaces tot een transparante
+Laag-2-verbinding, en herstelt de \texttt{netfilter}-instellingen die anders de
+transparantie van die brug zouden verstoren:
+
+\begin{listing}[h]
+\begin{minted}{bash}
+# /usr/local/bin/configure-network.sh (rol "bridge")
+cat > /etc/netplan/60-poc.yaml <<NETPLAN
+network:
+  version: 2
+  ethernets:
+    ${MGMT_IF}:   { dhcp4: true }
+    ${LINK_A_IF}: { dhcp4: false }
+    ${LINK_B_IF}: { dhcp4: false }
+  bridges:
+    br0:
+      interfaces: [${LINK_A_IF}, ${LINK_B_IF}]
+      dhcp4: false
+NETPLAN
+netplan apply
+\end{minted}
+\caption[Cloud-init: L2-brug op de link-emulator]{Kern van
+\texttt{configure-network.sh} in brug-modus: de twee "radiolink"-interfaces worden
+samengevoegd tot één transparant Laag-2-segment, zodat server en client zich
+gedragen alsof ze rechtstreeks door de lucht verbonden zijn.}
+\label{lst:cloudinit-bridge}
+\end{listing}
+
+\subsection{Van scenario naar netem: één commando per meting}%
+\label{subsec:automatisering-scenario}
+
+Bovenop de basisopstelling installeert \texttt{cloud-init} op de link-emulator-VM ook
+het scenario-script uit Sectie~\ref{subsec:sim-parameters}
+(\texttt{poc-set-scenario.sh}), dat bij het opstarten automatisch het "ideaal"-scenario
+activeert en nadien via SSH op afstand kan worden gewijzigd met het hostscript
+\texttt{scenario-select.sh}:
+
+\begin{listing}[h]
+\begin{minted}{bash}
+./scenario-select.sh ideaal      # 0--15 km, sterk signaal
+./scenario-select.sh marginaal   # 15--30 km, adaptieve modulatie
+./scenario-select.sh dfs         # radardetectie: 10s onderbreking + hervatting
+\end{minted}
+\caption[Scenario wisselen vanaf de host]{Het hostscript \texttt{scenario-select.sh}
+schakelt op afstand tussen de drie kanaalscenario's uit
+Figuur~\ref{fig:airmax-scenarios}, zonder dat de server- of client-VM herstart moeten
+worden.}
+\label{lst:scenario-select}
+\end{listing}
+
+Het bijhorende hostscript \texttt{run-tests.sh} voert vervolgens, voor elk scenario, de
+standaard teststeekproef uit: een \texttt{iperf3}-doorvoertest (REQ-01), een
+latency-/jittermeting met \texttt{mtr} (REQ-02), en een effectieve SFTP-overdracht van
+een testbestand (FR-01, FR-02), zodat de resultaten in
+Hoofdstuk~\ref{ch:resultaten-en-evaluatie} voor elk scenario op identieke wijze en
+zonder manuele tussenkomst verzameld worden.
+
+\subsection{Volledige werkwijze}%
+\label{subsec:automatisering-workflow}
+
+Samengevat volstaan, na installatie van VirtualBox op de hostmachine, de volgende
+commando's om de volledige testopstelling op te bouwen, een scenario te kiezen, en de
+metingen uit te voeren:
+
+\begin{listing}[h]
+\begin{minted}{bash}
+cd poc-scripts/
+./build_poc.sh                  # bouwt en start de drie VM's (eenmalig ~10-15 min)
+./scenario-select.sh marginaal  # kies het gewenste kanaalscenario
+./run-tests.sh                  # voer de meetsteekproef uit en verzamel de resultaten
+\end{minted}
+\caption[Volledige workflow]{De volledige workflow van installatie tot meting, herleid
+tot drie commando's.}
+\label{lst:workflow-volledig}
+\end{listing}
+
+Deze volledige automatisering draagt bij aan de reproduceerbaarheid van dit onderzoek:
+elke meting in Hoofdstuk~\ref{ch:resultaten-en-evaluatie} kan door een derde partij,
+met enkel VirtualBox en de meegeleverde scripts, exact worden gereproduceerd zonder
+kennis van de onderliggende manuele configuratiestappen te vereisen.

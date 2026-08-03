@@ -1,10 +1,10 @@
 %%=============================================================================
 %% Methodologie
 %%=============================================================================
-
+ 
 \chapter{\IfLanguageName{dutch}{Methodologie}{Methodology}}%
 \label{ch:methodologie}
-
+ 
 %% TODO: In dit hoofstuk geef je een korte toelichting over hoe je te werk bent
 %% gegaan. Verdeel je onderzoek in grote fasen, en licht in elke fase toe wat
 %% de doelstelling was, welke deliverables daar uit gekomen zijn, en welke
@@ -25,7 +25,7 @@
 %%
 %% Maak voor elke fase (behalve het literatuuronderzoek) een NIEUW HOOFDSTUK aan
 %% en geef het een gepaste titel.
-
+ 
 Dit hoofdstuk beschrijft de systematische en empirische aanpak die is gehanteerd om de
 centrale onderzoeksvraag met betrekking tot radiogebaseerde bestandstoegang te 
 beantwoorden. Om de technische haalbaarheid en de operationele grenzen van een 
@@ -34,15 +34,15 @@ het onderzoek opgedeeld in vier opeenvolgende, logisch met elkaar verbonden fase
 Elke fase kent een specifieke doelstelling, onderzoeksdoel en tastbare deliverable. 
 Dit gestructureerde proces waarborgt dat de uiteindelijke empirische metingen direct 
 kunnen worden getoetst aan vooraf gedefinieerde, harde netwerkeisen.
-
+ 
 \section{Fase 1: Literatuurstudie (State-of-the-Art)}
 \label{sec:meth-fase1}
-
+ 
 De eerste fase had als doel het creëren van een sluitend theoretisch en conceptueel kader.
 Radiogebaseerde datacommunicatie bevindt zich op het snijvlak van informatietheorie en 
 toegepaste netwerkarchitectuur, waardoor een diepgaande theoretische verkenning van 
 de fysieke laag en de transportlaag noodzakelijk was.
-
+ 
 \begin{itemize}
     \item \textbf{Onderzoeksmethode:} Systematisch literatuuronderzoek (*desk research*) 
     waarbij gebruik is gemaakt van peer-reviewed artikelen, academische handboeken en 
@@ -54,15 +54,15 @@ de fysieke laag en de transportlaag noodzakelijk was.
     \item \textbf{Deliverable:} Het reeds uitgewerkte Hoofdstuk~\ref{ch:stand-van-zaken} 
     (Stand van zaken), dat de theoretische randvoorwaarden voor de rest van dit onderzoek vastlegt.
 \end{itemize}
-
+ 
 \section{Fase 2: Requirementsanalyse en Spectrumvergelijking}
 \label{sec:meth-fase2}
-
+ 
 In de tweede fase is de transitie gemaakt van abstracte theorie naar concrete, meetbare 
 systeemeisen. Voordat een fysieke testopstelling kan worden ontworpen, moeten de 
 minimale prestatie-indicatoren van het netwerk en de meest geschikte frequentiebanden 
 worden gedefinieerd.
-
+ 
 \begin{itemize}
     \item \textbf{Onderzoeksmethode:} Requirementsanalyse gecombineerd met een 
     kwalitatieve vergelijkende studie. De eisen zijn opgesteld volgens de industriestandaard 
@@ -75,14 +75,14 @@ worden gedefinieerd.
     \item \textbf{Deliverable:} Een gestructureerde architectuur- en requirementsmatrix die de 
     basis vormt voor het hierop volgende Hoofdstuk~\ref{ch:requirementsanalyse} (Requirementsanalyse).
 \end{itemize}
-
+ 
 \section{Fase 3: Ontwerp en Realisatie van de Proof-of-Concept}
 \label{sec:meth-fase3}
-
+ 
 De derde fase beslaat het praktische en experimentele kernonderdeel van deze bachelorproef. 
 Om te verifiëren of bestandsoverdrachtsprotocollen daadwerkelijk kunnen functioneren over 
 een draadloos radiomedium, is een representatieve fysieke testomgeving onmisbaar.
-
+ 
 \begin{itemize}
     \item \textbf{Onderzoeksmethode:} Experimenteel-technisch ontwerponderzoek (*design science research*). 
     Er is bewust gekozen voor het bouwen van een fysieke proof-of-concept (PoC) in plaats van 
@@ -96,13 +96,50 @@ een draadloos radiomedium, is een representatieve fysieke testomgeving onmisbaar
     \item \textbf{Deliverable:} Een functionele, infrastructuuronafhankelijke netwerkopstelling, 
     volledig gedocumenteerd in Hoofdstuk~\ref{ch:proof-of-concept} (Ontwerp en Realisatie).
 \end{itemize}
-
+ 
+\subsection{Bijstelling van Fase 3: van fysieke naar emulatiegebaseerde proof-of-concept}%
+\label{subsec:meth-bijstelling-fase3}
+ 
+De hierboven beschreven onderzoeksmethode ging uit van een volledig fysieke PoC, opgebouwd
+rond de in Hoofdstuk~\ref{ch:requirementsanalyse} geselecteerde 5.6~GHz airMAX
+Point-to-Point-apparatuur. Deze specifieke hardware bleek echter niet binnen het
+beschikbare budget en tijdsbestek van deze bachelorproef aan te kopen. Dit is een
+praktische, niet-theoretische beperking: de argumentatie voor een fysieke opstelling
+boven een zuiver gesimuleerde omgeving -- namelijk dat reële atmosferische demping en
+hardware-overhead moeilijk betrouwbaar te modelleren zijn -- blijft principieel
+overeind, maar kon door deze beperking niet volledig worden uitgevoerd.
+ 
+Om toch een tastbare en meetbare praktijkuitwerking te realiseren, wordt Fase 3
+bijgesteld naar een \emph{emulatiegebaseerde} proof-of-concept: in plaats van de
+fysieke straalverbinding wordt een volledige netwerkemulatie opgezet met twee
+(of drie) virtuele machines in VirtualBox, gekoppeld via de \texttt{tc/netem}-
+queueing discipline, zoals uitgewerkt in Sectie~\ref{sec:plan-van-aanpak-virtualbox}
+en Sectie~\ref{sec:virtuele-simulatie-airmax}. Om het verlies aan fysieke
+representativiteit zoveel mogelijk te beperken, worden de \texttt{netem}-parameters
+niet vrij gekozen, maar afgeleid uit de officiële technische specificaties van het
+airMAX-platform zelf (doorvoersnelheid, TDD-framing-latency), aangevuld met een
+expliciet scenario dat de impact van een verplichte DFS-kanaalwissel simuleert (zie
+Sectie~\ref{subsec:dfs}). Deze aanpak behoudt de kernmethode van Fase 3 --
+experimenteel-technisch ontwerponderzoek, getoetst aan de requirements uit
+Hoofdstuk~\ref{ch:requirementsanalyse} -- maar vervangt de fysieke RF-laag door een
+zo getrouw mogelijk nagebootst equivalent op basis van vendor-data in plaats van
+vrij aangenomen waarden.
+ 
+Deze bijstelling wordt in dit onderzoek expliciet erkend als een beperking van de
+externe validiteit: de resultaten in Hoofdstuk~\ref{ch:resultaten-en-evaluatie}
+tonen aan of de gekozen architectuur (SFTP over een 5.6~GHz-achtige verbinding)
+functioneel en performant is onder \emph{verwachte} kanaalcondities, maar bevestigen
+niet de effectieve RF-prestaties (antennealignment, werkelijke propagatie,
+weersinvloed) van een fysieke airMAX-link in het veld. Deze beperking en de
+aanbeveling om de opstelling in toekomstig onderzoek fysiek te valideren, worden
+verder toegelicht in Hoofdstuk~\ref{ch:conclusie}.
+ 
 \section{Fase 4: Empirische Evaluatie en Data-analyse}
 \label{sec:meth-fase4}
-
+ 
 In de finale fase zijn gecontroleerde praktijktests uitgevoerd om de prestaties van de 
 gebouwde proof-of-concept kwantitatief in kaart te brengen en te valideren.
-
+ 
 \begin{itemize}
     \item \textbf{Onderzoeksmethode:} Kwantitatief empirisch experimenteel onderzoek. 
     Door middel van systematische stresstests zijn de netwerkprestaties gemeten onder 
@@ -115,10 +152,19 @@ gebouwde proof-of-concept kwantitatief in kaart te brengen en te valideren.
     \item \textbf{Deliverable:} Een statistische evaluatie, grafische prestatieplots en een finaal 
     haalbaarheidsoordeel, uitgewerkt in Hoofdstuk~\ref{ch:resultaten-en-evaluatie} (Resultaten en Evaluatie).
 \end{itemize}
-
+ 
+Ingevolge de bijstelling uit Sectie~\ref{subsec:meth-bijstelling-fase3} worden de
+onafhankelijke variabelen "afstand" en "transmissie-omstandigheden" hierbij niet
+gerealiseerd via effectieve verplaatsing van fysieke antennes, maar via de drie
+\texttt{netem}-scenario's (ideaal, marginaal, DFS-kanaalwissel) uit
+Sectie~\ref{sec:virtuele-simulatie-airmax}. De meetmethode zelf -- \texttt{iperf3},
+\texttt{ping}/\texttt{mtr} en \texttt{Wireshark} -- en de te analyseren grootheden
+(bitsnelheid, TCP-venstergedrag, overdrachttijd) blijven ongewijzigd ten opzichte van
+de oorspronkelijke opzet.
+ 
 \section{Verantwoording van de Aanpak}
 \label{sec:meth-verantwoording}
-
+ 
 De keuze voor een opeenvolgende, fasegewijze benadering is essentieel om de interne 
 en externe validiteit van dit toegepaste IT-onderzoek te garanderen. Radiokanalen zijn van nature 
 stochastisch en onderhevig aan omgevingsfactoren, wat een strikte isolatie van parameters 
@@ -128,4 +174,11 @@ onvolledig verloopt. De empirische data-analyse (Fase 4) fungeert tot slot als d
 objectieve verificatie. Deze methodologische keten zorgt ervoor dat de uiteindelijke 
 conclusies van deze bachelorproef niet berusten op anekdotische praktijkervaringen, maar op 
 reproduceerbare, wetenschappelijk onderbouwde meetresultaten.
-
+ 
+Deze fasegewijze keten blijft ook overeind na de bijstelling van Fase 3
+(Sectie~\ref{subsec:meth-bijstelling-fase3}): de theoretische limieten uit Fase 1 en de
+requirements uit Fase 2 werden niet vervangen, maar dienen nu als de bron voor de
+\texttt{netem}-parameters van de emulatie, in plaats van als ontwerpcriteria voor
+fysieke hardwareselectie. De keten van Fase~1 naar Fase~4 blijft zo traceerbaar,
+zij het dat de externe validiteit van Fase~3 -- zoals hierboven toegelicht -- expliciet
+beperkt is tot een emulatie in plaats van een fysieke RF-verbinding.
