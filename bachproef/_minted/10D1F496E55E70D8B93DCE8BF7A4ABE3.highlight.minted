@@ -1,0 +1,30 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+c1}{\PYGZsh{}cloud\PYGZhy{}config}
+\PYG{n+nt}{hostname}\PYG{p}{:}\PYG{+w}{ }\PYG{l+lScalar+lScalarPlain}{poc\PYGZhy{}server}
+\PYG{n+nt}{manage\PYGZus{}etc\PYGZus{}hosts}\PYG{p}{:}\PYG{+w}{ }\PYG{l+lScalar+lScalarPlain}{true}
+
+\PYG{n+nt}{users}\PYG{p}{:}
+\PYG{+w}{  }\PYG{p+pIndicator}{\PYGZhy{}}\PYG{+w}{ }\PYG{n+nt}{name}\PYG{p}{:}\PYG{+w}{ }\PYG{l+lScalar+lScalarPlain}{sftpuser}
+\PYG{+w}{    }\PYG{n+nt}{gecos}\PYG{p}{:}\PYG{+w}{ }\PYG{l+lScalar+lScalarPlain}{SFTP Test User}
+\PYG{+w}{    }\PYG{n+nt}{lock\PYGZus{}passwd}\PYG{p}{:}\PYG{+w}{ }\PYG{l+lScalar+lScalarPlain}{false}
+\PYG{+w}{    }\PYG{n+nt}{plain\PYGZus{}text\PYGZus{}passwd}\PYG{p}{:}\PYG{+w}{ }\PYG{l+s}{\PYGZdq{}sftp\PYGZus{}password\PYGZus{}poc\PYGZdq{}}
+\PYG{+w}{    }\PYG{n+nt}{shell}\PYG{p}{:}\PYG{+w}{ }\PYG{l+lScalar+lScalarPlain}{/usr/sbin/nologin}
+
+\PYG{n+nt}{write\PYGZus{}files}\PYG{p}{:}
+\PYG{+w}{  }\PYG{p+pIndicator}{\PYGZhy{}}\PYG{+w}{ }\PYG{n+nt}{path}\PYG{p}{:}\PYG{+w}{ }\PYG{l+lScalar+lScalarPlain}{/etc/ssh/sshd\PYGZus{}config.d/99\PYGZhy{}poc\PYGZhy{}sftp.conf}
+\PYG{+w}{    }\PYG{n+nt}{owner}\PYG{p}{:}\PYG{+w}{ }\PYG{l+lScalar+lScalarPlain}{root:root}
+\PYG{+w}{    }\PYG{n+nt}{permissions}\PYG{p}{:}\PYG{+w}{ }\PYG{l+s}{\PYGZsq{}0644\PYGZsq{}}
+\PYG{+w}{    }\PYG{n+nt}{content}\PYG{p}{:}\PYG{+w}{ }\PYG{p+pIndicator}{|}
+\PYG{+w}{      }\PYG{n+no}{Match User sftpuser}
+\PYG{+w}{          }\PYG{n+no}{ChrootDirectory /srv/sftp}
+\PYG{+w}{          }\PYG{n+no}{ForceCommand internal\PYGZhy{}sftp}
+\PYG{+w}{          }\PYG{n+no}{AllowTcpForwarding no}
+\PYG{+w}{          }\PYG{n+no}{X11Forwarding no}
+
+\PYG{n+nt}{runcmd}\PYG{p}{:}
+\PYG{+w}{  }\PYG{p+pIndicator}{\PYGZhy{}}\PYG{+w}{ }\PYG{l+lScalar+lScalarPlain}{mkdir \PYGZhy{}p /srv/sftp/uploads}
+\PYG{+w}{  }\PYG{p+pIndicator}{\PYGZhy{}}\PYG{+w}{ }\PYG{l+lScalar+lScalarPlain}{chown root:root /srv/sftp}
+\PYG{+w}{  }\PYG{p+pIndicator}{\PYGZhy{}}\PYG{+w}{ }\PYG{l+lScalar+lScalarPlain}{chmod 755 /srv/sftp}
+\PYG{+w}{  }\PYG{p+pIndicator}{\PYGZhy{}}\PYG{+w}{ }\PYG{l+lScalar+lScalarPlain}{chown sftpuser:sftpuser /srv/sftp/uploads}
+\PYG{+w}{  }\PYG{p+pIndicator}{\PYGZhy{}}\PYG{+w}{ }\PYG{l+lScalar+lScalarPlain}{systemctl restart ssh}
+\end{MintedVerbatim}

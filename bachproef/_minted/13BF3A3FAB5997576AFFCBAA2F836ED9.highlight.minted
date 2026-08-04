@@ -1,0 +1,27 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+ch}{\PYGZsh{}!/usr/bin/env bash}
+\PYG{c+c1}{\PYGZsh{} Netplan bridge\PYGZhy{}configuratie gegenereerd op de link\PYGZhy{}emulator via cloud\PYGZhy{}init}
+
+cat\PYG{+w}{ }\PYG{l+s}{\PYGZlt{}\PYGZlt{} \PYGZsq{}NETPLAN\PYGZsq{} \PYGZgt{} /etc/netplan/60\PYGZhy{}poc\PYGZhy{}bridge.yaml}
+\PYG{l+s}{network:}
+\PYG{l+s}{  version: 2}
+\PYG{l+s}{  renderer: networkd}
+\PYG{l+s}{  ethernets:}
+\PYG{l+s}{    eth0:}
+\PYG{l+s}{      dhcp4: true}
+\PYG{l+s}{    eth1:}
+\PYG{l+s}{      dhcp4: false}
+\PYG{l+s}{      dhcp6: false}
+\PYG{l+s}{    eth2:}
+\PYG{l+s}{      dhcp4: false}
+\PYG{l+s}{      dhcp6: false}
+\PYG{l+s}{  bridges:}
+\PYG{l+s}{    br0:}
+\PYG{l+s}{      interfaces: [eth1, eth2]}
+\PYG{l+s}{      dhcp4: false}
+\PYG{l+s}{      dhcp6: false}
+\PYG{l+s}{      addresses: [192.168.10.254/24]}
+\PYG{l+s}{NETPLAN}
+
+netplan\PYG{+w}{ }apply
+\end{MintedVerbatim}

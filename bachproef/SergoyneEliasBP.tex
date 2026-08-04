@@ -19,38 +19,45 @@
 
 \usepackage{booktabs}
 \usepackage{caption}
-\usepackage{minted} % Vereist pdflatex -shell-escape
+%% --- Replace minted with listings ---
+\usepackage{listings}
+\usepackage{xcolor}
 
-%% For source code highlighting, requires pygments to be installed
-%% Compile with the -shell-escape flag!
-%% \usepackage[chapter]{minted}
-%% If you compile with the make_thesis.{bat,sh} script, use the following
-%% import instead:
-% \usepackage[chapter,outputdir=../output]{minted}
-% \usepackage[chapter]{minted}
-\PassOptionsToPackage{outputdir=./output}{minted}
-\usemintedstyle{solarized-light}
-
-%% Formatting for minted environments.
-\setminted{%
-    autogobble,
-    frame=lines,
-    breaklines,
-    linenos,
-    tabsize=4
+% Configure listings to visually match HOGENT minted style
+\lstset{
+  basicstyle=\small\ttfamily,
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  stepnumber=1,
+  numbersep=8pt,
+  frame=lines,
+  breaklines=true,
+  tabsize=4,
+  keywordstyle=\color{blue}\bfseries,
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{teal},
+  showstringspaces=false
 }
 
-%% Ensure the list of listings is in the table of contents
-\renewcommand\listoflistingscaption{%
-    \IfLanguageName{dutch}{Lijst van codefragmenten}{List of listings}
+% Define YAML support for cloud-init snippets
+\lstdefinelanguage{yaml}{
+  keywords={true,false,null,y,n},
+  keywordstyle=\color{blue}\bfseries,
+  basicstyle=\small\ttfamily,
+  sensitive=false,
+  comment=[l]{\#},
+  commentstyle=\color{gray}\itshape,
+  stringstyle=\color{teal},
+  morestring=[b]',
+  morestring=[b]"
 }
-\renewcommand\listingscaption{%
-    \IfLanguageName{dutch}{Codefragment}{Listing}
-}
-\renewcommand*\listoflistings{%
-    \cleardoublepage\phantomsection\addcontentsline{toc}{chapter}{\listoflistingscaption}%
-    \listof{listing}{\listoflistingscaption}%
-}
+
+% Alias listings captions to Dutch/English template settings
+\renewcommand\lstlistingname{\IfLanguageName{dutch}{Codefragment}{Listing}}
+\renewcommand\lstlistlistingname{\IfLanguageName{dutch}{Lijst van codefragmenten}{List of listings}}
+
+% Ensure \listoflistings works in main.tex without breaking
+\let\listoflistings\lstlistoflistings
 
 % Other packages not already included can be imported here
 

@@ -1,0 +1,38 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+create\PYGZus{}vm\PYG{o}{()}\PYG{+w}{ }\PYG{o}{\PYGZob{}}
+\PYG{+w}{    }\PYG{n+nb}{local}\PYG{+w}{ }\PYG{n+nv}{vmname}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{n+nv}{\PYGZdl{}1}\PYG{l+s+s2}{\PYGZdq{}}
+\PYG{+w}{    }\PYG{n+nb}{local}\PYG{+w}{ }\PYG{n+nv}{role}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{n+nv}{\PYGZdl{}2}\PYG{l+s+s2}{\PYGZdq{}}
+\PYG{+w}{    }\PYG{n+nb}{local}\PYG{+w}{ }\PYG{n+nv}{mgmt\PYGZus{}port}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{n+nv}{\PYGZdl{}3}\PYG{l+s+s2}{\PYGZdq{}}
+\PYG{+w}{    }\PYG{n+nb}{local}\PYG{+w}{ }\PYG{n+nv}{net\PYGZus{}a}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{n+nv}{\PYGZdl{}4}\PYG{l+s+s2}{\PYGZdq{}}
+\PYG{+w}{    }\PYG{n+nb}{local}\PYG{+w}{ }\PYG{n+nv}{net\PYGZus{}b}\PYG{o}{=}\PYG{l+s+s2}{\PYGZdq{}}\PYG{n+nv}{\PYGZdl{}5}\PYG{l+s+s2}{\PYGZdq{}}
+
+\PYG{+w}{    }\PYG{n+nb}{echo}\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}[*] Aanmaken van VM: }\PYG{l+s+si}{\PYGZdl{}\PYGZob{}}\PYG{n+nv}{vmname}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{ (Rol: }\PYG{l+s+si}{\PYGZdl{}\PYGZob{}}\PYG{n+nv}{role}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{)...\PYGZdq{}}
+
+\PYG{+w}{    }\PYG{c+c1}{\PYGZsh{} 1. Registreer de VM in VirtualBox}
+\PYG{+w}{    }VBoxManage\PYG{+w}{ }createvm\PYG{+w}{ }\PYGZhy{}\PYGZhy{}name\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZdl{}\PYGZob{}}\PYG{n+nv}{vmname}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}ostype\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}Ubuntu\PYGZus{}64\PYGZdq{}}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}register
+
+\PYG{+w}{    }\PYG{c+c1}{\PYGZsh{} 2. Configureer CPU, RAM, USB en Beheers\PYGZhy{}NAT\PYGZhy{}interface (NIC1)}
+\PYG{+w}{    }VBoxManage\PYG{+w}{ }modifyvm\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZdl{}\PYGZob{}}\PYG{n+nv}{vmname}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{+w}{ }\PYG{l+s+se}{\PYGZbs{}}
+\PYG{+w}{        }\PYGZhy{}\PYGZhy{}memory\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZdl{}\PYGZob{}}\PYG{n+nv}{VM\PYGZus{}MEMORY\PYGZus{}MB}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{+w}{ }\PYG{l+s+se}{\PYGZbs{}}
+\PYG{+w}{        }\PYGZhy{}\PYGZhy{}cpus\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZdl{}\PYGZob{}}\PYG{n+nv}{VM\PYGZus{}CPUS}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{+w}{ }\PYG{l+s+se}{\PYGZbs{}}
+\PYG{+w}{        }\PYGZhy{}\PYGZhy{}nic1\PYG{+w}{ }nat\PYG{+w}{ }\PYG{l+s+se}{\PYGZbs{}}
+\PYG{+w}{        }\PYGZhy{}\PYGZhy{}natpf1\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}ssh,tcp,127.0.0.1,}\PYG{l+s+si}{\PYGZdl{}\PYGZob{}}\PYG{n+nv}{mgmt\PYGZus{}port}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{,,22\PYGZdq{}}\PYG{+w}{ }\PYG{l+s+se}{\PYGZbs{}}
+\PYG{+w}{        }\PYGZhy{}\PYGZhy{}nic2\PYG{+w}{ }intnet\PYG{+w}{ }\PYGZhy{}\PYGZhy{}intnet2\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZdl{}\PYGZob{}}\PYG{n+nv}{net\PYGZus{}a}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{+w}{ }\PYG{l+s+se}{\PYGZbs{}}
+\PYG{+w}{        }\PYGZhy{}\PYGZhy{}audio\PYG{+w}{ }none\PYG{+w}{ }\PYGZhy{}\PYGZhy{}usb\PYG{+w}{ }off
+
+\PYG{+w}{    }\PYG{c+c1}{\PYGZsh{} Optioneel: Voeg derde NIC toe voor de link\PYGZhy{}emulator (Layer\PYGZhy{}2 bridge)}
+\PYG{+w}{    }\PYG{k}{if}\PYG{+w}{ }\PYG{o}{[}\PYG{+w}{ }\PYGZhy{}n\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZdl{}\PYGZob{}}\PYG{n+nv}{net\PYGZus{}b}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{+w}{ }\PYG{o}{]}\PYG{p}{;}\PYG{+w}{ }\PYG{k}{then}
+\PYG{+w}{        }VBoxManage\PYG{+w}{ }modifyvm\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZdl{}\PYGZob{}}\PYG{n+nv}{vmname}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}nic3\PYG{+w}{ }intnet\PYG{+w}{ }\PYGZhy{}\PYGZhy{}intnet3\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZdl{}\PYGZob{}}\PYG{n+nv}{net\PYGZus{}b}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}
+\PYG{+w}{    }\PYG{k}{fi}
+
+\PYG{+w}{    }\PYG{c+c1}{\PYGZsh{} 3. Koppel de virtuele harde schijf en de seed.iso (cloud\PYGZhy{}init)}
+\PYG{+w}{    }VBoxManage\PYG{+w}{ }storagectl\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZdl{}\PYGZob{}}\PYG{n+nv}{vmname}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}name\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}SATA\PYGZdq{}}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}add\PYG{+w}{ }sata\PYG{+w}{ }\PYGZhy{}\PYGZhy{}controller\PYG{+w}{ }IntelAHCI
+\PYG{+w}{    }VBoxManage\PYG{+w}{ }storageattach\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZdl{}\PYGZob{}}\PYG{n+nv}{vmname}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}storagectl\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}SATA\PYGZdq{}}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}port\PYG{+w}{ }\PYG{l+m}{0}\PYG{+w}{ }\PYG{l+s+se}{\PYGZbs{}}
+\PYG{+w}{        }\PYGZhy{}\PYGZhy{}device\PYG{+w}{ }\PYG{l+m}{0}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}type\PYG{+w}{ }hdd\PYG{+w}{ }\PYGZhy{}\PYGZhy{}medium\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZdl{}\PYGZob{}}\PYG{n+nv}{VM\PYGZus{}DIR}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{/}\PYG{l+s+si}{\PYGZdl{}\PYGZob{}}\PYG{n+nv}{vmname}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{.vmdk\PYGZdq{}}
+\PYG{+w}{    }VBoxManage\PYG{+w}{ }storageattach\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZdl{}\PYGZob{}}\PYG{n+nv}{vmname}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}storagectl\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}SATA\PYGZdq{}}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}port\PYG{+w}{ }\PYG{l+m}{1}\PYG{+w}{ }\PYG{l+s+se}{\PYGZbs{}}
+\PYG{+w}{        }\PYGZhy{}\PYGZhy{}device\PYG{+w}{ }\PYG{l+m}{0}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}type\PYG{+w}{ }dvddrive\PYG{+w}{ }\PYGZhy{}\PYGZhy{}medium\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZdl{}\PYGZob{}}\PYG{n+nv}{CONF\PYGZus{}DIR}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{/}\PYG{l+s+si}{\PYGZdl{}\PYGZob{}}\PYG{n+nv}{vmname}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZhy{}seed.iso\PYGZdq{}}
+
+\PYG{+w}{    }\PYG{c+c1}{\PYGZsh{} 4. Start de VM headless op}
+\PYG{+w}{    }VBoxManage\PYG{+w}{ }startvm\PYG{+w}{ }\PYG{l+s+s2}{\PYGZdq{}}\PYG{l+s+si}{\PYGZdl{}\PYGZob{}}\PYG{n+nv}{vmname}\PYG{l+s+si}{\PYGZcb{}}\PYG{l+s+s2}{\PYGZdq{}}\PYG{+w}{ }\PYGZhy{}\PYGZhy{}type\PYG{+w}{ }headless
+\PYG{o}{\PYGZcb{}}
+\end{MintedVerbatim}

@@ -1,0 +1,14 @@
+\begin{MintedVerbatim}[commandchars=\\\{\}]
+\PYG{c+ch}{\PYGZsh{}!/usr/bin/env bash}
+\PYG{c+c1}{\PYGZsh{} Volledige uitvoerings\PYGZhy{}workflow voor het testen van het PoC}
+
+\PYG{c+c1}{\PYGZsh{} 1. Bouw de omgeving op en start de drie VM\PYGZsq{}s}
+\PYG{n+nb}{cd}\PYG{+w}{ }poc\PYGZhy{}scripts/
+./build\PYGZus{}poc.sh
+
+\PYG{c+c1}{\PYGZsh{} 2. Selecteer het te evalueren kanaalscenario op de link\PYGZhy{}emulator}
+./scenario\PYGZhy{}select.sh\PYG{+w}{ }marginaal
+
+\PYG{c+c1}{\PYGZsh{} 3. Voer de geautomatiseerde meetreeks uit vanaf de client\PYGZhy{}VM}
+./run\PYGZhy{}tests.sh\PYG{+w}{ }\PYGZhy{}\PYGZhy{}output\PYGZhy{}dir\PYG{+w}{ }../resultaten/marginaal/
+\end{MintedVerbatim}

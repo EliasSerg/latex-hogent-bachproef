@@ -402,11 +402,11 @@
             BoldItalicFont= *-BoldItalic]
     }
 
-    \IfFontExistsTF{Fira Code}{%
-            \setmonofont{Fira Code}[StylisticSet={1,3}]
+    %\IfFontExistsTF{Fira Code}{%
+    %        \setmonofont{Fira Code}[StylisticSet={1,3}]
             %% Shapely l, upright quotes, striked zeroes
 
-    }{%
+    %}{%
             \setmonofont{Fira Code}[
                 Path = fonts/FiraCode/,
                 Extension = .otf,
@@ -414,7 +414,7 @@
                 BoldFont=*-Bold,
                 ItalicFeatures = FakeSlant,
                 BoldItalicFeatures = FakeSlant]
-    }
+    %}
 
     % Use a unicode-compliant sans serif math font
     \IfFontExistsTF{Fira Math Regular}{%
