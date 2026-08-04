@@ -57,7 +57,7 @@ De fysieke implementatie van de radioverbinding is gebonden aan dwingende nation
 \subsection{Conformiteit met het BIPT-frequentieplan en Bandplannen (REQ-04 / RR1--RR3)}
 \begin{itemize}
     \item \textbf{RR1 (Gelicentieerd spectrum):} Bij gebruik van gelicentieerde radioamateurbanden mag uitsluitend worden uitgezonden binnen de frequenties, transmissiemodi en maximale vermogensgrenzen (ERP/PEP) die het BIPT toelaat \autocite{BIPT2019}, en binnen de bandplannen van de Unie van Belgische Zendamateurs \autocite{UBAFrequenties}.
-    \item \textbf{RR2 (Licentievrije 5 GHz-band & DFS):} Bij gebruik van de licentievrije 5~GHz ISM/RLAN-band moet het systeem ofwel een werkende *Dynamic Frequency Selection* (DFS) implementatie bevatten, ofwel expliciet beperkt worden tot kanalen buiten de radar-gereserveerde subbanden ($5250\text{--}5350\text{ MHz}$ en $5470\text{--}5725\text{ MHz}$), om storing van onder meer weerradars te vermijden.
+    \item \textbf{RR2 (Licentievrije 5 GHz-band \& DFS):} Bij gebruik van de licentievrije 5~GHz ISM/RLAN-band moet het systeem ofwel een werkende *Dynamic Frequency Selection* (DFS) implementatie bevatten, ofwel expliciet beperkt worden tot kanalen buiten de radar-gereserveerde subbanden ($5250\text{--}5350\text{ MHz}$ en $5470\text{--}5725\text{ MHz}$), om storing van onder meer weerradars te vermijden.
     \item \textbf{RR3 (Identificatieplicht):} Elke zender op amateurbanden moet identificeerbaar zijn conform de geldende reglementering (call-sign identificatie), voor zover van toepassing op de gekozen band en modus.
 \end{itemize}
 
@@ -106,7 +106,7 @@ Tabel~\ref{tab:requirementsmatrix} vat de gedefinieerde eisen samen volgens een 
     FR5 & Meerdere gelijktijdige clientverbindingen & Could \\
     FR6 & Hervatten van onderbroken bestandsoverdrachten & Could \\
     REQ-01 & Bandbreedte: $\ge 1\text{ Mbit/s}$ (suboptimaal), $\ge 10\text{ Mbit/s}$ (LoS) & Must \\
-    REQ-02 & Latency & Jitter: RTT $\le 150\text{ ms}$, jitter $\pm 20\text{ ms}$ & Should \\
+    REQ-02 & Latency \& Jitter: RTT $\le 150\text{ ms}$, jitter $\pm 20\text{ ms}$ & Should \\
     REQ-03 & Packet Loss: Stabiele TCP-werking bij $\le 2\%$ verlies & Must \\
     REQ-04 / RR1-3 & Naleving BIPT/UBA-reglementering, vermogensgrenzen en DFS & Must \\
     OR1--OR2 & Voldoende Fresnelzone-vrijheid en antennehoogte & Must \\
@@ -200,8 +200,8 @@ sudo tc qdisc add dev eth1 root netem \
     loss 1.5% \
     rate 1Mbit
 \end{verbatim}
-  \item \textbf{Protocoldiagnostiek & Stresstesting:} Uitvoeren van bestandsoverdrachten en metingen met \texttt{iperf3}, \texttt{mtr} en \texttt{Wireshark} om protocolgedrag en TCP-vensteraanpassingen bij packet loss en latency te analyseren.
-  \item \textbf{Evaluatie & Bijsturing:} Valideren of de resultaten voldoen aan de eisen in Tabel~\ref{tab:requirementsmatrix}. Eventuele knelpunten worden opgelost door protocolparameterstuning alvorens over te stappen naar fysieke radiohardware.
+  \item \textbf{Protocoldiagnostiek \& Stresstesting:} Uitvoeren van bestandsoverdrachten en metingen met \texttt{iperf3}, \texttt{mtr} en \texttt{Wireshark} om protocolgedrag en TCP-vensteraanpassingen bij packet loss en latency te analyseren.
+  \item \textbf{Evaluatie \& Bijsturing:} Valideren of de resultaten voldoen aan de eisen in Tabel~\ref{tab:requirementsmatrix}. Eventuele knelpunten worden opgelost door protocolparameterstuning alvorens over te stappen naar fysieke radiohardware.
 \end{enumerate}
 
 \section{Besluit}
@@ -209,4 +209,4 @@ sudo tc qdisc add dev eth1 root netem \
 
 Dit hoofdstuk vertaalde de theoretische inzichten naar een gedefinieerde set van functionele en niet-functionele eisen, aangevuld met wettelijke, omgevings- en beveiligingsrandvoorwaarden. Met de selectie van de 5.6~GHz Point-to-Point architectuur en SFTP als applicatieprotocol is een helder toetsingskader neergezet. 
 
-De voorgestelde VirtualBox-testomgeving met \texttt{tc/netem} vormt de directe brug naar Hoofdstuk~\label{ch:poc}, waarin de gesimuleerde parameters stapsgewijs vervangen zullen worden door de fysieke radio-opstelling en veldmetingen.
+De voorgestelde VirtualBox-testomgeving met \texttt{tc/netem} vormt de directe brug naar Hoofdstuk~\ref{ch:poc}, waarin de gesimuleerde parameters stapsgewijs vervangen zullen worden door de fysieke radio-opstelling en veldmetingen.
