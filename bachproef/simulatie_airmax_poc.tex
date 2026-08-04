@@ -46,11 +46,11 @@ De eenvoudigste opzet uit Sectie~\ref{sec:plan-van-aanpak-virtualbox} past
 antenneverbinding echter zo zuiver mogelijk te isoleren van de eindpunten zelf -- net
 zoals twee airMAX-radio's elk hun eigen apparaat zijn, met de lucht als gedeeld medium
 ertussen -- verdient een \emph{dumbbell-topologie} met een derde, tussenliggende VM de
-voorkeur. Figuur~\ref{graphics/dumbbell-linkemulator} toont deze opzet.
+voorkeur. Figuur~\ref{dumbbell-linkemulator} toont deze opzet.
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=\textwidth]{graphics/dumbbell_linkemulator.pdf}
+  \includegraphics[width=\textwidth]{dumbbell_linkemulator.pdf}
   \caption{Dumbbell-topologie met een aparte link-emulator-VM die de rol van de twee
   airMAX-antennes overneemt. De server- en client-VM draaien onveranderde SFTP-software;
   enkel de link-emulator past \texttt{tc/netem} toe.}
@@ -96,7 +96,7 @@ simulatiescenario's, samengevat in Figuur~\ref{fig:airmax-scenarios}.
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=\textwidth]{graphics/airmax_scenarios.pdf}
+  \includegraphics[width=\textwidth]{airmax_scenarios.pdf}
   \caption{Drie gesimuleerde kanaalscenario's voor de airMAX-link, met
   \texttt{netem}-doelwaarden afgeleid uit de airMAX-datasheets.}
   \label{fig:airmax-scenarios}
