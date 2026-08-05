@@ -70,7 +70,8 @@ if (-not (Test-Path -LiteralPath $BaseImg)) {
 
 if (-not (Test-Path -LiteralPath $BaseVdi)) {
     Write-Host '==> Converteren naar VDI-formaat (eenmalig)'
-    & $VBoxManage clonemedium disk $BaseImg $BaseVdi --format VDI
+    Clear-StaleVBoxMedium -VBoxManage $VBoxManage -MediumPath $BaseVdi
+    Invoke-Vbox $VBoxManage clonemedium disk $BaseImg $BaseVdi --format VDI
 }
 
 Write-Host ''
@@ -81,11 +82,47 @@ $existingVms = & $VBoxManage list vms
 foreach ($vm in @('poc-server', 'poc-link-emulator', 'poc-client')) {
     if ($existingVms -match [regex]::Escape("`"$vm`"")) {
         Write-Host "==> Bestaande VM '$vm' gevonden, wordt verwijderd."
-        & $VBoxManage controlvm $vm poweroff 2>$null
+
+        # controlvm geeft een foutcode terug als de VM al uitstaat -- dat is
+        # geen echte fout, dus die roepen we hier bewust NIET via Invoke-Vbox
+        # aan (die zou anders op deze onschuldige situatie stoppen).
+        $prevPref = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        & $VBoxManage controlvm $vm poweroff 2>&1 | Out-Null
+        $ErrorActionPreference = $prevPref
         Start-Sleep -Seconds 2
-        & $VBoxManage unregistervm $vm --delete
+
+        # "--delete" probeert ook de gekoppelde schijfbestanden te wissen.
+        # Dat kan mislukken (bv. een handmatig al verwijderd bestand) terwijl
+        # de VM-registratie zelf toch al wel verwijderd werd -- de opdracht
+        # geeft dan nog steeds een foutcode terug. Daarom wordt hier eerst
+        # gecontroleerd of de VM ondanks die foutcode al verdwenen is, vóór
+        # de fallback ("unregistervm" zonder --delete) geprobeerd wordt.
+        $prevPref = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        $deleteOutput = & $VBoxManage unregistervm $vm --delete 2>&1
+        $deleteExitCode = $LASTEXITCODE
+        $ErrorActionPreference = $prevPref
+
+        if ($deleteExitCode -ne 0) {
+            $stillThere = & $VBoxManage list vms | Select-String -SimpleMatch "`"$vm`""
+            if ($stillThere) {
+                Write-Host '   (--delete niet volledig gelukt, waarschijnlijk een ontbrekend schijfbestand; VM wordt alsnog losgekoppeld)'
+                $deleteOutput | ForEach-Object { Write-Host "      $_" -ForegroundColor DarkGray }
+                Invoke-Vbox $VBoxManage unregistervm $vm
+            }
+            else {
+                Write-Host '   (--delete gaf een foutcode, maar de VM-registratie is toch verwijderd -- waarschijnlijk kon enkel het schijfbestand niet gewist worden, dat is verder onschadelijk)'
+            }
+        }
     }
 }
+
+# Verwijder ook eventuele overgebleven schijf- en ISO-bestanden expliciet.
+# Dit is de belangrijkste garantie tegen "Permission denied (publickey)"
+# door een VM die per ongeluk verder draait op een oude schijf van vóór de
+# huidige SSH-sleutel: na deze regel kan dat niet meer voorkomen.
+Remove-Item -LiteralPath (Join-Path $WorkDir 'disks'), (Join-Path $WorkDir 'seeds') -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host ''
 Write-Host '############################################################'
@@ -115,6 +152,17 @@ Write-Host '############################################################'
 Wait-ForPort -Port $SshPortServer
 Wait-ForPort -Port $SshPortLinkEmu
 Wait-ForPort -Port $SshPortClient
+
+# SSH is meestal al binnen enkele seconden bereikbaar, maar cloud-init zelf
+# (pakketupdates, write_files, runcmd) kan daarna nog enkele minuten
+# doorlopen. Wachten op "cloud-init status --wait" is de correcte, robuuste
+# manier om te weten wanneer alles -- inclusief /etc/poc-ifaces.env op de
+# link-emulator -- effectief klaar staat, in plaats van te gokken met een
+# vaste pauze.
+$sshCmd = Get-SshCommand
+Wait-ForCloudInit -Ssh $sshCmd -KeyPath $SshKeyPath -Port $SshPortServer
+Wait-ForCloudInit -Ssh $sshCmd -KeyPath $SshKeyPath -Port $SshPortLinkEmu
+Wait-ForCloudInit -Ssh $sshCmd -KeyPath $SshKeyPath -Port $SshPortClient
 
 Write-Host ''
 Write-Host '############################################################'

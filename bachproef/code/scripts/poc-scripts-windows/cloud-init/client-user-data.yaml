@@ -33,6 +33,34 @@ write_files:
       #!/usr/bin/env bash
       set -euo pipefail
       MODE="$1"
+
+      # Vlak na het opstarten heeft de kernel niet altijd alle netwerk-
+      # kaarten al klaar staan. "bridge" heeft er 3 nodig (beheer + twee
+      # linksegmenten), "host" volstaat met 2 (beheer + één linksegment).
+      # In plaats van blind verder te gaan met te weinig interfaces (met
+      # als gevolg een lege interfacenaam in de netplan-configuratie en een
+      # configure-network.sh dat vroegtijdig afbreekt, vóór het het
+      # /etc/poc-ifaces.env-bestand kan wegschrijven), wordt hier expliciet
+      # gewacht tot ze er echt zijn.
+      count_ifaces() {
+          local n=0
+          for _f in /sys/class/net/*; do
+              [ "$(basename "$_f")" = "lo" ] && continue
+              n=$((n + 1))
+          done
+          echo "$n"
+      }
+      if [ "$MODE" = "bridge" ]; then NEEDED=3; else NEEDED=2; fi
+      WAITED=0
+      while [ "$(count_ifaces)" -lt "$NEEDED" ]; do
+          if [ "$WAITED" -ge 30 ]; then
+              echo "configure-network.sh: te weinig netwerkinterfaces na 30s, ga toch verder" >&2
+              break
+          fi
+          sleep 1
+          WAITED=$((WAITED + 1))
+      done
+
       IFACES=()
       for _f in /sys/class/net/*; do
           _name="$(basename "$_f")"
@@ -40,7 +68,12 @@ write_files:
           IFACES+=("$_name")
       done
       IFS=$'\n' IFACES=($(sort <<<"${IFACES[*]}")); unset IFS
-      MGMT_IF="${IFACES[0]}"
+      # Let op: het beheersinterface (IFACES[0], NAT) wordt HIER BEWUST NIET
+      # geconfigureerd. Cloud-init's eigen standaard-netplanbestand regelt
+      # DHCP daarop al correct; het opnieuw declareren ervan in dit tweede
+      # netplanbestand kan bij "netplan apply" een korte (of soms blijvende)
+      # onderbreking van net die verbinding veroorzaken -- exact het SSH-pad
+      # dat de host gebruikt om met deze VM te praten.
       LINK_A_IF="${IFACES[1]:-}"
       LINK_B_IF="${IFACES[2]:-}"
 
@@ -50,8 +83,6 @@ write_files:
       network:
         version: 2
         ethernets:
-          ${MGMT_IF}:
-            dhcp4: true
           ${LINK_A_IF}:
             dhcp4: false
             addresses: [${ADDR}]
@@ -61,8 +92,6 @@ write_files:
       network:
         version: 2
         ethernets:
-          ${MGMT_IF}:
-            dhcp4: true
           ${LINK_A_IF}:
             dhcp4: false
           ${LINK_B_IF}:

@@ -81,9 +81,13 @@ $existingVms = & $VBoxManage list vms
 foreach ($vm in @('poc-server', 'poc-link-emulator', 'poc-client')) {
     if ($existingVms -match [regex]::Escape("`"$vm`"")) {
         Write-Host "==> Bestaande VM '$vm' gevonden, wordt verwijderd."
-        & $VBoxManage controlvm $vm poweroff 2>$null
+
+        # Voer poweroff uit via cmd om NativeCommandError in PowerShell te voorkomen
+        cmd.exe /c "`"$VBoxManage`" controlvm $vm poweroff >nul 2>&1"
         Start-Sleep -Seconds 2
-        & $VBoxManage unregistervm $vm --delete
+
+        # Verwijder de VM via cmd
+        cmd.exe /c "`"$VBoxManage`" unregistervm $vm --delete >nul 2>&1"
     }
 }
 

@@ -34,7 +34,12 @@ function Invoke-OnClient {
 }
 
 Write-Host '== REQ-01: doorvoersnelheid (iperf3) ==' -ForegroundColor Cyan
-Invoke-OnClient "iperf3 -c $ServerIp -t 10"
+# "</dev/null" vermijdt een gekende eigenaardigheid van iperf3 die kan
+# optreden bij niet-interactieve uitvoering via SSH met een ongebruikelijke
+# stdin-toestand -- dit uit zich als "unable to send control message: Bad
+# file descriptor". Dit wordt bewust NIET toegepast op de sftp-aanroep
+# verderop, die zijn eigen stdin al beheert via een heredoc.
+Invoke-OnClient "iperf3 -c $ServerIp -t 10 </dev/null"
 
 Write-Host ''
 Write-Host '== REQ-02: latency/jitter (mtr) ==' -ForegroundColor Cyan
@@ -43,7 +48,7 @@ Invoke-OnClient "mtr -r -c 20 $ServerIp"
 Write-Host ''
 Write-Host '== FR-01/FR-02: reele SFTP-bestandsoverdracht (20 MB testbestand) ==' -ForegroundColor Cyan
 Invoke-OnClient 'dd if=/dev/urandom of=/tmp/testfile.bin bs=1M count=20 status=none'
-Invoke-OnClient "sshpass -p sftp sftp -o StrictHostKeyChecking=no sftpuser@$ServerIp <<< `$'put /tmp/testfile.bin\nbye'"
+Invoke-OnClient "sshpass -p sftp sftp -o StrictHostKeyChecking=no sftpuser@$ServerIp <<< `$'put /tmp/testfile.bin /upload/testfile.bin\nbye'"
 
 Write-Host ''
 Write-Host 'Teststeekproef afgerond.' -ForegroundColor Green
