@@ -1,0 +1,65 @@
+LEES MIJ EERST
+==============
+
+Deze map bouwt de volledige testopstelling uit Hoofdstuk "Proof-of-Concept"
+op je eigen Windows-toestel op. Je hoeft hiervoor NIETS te installeren
+buiten VirtualBox zelf -- geen WSL, geen Linux, geen extra programma's.
+
+WAT HEB JE NODIG?
+------------------
+1. VirtualBox voor Windows, gratis te downloaden op:
+   https://www.virtualbox.org/wiki/Downloads
+   (gewone installatie, alle standaardopties zijn prima)
+
+2. Windows 10 (versie 1809 of nieuwer) of Windows 11.
+   Deze hebben allebei standaard alles aan boord wat verder nodig is
+   (PowerShell en de OpenSSH-client).
+
+3. Ongeveer 10 GB vrije schijfruimte en een stabiele internetverbinding
+   (voor de eenmalige download van de basisimage, ca. 600 MB).
+
+HOE GEBRUIK JE DIT?
+--------------------
+Alle stappen gebeuren door simpelweg te dubbelklikken op een bestand.
+Er is geen commandoregelkennis nodig.
+
+  STAP 1: dubbelklik op "1-Build.bat"
+          Dit bouwt en start de drie virtuele machines. De eerste keer
+          duurt dit 10 tot 15 minuten. Laat het venster gewoon open staan
+          tot het klaar is.
+
+  STAP 2: dubbelklik op "2-Kies-Scenario.bat"
+          Kies met de cijfertoetsen 1, 2 of 3 welk kanaalscenario je wil
+          testen (ideaal / marginaal / DFS-kanaalwissel).
+
+  STAP 3: dubbelklik op "3-Voer-Tests-Uit.bat"
+          Dit voert de metingen uit (doorvoersnelheid, latency, een echte
+          bestandsoverdracht) en toont de resultaten in het venster.
+
+Je kan stap 2 en 3 achteraf zo vaak herhalen als je wil, met verschillende
+scenario's, zonder stap 1 opnieuw te moeten uitvoeren.
+
+ALLES OPNIEUW BEGINNEN?
+-------------------------
+Dubbelklik gewoon opnieuw op "1-Build.bat". Dit ruimt de vorige opstelling
+automatisch op en bouwt alles opnieuw.
+
+ER GAAT IETS MIS -- WAT NU?
+------------------------------
+- "VirtualBox werd niet gevonden": installeer VirtualBox via de link
+  hierboven en probeer opnieuw.
+- Het venster sluit meteen na een foutmelding: dat is normaal, lees de
+  foutmelding boven "Druk op een toets om door te gaan" -- die legt meestal
+  precies uit wat er ontbreekt.
+- Wil je de virtuele machines ZIEN terwijl ze draaien (grafisch scherm in
+  plaats van onzichtbaar op de achtergrond)? Open VirtualBox zelf, klik met
+  de rechtermuisknop op bijvoorbeeld "poc-server", en kies "Show".
+
+TECHNISCHE ACHTERGROND
+-------------------------
+Dit bouwt drie virtuele Ubuntu Server-machines (server, link-emulator,
+client) die de 5.6 GHz airMAX-straalverbinding uit de bachelorproef
+nabootsen. De installatie gebeurt volautomatisch via cloud-init; er wordt
+per sessie een eigen SSH-sleutel gegenereerd (in de map "work\ssh") zodat
+alles zonder wachtwoorden verloopt. Zie Sectie "Geautomatiseerde opbouw van
+de testomgeving" in de bachelorproef voor de volledige technische uitleg.

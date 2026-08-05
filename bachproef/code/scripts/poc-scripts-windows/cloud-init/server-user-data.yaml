@@ -1,0 +1,127 @@
+#cloud-config
+# server-user-data.yaml
+# Rol: SFTP-fileserver (FR-01, FR-02, FR-03) op het "linklaag"-segment (br0-domein).
+
+hostname: poc-server
+manage_etc_hosts: true
+
+users:
+  - name: poc
+    groups: [sudo]
+    shell: /bin/bash
+    lock_passwd: false
+    # Aanmelden gebeurt via de automatisch gegenereerde SSH-sleutel
+    # hieronder (geen wachtwoord nodig in de scripts). Het wachtwoord
+    # blijft enkel als noodgreep beschikbaar (bv. via de VirtualBox-
+    # GUI-console), en is enkel aanvaardbaar omdat dit een volledig
+    # geïsoleerd, intern VirtualBox-labnetwerk is (BR-03).
+    plain_text_passwd: "poc"
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    ssh_authorized_keys:
+      - __SSH_PUBLIC_KEY__
+  - name: sftpuser
+    lock_passwd: false
+    plain_text_passwd: "sftp"
+    shell: /usr/sbin/nologin
+    # ssh_authorized_keys:
+    #   - ssh-ed25519 AAAA...VERVANG_DOOR_EIGEN_PUBLIEKE_SLEUTEL...
+
+ssh_pwauth: true
+
+package_update: true
+packages:
+  - openssh-server
+  - iperf3
+  - iproute2
+
+write_files:
+  - path: /usr/local/bin/configure-network.sh
+    permissions: "0755"
+    content: |
+      #!/usr/bin/env bash
+      # Wijst automatisch, ongeacht de exacte interfacenamen die VirtualBox
+      # toekent, de eerste NIC toe aan het beheersnetwerk (DHCP/NAT) en de
+      # volgende NIC('s) aan het "radiolink"-segment.
+      set -euo pipefail
+      MODE="$1"
+      IFACES=()
+      for _f in /sys/class/net/*; do
+          _name="$(basename "$_f")"
+          [ "$_name" = "lo" ] && continue
+          IFACES+=("$_name")
+      done
+      IFS=$'\n' IFACES=($(sort <<<"${IFACES[*]}")); unset IFS
+      MGMT_IF="${IFACES[0]}"
+      LINK_A_IF="${IFACES[1]:-}"
+      LINK_B_IF="${IFACES[2]:-}"
+
+      if [ "$MODE" = "host" ]; then
+          ADDR="$2"
+          cat > /etc/netplan/60-poc.yaml <<NETPLAN
+      network:
+        version: 2
+        ethernets:
+          ${MGMT_IF}:
+            dhcp4: true
+          ${LINK_A_IF}:
+            dhcp4: false
+            addresses: [${ADDR}]
+      NETPLAN
+      elif [ "$MODE" = "bridge" ]; then
+          cat > /etc/netplan/60-poc.yaml <<NETPLAN
+      network:
+        version: 2
+        ethernets:
+          ${MGMT_IF}:
+            dhcp4: true
+          ${LINK_A_IF}:
+            dhcp4: false
+          ${LINK_B_IF}:
+            dhcp4: false
+        bridges:
+          br0:
+            interfaces: [${LINK_A_IF}, ${LINK_B_IF}]
+            dhcp4: false
+      NETPLAN
+          {
+            echo "export LINK_A_IF=${LINK_A_IF}"
+            echo "export LINK_B_IF=${LINK_B_IF}"
+          } > /etc/poc-ifaces.env
+      fi
+      chmod 600 /etc/netplan/60-poc.yaml
+      netplan apply
+
+  - path: /etc/ssh/sshd_config.d/99-poc-sftp.conf
+    permissions: "0644"
+    content: |
+      # Chroot de sftpuser tot een eigen map (BR-01, BR-02: geauthenticeerd
+      # en versleuteld transport, met beperkte scope per gebruiker).
+      Match User sftpuser
+          ChrootDirectory /srv/sftp
+          ForceCommand internal-sftp
+          AllowTcpForwarding no
+          X11Forwarding no
+
+  - path: /etc/systemd/system/poc-iperf3.service
+    permissions: "0644"
+    content: |
+      [Unit]
+      Description=iperf3 server (PoC doorvoersnelheidstests, REQ-01)
+      After=network-online.target
+
+      [Service]
+      ExecStart=/usr/bin/iperf3 -s
+      Restart=always
+
+      [Install]
+      WantedBy=multi-user.target
+
+runcmd:
+  - /usr/local/bin/configure-network.sh host 10.0.0.1/24
+  - mkdir -p /srv/sftp/upload
+  - chown root:root /srv/sftp
+  - chmod 755 /srv/sftp
+  - chown sftpuser:sftpuser /srv/sftp/upload
+  - systemctl restart ssh
+  - systemctl daemon-reload
+  - systemctl enable --now poc-iperf3.service

@@ -1,0 +1,84 @@
+#cloud-config
+# client-user-data.yaml
+# Rol: SFTP-client die de metingen en bestandsoverdrachten uitvoert
+# (FR-01, FR-02, REQ-01..03).
+
+hostname: poc-client
+manage_etc_hosts: true
+
+users:
+  - name: poc
+    groups: [sudo]
+    shell: /bin/bash
+    lock_passwd: false
+    plain_text_passwd: "poc"
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    ssh_authorized_keys:
+      - __SSH_PUBLIC_KEY__
+
+ssh_pwauth: true
+
+package_update: true
+packages:
+  - openssh-server
+  - openssh-client
+  - iperf3
+  - mtr-tiny
+  - sshpass
+
+write_files:
+  - path: /usr/local/bin/configure-network.sh
+    permissions: "0755"
+    content: |
+      #!/usr/bin/env bash
+      set -euo pipefail
+      MODE="$1"
+      IFACES=()
+      for _f in /sys/class/net/*; do
+          _name="$(basename "$_f")"
+          [ "$_name" = "lo" ] && continue
+          IFACES+=("$_name")
+      done
+      IFS=$'\n' IFACES=($(sort <<<"${IFACES[*]}")); unset IFS
+      MGMT_IF="${IFACES[0]}"
+      LINK_A_IF="${IFACES[1]:-}"
+      LINK_B_IF="${IFACES[2]:-}"
+
+      if [ "$MODE" = "host" ]; then
+          ADDR="$2"
+          cat > /etc/netplan/60-poc.yaml <<NETPLAN
+      network:
+        version: 2
+        ethernets:
+          ${MGMT_IF}:
+            dhcp4: true
+          ${LINK_A_IF}:
+            dhcp4: false
+            addresses: [${ADDR}]
+      NETPLAN
+      elif [ "$MODE" = "bridge" ]; then
+          cat > /etc/netplan/60-poc.yaml <<NETPLAN
+      network:
+        version: 2
+        ethernets:
+          ${MGMT_IF}:
+            dhcp4: true
+          ${LINK_A_IF}:
+            dhcp4: false
+          ${LINK_B_IF}:
+            dhcp4: false
+        bridges:
+          br0:
+            interfaces: [${LINK_A_IF}, ${LINK_B_IF}]
+            dhcp4: false
+      NETPLAN
+          {
+            echo "export LINK_A_IF=${LINK_A_IF}"
+            echo "export LINK_B_IF=${LINK_B_IF}"
+          } > /etc/poc-ifaces.env
+      fi
+      chmod 600 /etc/netplan/60-poc.yaml
+      netplan apply
+
+runcmd:
+  - /usr/local/bin/configure-network.sh host 10.0.0.2/24

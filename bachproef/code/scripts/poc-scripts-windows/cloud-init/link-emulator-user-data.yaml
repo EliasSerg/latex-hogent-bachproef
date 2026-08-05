@@ -1,0 +1,154 @@
+#cloud-config
+# link-emulator-user-data.yaml
+# Rol: emuleert de 5.6~GHz airMAX-straalverbinding (zie Sectie
+# sec:virtuele-simulatie-airmax) door de twee "radiolink"-interfaces te
+# overbruggen (L2-bridge) en er per richting een netem-qdisc op toe te passen.
+
+hostname: poc-link-emulator
+manage_etc_hosts: true
+
+users:
+  - name: poc
+    groups: [sudo]
+    shell: /bin/bash
+    lock_passwd: false
+    plain_text_passwd: "poc"
+    sudo: "ALL=(ALL) NOPASSWD:ALL"
+    ssh_authorized_keys:
+      - __SSH_PUBLIC_KEY__
+
+ssh_pwauth: true
+
+package_update: true
+packages:
+  - openssh-server
+  - iproute2
+
+write_files:
+  - path: /usr/local/bin/configure-network.sh
+    permissions: "0755"
+    content: |
+      #!/usr/bin/env bash
+      set -euo pipefail
+      MODE="$1"
+      IFACES=()
+      for _f in /sys/class/net/*; do
+          _name="$(basename "$_f")"
+          [ "$_name" = "lo" ] && continue
+          IFACES+=("$_name")
+      done
+      IFS=$'\n' IFACES=($(sort <<<"${IFACES[*]}")); unset IFS
+      MGMT_IF="${IFACES[0]}"
+      LINK_A_IF="${IFACES[1]:-}"
+      LINK_B_IF="${IFACES[2]:-}"
+
+      if [ "$MODE" = "host" ]; then
+          ADDR="$2"
+          cat > /etc/netplan/60-poc.yaml <<NETPLAN
+      network:
+        version: 2
+        ethernets:
+          ${MGMT_IF}:
+            dhcp4: true
+          ${LINK_A_IF}:
+            dhcp4: false
+            addresses: [${ADDR}]
+      NETPLAN
+      elif [ "$MODE" = "bridge" ]; then
+          cat > /etc/netplan/60-poc.yaml <<NETPLAN
+      network:
+        version: 2
+        ethernets:
+          ${MGMT_IF}:
+            dhcp4: true
+          ${LINK_A_IF}:
+            dhcp4: false
+          ${LINK_B_IF}:
+            dhcp4: false
+        bridges:
+          br0:
+            interfaces: [${LINK_A_IF}, ${LINK_B_IF}]
+            dhcp4: false
+      NETPLAN
+          {
+            echo "export LINK_A_IF=${LINK_A_IF}"
+            echo "export LINK_B_IF=${LINK_B_IF}"
+          } > /etc/poc-ifaces.env
+      fi
+      chmod 600 /etc/netplan/60-poc.yaml
+      netplan apply
+
+  - path: /etc/sysctl.d/99-poc-bridge.conf
+    permissions: "0644"
+    content: |
+      # Vermijd dat de (transparante) bridge-verkeersstroom onbedoeld door de
+      # iptables/netfilter-regels van de host-VM wordt gefilterd. Zonder dit
+      # kan br_netfilter het "onzichtbare" karakter van de link verstoren.
+      net.bridge.bridge-nf-call-iptables=0
+      net.bridge.bridge-nf-call-ip6tables=0
+
+  - path: /usr/local/bin/poc-set-scenario.sh
+    permissions: "0755"
+    content: |
+      #!/usr/bin/env bash
+      # Schakelt tussen de drie kanaalscenario's uit Sectie
+      # sec:virtuele-simulatie-airmax (Figuur fig:airmax-scenarios).
+      set -euo pipefail
+      # shellcheck source=/etc/poc-ifaces.env
+      source /etc/poc-ifaces.env
+
+      SCENARIO="${1:-ideaal}"
+
+      apply() {
+          local iface="$1" delay="$2" jitter="$3" loss="$4" rate="$5"
+          tc qdisc replace dev "${iface}" root netem \
+              delay "${delay}" "${jitter}" distribution normal \
+              loss "${loss}" \
+              rate "${rate}"
+      }
+
+      case "${SCENARIO}" in
+        ideaal)
+          apply "${LINK_A_IF}" 12ms 2ms 0.1% 150mbit
+          apply "${LINK_B_IF}" 12ms 2ms 0.1% 150mbit
+          ;;
+        marginaal)
+          apply "${LINK_A_IF}" 22ms 3ms 1.5% 35mbit
+          apply "${LINK_B_IF}" 22ms 3ms 1.5% 35mbit
+          ;;
+        dfs)
+          echo "DFS-kanaalwissel: 10s volledige onderbreking (Channel Move + CAC)..."
+          tc qdisc replace dev "${LINK_A_IF}" root netem loss 100%
+          tc qdisc replace dev "${LINK_B_IF}" root netem loss 100%
+          sleep 10
+          apply "${LINK_A_IF}" 22ms 3ms 1.5% 35mbit
+          apply "${LINK_B_IF}" 22ms 3ms 1.5% 35mbit
+          ;;
+        *)
+          echo "Onbekend scenario: ${SCENARIO} (verwacht: ideaal|marginaal|dfs)" >&2
+          exit 1
+          ;;
+      esac
+      echo "Scenario '${SCENARIO}' actief op ${LINK_A_IF} en ${LINK_B_IF}."
+
+  - path: /etc/systemd/system/poc-scenario-default.service
+    permissions: "0644"
+    content: |
+      [Unit]
+      Description=Stel het standaard netem-scenario in bij het opstarten (REQ-01..03)
+      After=network-online.target
+      Wants=network-online.target
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/local/bin/poc-set-scenario.sh ideaal
+      RemainAfterExit=true
+
+      [Install]
+      WantedBy=multi-user.target
+
+runcmd:
+  - /usr/local/bin/configure-network.sh bridge
+  - sysctl --system
+  - systemctl daemon-reload
+  - systemctl enable --now poc-scenario-default.service
