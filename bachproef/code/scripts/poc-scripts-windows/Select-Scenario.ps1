@@ -1,15 +1,17 @@
 #Requires -Version 5.1
 <#
-    Select-Scenario.ps1 <ideaal|marginaal|dfs>
+    Select-Scenario.ps1 <0-15|15-30|30+>
 
-    Schakelt op afstand (via SSH, met de automatisch gegenereerde sleutel)
-    tussen de drie kanaalscenario's uit Sectie sec:virtuele-simulatie-airmax.
+    Schakelt op afstand (via SSH, met de automatisch gegenereerde sleutel) de
+    link-emulator naar de VASTE basistoestand van één van de drie
+    afstandscategorieën. Voor de statistische batchtests met willekeurige
+    weers- en DFS-variatie, zie Run-DistanceTrials.ps1.
 #>
 
 param(
     [Parameter(Mandatory, Position = 0)]
-    [ValidateSet('ideaal', 'marginaal', 'dfs')]
-    [string]$Scenario,
+    [ValidateSet('0-15', '15-30', '30+')]
+    [string]$Distance,
 
     [int]$SshPortLinkEmu = 2223
 )
@@ -29,4 +31,4 @@ $ssh = Get-SshCommand
 
 & $ssh -p $SshPortLinkEmu -i $SshKeyPath `
     -o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL -o ConnectTimeout=10 `
-    poc@127.0.0.1 "sudo /usr/local/bin/poc-set-scenario.sh $Scenario"
+    poc@127.0.0.1 "sudo /usr/local/bin/poc-set-scenario.sh $Distance"

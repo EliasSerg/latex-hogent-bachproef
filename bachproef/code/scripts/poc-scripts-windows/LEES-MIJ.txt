@@ -29,15 +29,27 @@ Er is geen commandoregelkennis nodig.
           tot het klaar is.
 
   STAP 2: dubbelklik op "2-Kies-Scenario.bat"
-          Kies met de cijfertoetsen 1, 2 of 3 welk kanaalscenario je wil
-          testen (ideaal / marginaal / DFS-kanaalwissel).
+          Kies met de cijfertoetsen 1, 2 of 3 welke afstandscategorie je
+          wil testen (0-15 km / 15-30 km / 30+ km). Dit zet een vaste
+          toestand, handig om snel iets uit te proberen.
 
   STAP 3: dubbelklik op "3-Voer-Tests-Uit.bat"
           Dit voert de metingen uit (doorvoersnelheid, latency, een echte
           bestandsoverdracht) en toont de resultaten in het venster.
 
-Je kan stap 2 en 3 achteraf zo vaak herhalen als je wil, met verschillende
-scenario's, zonder stap 1 opnieuw te moeten uitvoeren.
+  STAP 4: dubbelklik op "4-Voer-Batchtest-Uit.bat"
+          Voor een statistisch onderbouwd antwoord op "werkt dit goed
+          genoeg": kies een afstandscategorie en een aantal trials
+          (standaard 100). Elke trial krijgt een eigen, willekeurige
+          combinatie van weersomstandigheden en een kans op een
+          DFS-onderbreking (radardetectie) -- op elke afstand, zoals in
+          de praktijk. Na afloop toont het venster het gemiddelde packet
+          loss, de standaardafwijking, en hoeveel trials boven de
+          REQ-03-norm (2%) uitkwamen. De volledige resultaten per trial
+          staan ook in een CSV-bestand onder "work\results\".
+
+Je kan stap 2, 3 en 4 achteraf zo vaak herhalen als je wil, zonder stap 1
+opnieuw te moeten uitvoeren.
 
 ALLES OPNIEUW BEGINNEN?
 -------------------------

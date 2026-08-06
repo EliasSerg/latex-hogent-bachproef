@@ -164,6 +164,13 @@ Wait-ForCloudInit -Ssh $sshCmd -KeyPath $SshKeyPath -Port $SshPortServer
 Wait-ForCloudInit -Ssh $sshCmd -KeyPath $SshKeyPath -Port $SshPortLinkEmu
 Wait-ForCloudInit -Ssh $sshCmd -KeyPath $SshKeyPath -Port $SshPortClient
 
+# Extra garantie bovenop "cloud-init status --wait": controleer expliciet
+# dat /etc/poc-ifaces.env op de link-emulator effectief bestaat, vóór het
+# script "klaar" meldt. Dit sluit een resterend tijdvenster uit waarin
+# cloud-init zichzelf al als voltooid rapporteert terwijl
+# Select-Scenario.ps1 dat bestand toch nog niet aantreft.
+Wait-ForRemoteFile -Ssh $sshCmd -KeyPath $SshKeyPath -Port $SshPortLinkEmu -RemotePath '/etc/poc-ifaces.env'
+
 Write-Host ''
 Write-Host '############################################################'
 Write-Host '# Stap 6/6: klaar'

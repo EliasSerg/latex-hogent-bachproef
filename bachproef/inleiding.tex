@@ -79,7 +79,11 @@ Deze vraag wordt verder opgesplitst in de volgende deelvragen:
 Het beoogde eindresultaat van deze bachelorproef is een werkende proof-of-concept waarbij een
 fileserver bereikbaar wordt gemaakt via een punt-tot-punt radioverbinding. Het succes van het
 onderzoek wordt beoordeeld aan de hand van meetbare criteria: de gerealiseerde bandbreedte,
-het packet loss percentage, de verbindingsstabiliteit en de maximale operationele afstand.
+het packet loss percentage, de verbindingsstabiliteit en de maximale operationele afstand. Deze
+laatste wordt niet als een enkele, harde grens benaderd, maar als een reeks afstandscategorieën
+waarbinnen de haalbare prestaties afzonderlijk worden gekwantificeerd -- zodat het antwoord op de
+onderzoeksvraag genuanceerd kan zijn ("tot waar werkt dit goed, en vanaf waar niet meer") in
+plaats van louter bevestigend of ontkennend.
 
 Indien een volledig werkende opstelling niet haalbaar blijkt, wordt dit beschouwd als een
 waardevol resultaat op zich: de bachelorproef levert dan een theoretisch onderbouwde verklaring
@@ -103,7 +107,20 @@ In Hoofdstuk~\ref{ch:methodologie} wordt de methodologie toegelicht en worden de
 onderzoekstechnieken besproken: de requirementsanalyse, de opbouw van de proefopstelling
 en de meetmethoden die gehanteerd worden om de onderzoeksvragen te beantwoorden.
 
-% TODO: voeg hier hoofdstukken toe voor je proof-of-concept en resultaten
+In Hoofdstuk~\ref{ch:requirementsanalyse} worden de functionele en niet-functionele eisen
+waaraan de proof-of-concept moet voldoen expliciet vastgelegd, en wordt op basis daarvan de
+systeemarchitectuur -- de combinatie van frequentieband en bestandsoverdrachtsprotocol --
+onderbouwd geselecteerd.
+
+In Hoofdstuk~\ref{ch:proof-of-concept} wordt de praktische realisatie van deze architectuur
+beschreven: een volledig geautomatiseerde, virtuele testomgeving die de fysieke
+straalverbinding nabootst, met bijzondere aandacht voor de manier waarop wisselende
+weersomstandigheden en de wettelijk verplichte Dynamic Frequency Selection (Sectie~\ref{subsec:dfs})
+op een realistische, statistische wijze gesimuleerd worden.
+
+In Hoofdstuk~\ref{ch:resultaten-en-evaluatie} worden de meetresultaten van deze proof-of-concept
+gepresenteerd en getoetst aan de requirements uit Hoofdstuk~\ref{ch:requirementsanalyse}, telkens
+afzonderlijk per afstandscategorie.
 
 In Hoofdstuk~\ref{ch:conclusie}, tenslotte, wordt de conclusie gegeven en een antwoord
 geformuleerd op de onderzoeksvragen. Daarbij wordt ook een aanzet gegeven voor toekomstig

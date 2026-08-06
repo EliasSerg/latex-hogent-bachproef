@@ -23,6 +23,7 @@ package_update: true
 packages:
   - openssh-server
   - iproute2
+  - bc
 
 write_files:
   - path: /usr/local/bin/configure-network.sh
@@ -123,13 +124,14 @@ write_files:
     permissions: "0755"
     content: |
       #!/usr/bin/env bash
-      # Schakelt tussen de drie kanaalscenario's uit Sectie
-      # sec:virtuele-simulatie-airmax (Figuur fig:airmax-scenarios).
+      # Stelt de VASTE basistoestand in voor één van de drie afstandscategorieën
+      # uit Sectie sec:req-tussentijdse-conclusie (geen weer/DFS-variatie -- dat
+      # zit in poc-run-trial.sh, voor de statistische batchtests).
       set -euo pipefail
       # shellcheck source=/etc/poc-ifaces.env
       source /etc/poc-ifaces.env
 
-      SCENARIO="${1:-ideaal}"
+      DISTANCE="${1:-0-15}"
 
       apply() {
           local iface="$1" delay="$2" jitter="$3" loss="$4" rate="$5"
@@ -139,41 +141,109 @@ write_files:
               rate "${rate}"
       }
 
-      case "${SCENARIO}" in
-        ideaal)
+      case "${DISTANCE}" in
+        0-15)
           apply "${LINK_A_IF}" 12ms 2ms 0.1% 150mbit
           apply "${LINK_B_IF}" 12ms 2ms 0.1% 150mbit
           ;;
-        marginaal)
+        15-30)
           apply "${LINK_A_IF}" 22ms 3ms 1.5% 35mbit
           apply "${LINK_B_IF}" 22ms 3ms 1.5% 35mbit
           ;;
-        dfs)
-          echo "DFS-kanaalwissel: 10s volledige onderbreking (Channel Move + CAC)..."
-          tc qdisc replace dev "${LINK_A_IF}" root netem loss 100%
-          tc qdisc replace dev "${LINK_B_IF}" root netem loss 100%
-          sleep 10
-          apply "${LINK_A_IF}" 22ms 3ms 1.5% 35mbit
-          apply "${LINK_B_IF}" 22ms 3ms 1.5% 35mbit
+        30+)
+          apply "${LINK_A_IF}" 35ms 5ms 5% 5mbit
+          apply "${LINK_B_IF}" 35ms 5ms 5% 5mbit
           ;;
         *)
-          echo "Onbekend scenario: ${SCENARIO} (verwacht: ideaal|marginaal|dfs)" >&2
+          echo "Onbekende afstandscategorie: ${DISTANCE} (verwacht: 0-15|15-30|30+)" >&2
           exit 1
           ;;
       esac
-      echo "Scenario '${SCENARIO}' actief op ${LINK_A_IF} en ${LINK_B_IF}."
+      echo "Afstandscategorie '${DISTANCE}' actief op ${LINK_A_IF} en ${LINK_B_IF}."
+
+  - path: /usr/local/bin/poc-run-trial.sh
+    permissions: "0755"
+    content: |
+      #!/usr/bin/env bash
+      # Eén trial voor de statistische batchtests (Sectie sec:sim-trials): past
+      # de basisparameters van de gevraagde afstandscategorie toe, maar met
+      # willekeurige weersvariatie (Gilbert-Elliot burstverliesmodel + jitter op
+      # delay/rate) en een kans op een DFS-onderbreking -- op ELKE afstand,
+      # zoals vereist. Bedoeld om via SSH honderden keren na elkaar aangeroepen
+      # te worden door Run-DistanceTrials.ps1 op de host.
+      set -euo pipefail
+      # shellcheck source=/etc/poc-ifaces.env
+      source /etc/poc-ifaces.env
+
+      DISTANCE="${1:-0-15}"
+
+      case "${DISTANCE}" in
+        0-15)  D=12; J=2; RATE=150; LOSS_GOED=0.1; LOSS_SLECHT=8;  P_G2B_LO=1; P_G2B_HI=2;  P_B2G_LO=50; P_B2G_HI=70 ;;
+        15-30) D=22; J=3; RATE=35;  LOSS_GOED=1.5; LOSS_SLECHT=20; P_G2B_LO=2; P_G2B_HI=4;  P_B2G_LO=30; P_B2G_HI=50 ;;
+        30+)   D=35; J=5; RATE=5;   LOSS_GOED=5;   LOSS_SLECHT=40; P_G2B_LO=4; P_G2B_HI=8;  P_B2G_LO=20; P_B2G_HI=40 ;;
+        *) echo "Onbekende afstandscategorie: ${DISTANCE}" >&2; exit 1 ;;
+      esac
+
+      # rand_range MIN MAX -> willekeurig float-getal in [MIN,MAX], met een
+      # unieke seed per aanroep (bash $RANDOM + PID) zodat opeenvolgende
+      # aanroepen binnen dezelfde seconde niet dezelfde waarde teruggeven.
+      rand_range() {
+          awk -v seed="$RANDOM$RANDOM$$" -v lo="$1" -v hi="$2" \
+              'BEGIN{srand(seed); printf "%.2f", lo + rand()*(hi-lo)}'
+      }
+
+      # Willekeurige weersvariatie: +/-30% op delay, +/-25% op rate, en
+      # Gilbert-Elliot-burstparameters binnen de bandbreedte van deze
+      # afstandscategorie (zie sim-verantwoording voor de motivatie).
+      DELAY=$(rand_range "$(echo "$D*0.7" | bc)" "$(echo "$D*1.3" | bc)")
+      NEW_RATE=$(rand_range "$(echo "$RATE*0.75" | bc)" "$(echo "$RATE*1.25" | bc)")
+      P_G2B=$(rand_range "$P_G2B_LO" "$P_G2B_HI")
+      P_B2G=$(rand_range "$P_B2G_LO" "$P_B2G_HI")
+
+      for IFACE in "${LINK_A_IF}" "${LINK_B_IF}"; do
+          tc qdisc replace dev "${IFACE}" root netem \
+              delay "${DELAY}ms" "${J}ms" distribution normal \
+              loss gemodel "${P_G2B}%" "${P_B2G}%" "${LOSS_SLECHT}%" "${LOSS_GOED}%" \
+              rate "${NEW_RATE}mbit"
+      done
+
+      # DFS: op elke afstand een kans van 8% dat er ergens in het
+      # meetvenster van deze trial een radardetectie optreedt (EN~301~893,
+      # zie subsec:dfs) -- onafhankelijk van de afstandscategorie, precies
+      # zoals vereist.
+      DFS_ROLL=$(( RANDOM % 100 ))
+      DFS_THIS_TRIAL="nee"
+      if [ "${DFS_ROLL}" -lt 8 ]; then
+          DFS_THIS_TRIAL="ja"
+          DFS_START=$(( RANDOM % 8 ))
+          (
+              sleep "${DFS_START}"
+              tc qdisc change dev "${LINK_A_IF}" root netem loss 100%
+              tc qdisc change dev "${LINK_B_IF}" root netem loss 100%
+              sleep 10
+              tc qdisc replace dev "${LINK_A_IF}" root netem \
+                  delay "${DELAY}ms" "${J}ms" distribution normal \
+                  loss gemodel "${P_G2B}%" "${P_B2G}%" "${LOSS_SLECHT}%" "${LOSS_GOED}%" rate "${NEW_RATE}mbit"
+              tc qdisc replace dev "${LINK_B_IF}" root netem \
+                  delay "${DELAY}ms" "${J}ms" distribution normal \
+                  loss gemodel "${P_G2B}%" "${P_B2G}%" "${LOSS_SLECHT}%" "${LOSS_GOED}%" rate "${NEW_RATE}mbit"
+          ) </dev/null >/tmp/poc-dfs-event.log 2>&1 &
+          disown
+      fi
+
+      echo "trial distance=${DISTANCE} delay=${DELAY}ms rate=${NEW_RATE}mbit p_g2b=${P_G2B}% p_b2g=${P_B2G}% dfs=${DFS_THIS_TRIAL}"
 
   - path: /etc/systemd/system/poc-scenario-default.service
     permissions: "0644"
     content: |
       [Unit]
-      Description=Stel het standaard netem-scenario in bij het opstarten (REQ-01..03)
+      Description=Stel de standaard afstandscategorie in bij het opstarten (REQ-01..03)
       After=network-online.target
       Wants=network-online.target
 
       [Service]
       Type=oneshot
-      ExecStart=/usr/local/bin/poc-set-scenario.sh ideaal
+      ExecStart=/usr/local/bin/poc-set-scenario.sh 0-15
       RemainAfterExit=true
 
       [Install]

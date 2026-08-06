@@ -190,7 +190,7 @@ function Wait-ForCloudInit {
         Dit is een betere graadmeter dan enkel controleren of de SSH-poort
         bereikbaar is: sshd start vaak al binnen enkele seconden, terwijl
         cloud-init zelf (pakketupdates, write_files, runcmd -- inclusief
-        het wegschrijven van /etc/poc-ifaces.env) daarna nog several
+        het wegschrijven van /etc/poc-ifaces.env) daarna nog verscheidene
         minuten kan doorlopen. Zonder deze check kan scenario-select.sh
         lopen vóór cloud-init klaar is, met "No such file or directory"
         voor /etc/poc-ifaces.env tot gevolg.
@@ -203,18 +203,82 @@ function Wait-ForCloudInit {
     )
 
     Write-Host "==> Wachten tot cloud-init op poort $Port volledig is afgerond (kan enkele minuten duren)..."
-    $prevPref = $ErrorActionPreference
-    $ErrorActionPreference = 'Continue'
-    & $Ssh -p $Port -i $KeyPath -o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL `
-        -o ConnectTimeout=10 -o ConnectionAttempts=3 `
-        poc@127.0.0.1 "timeout $TimeoutSeconds cloud-init status --wait" 2>&1 | ForEach-Object { Write-Host "   $_" }
-    $exitCode = $LASTEXITCODE
-    $ErrorActionPreference = $prevPref
+
+    $maxAttempts = 8
+    $attempt = 0
+    $exitCode = 1
+    while ($attempt -lt $maxAttempts -and $exitCode -ne 0) {
+        $attempt++
+        $prevPref = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        $output = & $Ssh -p $Port -i $KeyPath -o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL `
+            -o ConnectTimeout=15 -o ConnectionAttempts=3 `
+            poc@127.0.0.1 "timeout $TimeoutSeconds cloud-init status --wait" 2>&1
+        $exitCode = $LASTEXITCODE
+        $ErrorActionPreference = $prevPref
+
+        if ($exitCode -ne 0 -and $attempt -lt $maxAttempts) {
+            # "Connection timed out"-achtige fouten tijdens het opstarten van
+            # meerdere VM's tegelijk wijzen meestal op een tijdelijk
+            # overbelaste hostmachine (CPU/schijf-I/O), niet op een echte
+            # scriptfout -- vandaar dat hier hernieuwde pogingen ondernomen
+            # worden in plaats van meteen op te geven.
+            Write-Host "   Poging $attempt/$maxAttempts mislukt (mogelijk tijdelijke hostbelasting), opnieuw proberen over 15s..." -ForegroundColor Yellow
+            $output | ForEach-Object { Write-Host "      $_" -ForegroundColor DarkGray }
+            Start-Sleep -Seconds 15
+        }
+    }
 
     if ($exitCode -eq 0) {
         Write-Host "   cloud-init is volledig klaar." -ForegroundColor Green
     } else {
-        Write-Host "   Waarschuwing: 'cloud-init status --wait' gaf code $exitCode terug; ga toch verder." -ForegroundColor Yellow
+        Write-Host "   Waarschuwing: 'cloud-init status --wait' bleef falen na $maxAttempts pogingen (code $exitCode); ga toch verder." -ForegroundColor Yellow
+        $output | ForEach-Object { Write-Host "      $_" -ForegroundColor DarkGray }
+    }
+}
+
+function Wait-ForRemoteFile {
+    <#
+        Wacht tot een specifiek bestand op een VM effectief bestaat, door
+        er via SSH periodiek naar te pollen.
+
+        "cloud-init status --wait" hoort te garanderen dat runcmd (en dus
+        /etc/poc-ifaces.env) al voltooid is tegen de tijd dat het terugkeert,
+        maar in de praktijk trad toch af en toe een venster op waarin
+        Select-Scenario.ps1, vlak na een geslaagde build, dat bestand nog
+        niet aantrof. Deze functie sluit die resterende twijfel expliciet
+        uit: in plaats van te vertrouwen op cloud-init's eigen boekhouding,
+        wordt hier rechtstreeks gecontroleerd of het bestand er ECHT staat,
+        met een aantal hernieuwde pogingen indien nodig.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$Ssh,
+        [Parameter(Mandatory)][string]$KeyPath,
+        [Parameter(Mandatory)][int]$Port,
+        [Parameter(Mandatory)][string]$RemotePath,
+        [int]$TimeoutSeconds = 180
+    )
+
+    Write-Host "==> Controleren of $RemotePath op poort $Port bestaat..."
+    $elapsed = 0
+    while ($true) {
+        $prevPref = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+        & $Ssh -p $Port -i $KeyPath -o StrictHostKeyChecking=no -o UserKnownHostsFile=NUL `
+            -o ConnectTimeout=10 poc@127.0.0.1 "test -f $RemotePath" 2>&1 | Out-Null
+        $found = ($LASTEXITCODE -eq 0)
+        $ErrorActionPreference = $prevPref
+
+        if ($found) {
+            Write-Host "   Gevonden." -ForegroundColor Green
+            return
+        }
+        if ($elapsed -ge $TimeoutSeconds) {
+            Write-Host "   Waarschuwing: $RemotePath nog steeds niet gevonden na ${TimeoutSeconds}s; ga toch verder." -ForegroundColor Yellow
+            return
+        }
+        Start-Sleep -Seconds 3
+        $elapsed += 3
     }
 }
 

@@ -59,6 +59,17 @@ en de continuïteit van de informatievoorziening waarborgt.
 \section{Radiofrequenties en atmosferische signaalpropagatie}
 \label{sec:Radiofrequenties en signaalpropagatie}
 
+Om de rest van dit hoofdstuk te kunnen volgen, is een kort uitgangspunt nuttig: een
+radiogolf is een elektromagnetisch signaal dat zich, net als licht, met de
+lichtsnelheid voortplant. De \textit{frequentie} van dat signaal (uitgedrukt in Hertz,
+het aantal trillingen per seconde) en zijn \textit{golflengte} (de fysieke afstand
+tussen twee opeenvolgende golftoppen) zijn rechtstreeks aan elkaar gekoppeld via de
+lichtsnelheid: een hogere frequentie komt overeen met een kortere golflengte, en
+omgekeerd. Deze golflengte bepaalt mee hoe een signaal zich gedraagt -- of het rond
+obstakels buigt, hoe ver het reikt, en welke antennegrootte nodig is -- wat verklaart
+waarom radioamateurs banden vaak naar hun golflengte noemen (zoals de "6m-band"
+verderop in dit hoofdstuk) in plaats van naar hun frequentie.
+
 Om data succesvol via radiogolven te transporteren, is een fundamenteel begrip van de
 fysische laag van computercommunicatie essentieel, waarbij elektromagnetische golven worden
 gebruikt om bitstromen door de ether te sturen~\autocite{Tanenbaum2021}. De capaciteit
@@ -70,14 +81,20 @@ dataoverdracht afhankelijk is van de bandbreedte ($W$) en de signaal-ruisverhoud
 
 \begin{equation}
 C = W \log_2 \left(1 + \frac{S}{N}\right)
+\label{eq:shannon-hartley}
 \end{equation}
 
 In \textcite{Shannon1948PartII} wordt dieper ingegaan op de impact van continue kanalen
 met ruis, wat direct relevant is voor radiogebaseerde systemen. In de praktijk is
 signaalpropagatie sterk afhankelijk van de gekozen frequentieband en veranderlijke atmosferische
-omstandigheden~\autocite{Di Lorenzo2018}. Binnen de lagere frequentiebanden, zoals de kortegolf (HF),
+omstandigheden~\autocite{WirelessBackhaulSurvey}. Binnen de lagere frequentiebanden, zoals de kortegolf (HF),
 wordt het bereik bepaald door ionosferische omstandigheden die variëren naargelang het uur van de dag,
-het seizoen en de zonnecyclus. Een specifiek fenomeen binnen de hogere HF-banden (zoals 10 meter)
+het seizoen en de zonnecyclus.\footnote{De ionosfeer is de laag van de atmosfeer, ruwweg
+tussen 60 en 1000~km hoogte, waar zonnestraling atomen ioniseert (elektronen
+losmaakt). Ze bestaat uit meerdere sublagen (D, E en F), die radiogolven van
+bepaalde frequenties kunnen terugkaatsen naar de aarde -- vandaar dat HF-signalen
+over de horizon heen kunnen reiken door tegen deze laag te "kaatsen", terwijl
+hogere frequenties er gewoon doorheen gaan.} Een specifiek fenomeen binnen de hogere HF-banden (zoals 10 meter)
 en lagere VHF-banden (zoals 6 meter) is *Sporadic-E*. Hierbij ontstaan plotseling sterk
 geïoniseerde wolken in de E-laag van de ionosfeer, waardoor signalen met relatief lage vermogens
 over extreme afstanden gereflecteerd kunnen worden. Hoewel dit toestaat om duizenden kilometers
@@ -249,9 +266,15 @@ spectrumaggregatie, waarbij niet-aaneengesloten frequentiebanden dynamisch worde
 tot één logisch kanaal~\autocite{MicrowavePtP5G}.
 
 Bij het overdragen van data via atmosferische kanalen speelt de keuze van het modulatieschema een
-sleutelrol. Binnen toepassingen zoals Digitale Amateur Televisie (D-ATV) wordt vaak gewerkt met
+sleutelrol. Binnen toepassingen zoals Digitale Amateur Televisie (D-ATV\footnote{D-ATV is
+de digitale opvolger van analoge amateurtelevisie: radioamateurs zenden er live
+videobeeld mee uit, op vergelijkbare wijze als een digitale televisie-uitzending,
+maar dan over amateurbanden.}) wordt vaak gewerkt met
 single-carrier modulatietechnieken zoals *Quadrature Phase Shift Keying* (QPSK) binnen de DVB-S2
-standaard om interfaces te simplificeren -- een uitbreiding van de basis-PSK hierboven, waarbij
+standaard\footnote{DVB-S2 (\textit{Digital Video Broadcasting -- Satellite, tweede
+generatie}) is de internationale standaard voor digitale satelliettelevisie, en
+wordt binnen D-ATV hergebruikt omdat er al goedkope, kant-en-klare ontvangstapparatuur
+voor bestaat.} om interfaces te simplificeren -- een uitbreiding van de basis-PSK hierboven, waarbij
 twee bits tegelijk in vier fasetoestanden worden gecodeerd. Voor pure, robuuste IP-datacommunicatie over instabiele
 radiokanalen is *Orthogonal Frequency Division Multiplexing* (OFDM) echter superieur. OFDM verdeelt
 de datastroom over een groot aantal loodrechte subdraaggolven. Dit maakt het signaal extreem
@@ -263,7 +286,11 @@ troposferische breking.
 \label{sec:Protocollen voor radiogebaseerde dataoverdracht}
 
 Waar de fysische laag de radiogolven beheert, bepalen de protocollen op de hogere lagen van het
-OSI-model hoe data logisch geordend en foutloos overgedragen wordt~\autocite{Tanenbaum2021}.
+OSI-model\footnote{Het OSI-model (\textit{Open Systems Interconnection}) is een
+referentiekader dat netwerkcommunicatie opdeelt in zeven opeenvolgende lagen, van de
+fysieke laag (elektrische signalen, radiogolven) tot de applicatielaag (bv. een
+bestandsoverdrachtsprotocol). Elke laag bouwt voort op de diensten van de laag eronder,
+zonder zich te moeten bekommeren om de technische details ervan.} hoe data logisch geordend en foutloos overgedragen wordt~\autocite{Tanenbaum2021}.
 
 \subsection{RTTY: de historische basis}%
 \label{subsec:rtty}
@@ -287,12 +314,19 @@ toestaat om het TCP/IP-protocol in te kapselen~\autocite{QSLPacketTCPIP}. Hierdo
 internetapplicaties draaien via het zogeheten AMPRNet (*Amateur Packet Radio Network*).
 
 AX.25 (\textit{Amateur X.25}) is zelf afgeleid van het HDLC-protocol (\textit{High-Level
-Data Link Control}) en verstuurt data, in tegenstelling tot RTTY, in afgebakende frames
+Data Link Control}\footnote{HDLC is een generieke, wijdverspreide methode om een
+continue bitstroom op te delen in afgebakende, herkenbare "frames" (pakketjes) met een
+duidelijk begin, einde en controlesom -- de bouwsteen die zowat elk modern
+datalinkprotocol, waaronder AX.25, hergebruikt in plaats van telkens opnieuw uit te
+vinden.}) en verstuurt data, in tegenstelling tot RTTY, in afgebakende frames
 met een adresveld (radioamateur-roepletters, eventueel aangevuld met een SSID om
 meerdere toestellen per station te onderscheiden) en een controlesomveld
 (\textit{Frame Check Sequence}) om transmissiefouten te detecteren. Het protocol kent
 twee werkingsmodi: \textit{connectionless} (UI-frames, zonder bevestiging, vergelijkbaar
-met UDP -- gebruikt voor bakens en APRS) en \textit{connection-oriented} (met
+met UDP -- gebruikt voor bakens en APRS\footnote{APRS (\textit{Automatic Packet
+Reporting System}) is een populaire toepassing van packet radio waarbij
+radioamateurs automatisch hun positie, weerdata of korte berichten uitzenden, die
+door andere stations en online kaartendiensten opgevangen en getoond worden.}) en \textit{connection-oriented} (met
 sessieopbouw, genummerde en bevestigde frames, en automatische hertransmissie van
 verloren frames -- conceptueel dicht bij TCP). Op de fysieke laag wordt AX.25 doorgaans
 gedragen door AFSK (\textit{Audio Frequency Shift Keying}) op 1200~baud in de VHF/UHF-
@@ -336,7 +370,7 @@ fysica. Rond de 60 GHz treedt een sterke elektromagnetische resonantie op met zu
 wat resulteert in een specifieke piek in atmosferische absorptie (tot wel 15 dB/km). Zelfs bij een
 perfecte optische zichtverbinding (*Line-of-Sight*) beperkt deze moleculaire demping het bereik
 van 60 GHz-straalverbindingen inherent tot zeer korte afstanden, waardoor ze ongeschikt zijn voor
-interstedelijke backhaullinks~\autocite{Di Lorenzo2018}.
+interstedelijke backhaullinks~\autocite{WirelessBackhaulSurvey}.
 
 \section{Wettelijk kader en regelgeving}
 \label{sec:Wettelijk kader en regelgeving}
@@ -382,7 +416,11 @@ handhavingsactie vanwege het BIPT.
 Voor deze bachelorproef betekent dit concreet dat, indien de proof-of-concept
 (gedeeltelijk) in de 5~GHz-band wordt uitgevoerd, de gebruikte apparatuur ofwel een
 werkende DFS-implementatie moet bevatten, ofwel handmatig beperkt moet worden tot
-kanalen buiten de radar-gereserveerde subbanden (bijvoorbeeld de lagere U-NII-1-band).
+kanalen buiten de radar-gereserveerde subbanden (bijvoorbeeld de lagere
+U-NII-1-band\footnote{U-NII (\textit{Unlicensed National Information
+Infrastructure}) is de Amerikaanse naam voor de indeling van de 5~GHz-band in
+sub-banden; U-NII-1 (5150--5250~MHz) ligt buiten de radar-gereserveerde segmenten en
+wordt daarom vaak als "veilige" deelband aangehaald, ook in Europese context.}).
 Deze laatste aanpak -- het a priori uitsluiten van de gevoelige frequenties in plaats
 van te vertrouwen op automatische detectie -- is de veiligste en eenvoudigste manier om
 regelgevende blootstelling te vermijden binnen de scope van een proof-of-concept, en
@@ -407,13 +445,22 @@ als leidraad worden gesteld:
   \item Waar precies ligt de grens tussen de digitale wereld (fileserver, IP-tunnel) en
         de analoge wereld (radiofrequent signaal)? Met andere woorden: welk deel van de
         modulatie gebeurt in software (bijvoorbeeld via een \textit{Software Defined
-        Radio}) en welk deel in de bestaande hardware van een standaardtransceiver?
+        Radio}\footnote{Een Software Defined Radio (SDR) verplaatst functies die
+        traditioneel in specifieke elektronische hardware zaten (modulatie,
+        filtering, demodulatie) naar software op een gewone computer of processor,
+        met enkel een minimale radio-ontvanger/-zender als tussenstuk. Dat maakt het
+        makkelijk om een modulatietechniek aan te passen zonder de hardware zelf te
+        wijzigen.}) en welk deel in de bestaande hardware van een standaardtransceiver?
   \item Volstaat een modem aan de zenderzijde alleen, of is een symmetrische opstelling
         (modem aan zowel zender- als ontvangstzijde) noodzakelijk voor een
         tweerichtingsverbinding zoals vereist voor bestandsoverdracht (upload \'{e}n
         download)?
   \item Moet de modem als apart tussenstuk tussen computer en transceiver worden
-        geplaatst (zoals bij klassieke packet-radio TNC's), of kan deze functie
+        geplaatst (zoals bij klassieke packet-radio TNC's\footnote{Een TNC
+        (\textit{Terminal Node Controller}) is een apart kastje dat vroeger tussen een
+        computer en een radiotransceiver geplaatst werd om de digitale gegevens naar
+        AFSK-audiotonen om te zetten en omgekeerd -- de klassieke, hardwarematige
+        voorloper van wat vandaag vaak in software gebeurt.}), of kan deze functie
         volledig in software op de computer zelf worden uitgevoerd?
   \item Welke invloed heeft de plaats van de modem in de keten op de uiteindelijke
         betrouwbaarheid en latentie van de verbinding, en hoe verhoudt zich dat tot de

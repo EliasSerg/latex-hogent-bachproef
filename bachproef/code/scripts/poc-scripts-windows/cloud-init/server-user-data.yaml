@@ -43,6 +43,8 @@ write_files:
       # toekent, de eerste NIC toe aan het beheersnetwerk (DHCP/NAT) en de
       # volgende NIC('s) aan het "radiolink"-segment.
       set -euo pipefail
+      exec >> /var/log/poc-configure-network.log 2>&1
+      echo "=== $(date -Is) configure-network.sh $* ==="
       MODE="$1"
 
       # Vlak na het opstarten heeft de kernel niet altijd alle netwerk-
@@ -54,9 +56,11 @@ write_files:
       # /etc/poc-ifaces.env-bestand kan wegschrijven), wordt hier expliciet
       # gewacht tot ze er echt zijn.
       count_ifaces() {
-          local n=0
+          local n=0 name
           for _f in /sys/class/net/*; do
-              [ "$(basename "$_f")" = "lo" ] && continue
+              name="$(basename "$_f")"
+              [ "$name" = "lo" ] && continue
+              [ -e "/sys/class/net/${name}/device" ] || continue
               n=$((n + 1))
           done
           echo "$n"
@@ -76,6 +80,7 @@ write_files:
       for _f in /sys/class/net/*; do
           _name="$(basename "$_f")"
           [ "$_name" = "lo" ] && continue
+          [ -e "/sys/class/net/${_name}/device" ] || continue
           IFACES+=("$_name")
       done
       IFS=$'\n' IFACES=($(sort <<<"${IFACES[*]}")); unset IFS

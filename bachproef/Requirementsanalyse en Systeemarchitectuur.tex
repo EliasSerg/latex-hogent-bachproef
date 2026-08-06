@@ -5,9 +5,9 @@
 \chapter{\IfLanguageName{dutch}{Requirementsanalyse en Systeemarchitectuur}{Requirements Analysis and System Architecture}}%
 \label{ch:requirementsanalyse}
 
-Dit hoofdstuk vertaalt de theoretische kaders en wetmatigheden uit de literatuurstudie naar een concrete, toetsbare set van functionele en niet-functionele systeemeisen. Het doel van deze requirementsanalyse is het vastleggen van een objectief en meetbaar toetsingskader waaraan de fysieke proof-of-concept (PoC) in een latere fase wordt gevalideerd. 
+Dit hoofdstuk vertaalt de theoretische kaders en wetmatigheden uit de literatuurstudie naar een concrete, toetsbare set van functionele en niet-functionele systeemeisen. Het doel van deze requirementsanalyse is het vastleggen van een objectief en meetbaar toetsingskader waaraan de proof-of-concept in een latere fase wordt gevalideerd.
 
-De requirements worden opgedeeld in functionele requirements (\emph{wat} het systeem moet doen), niet-functionele netwerkeisen (\emph{hoe goed} het dat moet doen, uitgedrukt in parameters zoals doorvoersnelheid, latency, jitter en packet loss), en randvoorwaarden op het vlak van regelgeving, omgeving, hardware, software en beveiliging. Aan de hand van deze eisen wordt vervolgens de logische en fysieke systeemarchitectuur ontworpen en geëvalueerd. Het hoofdstuk sluit af met een concreet plan van aanpak om de protocollen en kanaalcondities eerst via een gevirtualiseerde testomgeving in VirtualBox te valideren alvorens de overstap naar fysieke radiohardware te maken.
+De requirements worden opgedeeld in functionele requirements (\emph{wat} het systeem moet doen), niet-functionele netwerkeisen (\emph{hoe goed} het dat moet doen, uitgedrukt in parameters zoals doorvoersnelheid, latency, jitter en packet loss), en randvoorwaarden op het vlak van regelgeving, omgeving, hardware, software en beveiliging. Aan de hand van deze eisen wordt vervolgens de logische en fysieke systeemarchitectuur ontworpen en geëvalueerd. Het hoofdstuk sluit af met een eerste, vereenvoudigd plan van aanpak om de protocollen en kanaalcondities via een gevirtualiseerde testomgeving te valideren -- een plan dat, zoals Hoofdstuk~\ref{ch:proof-of-concept} in detail toont, uiteindelijk fors werd uitgebreid.
 
 \section{Functionele Requirements}
 \label{sec:functionele-requirements}
@@ -29,16 +29,16 @@ De functionele requirements (FR) beschrijven het gewenste systeemgedrag om bruik
 Om te waarborgen dat stateful applicatielaagprotocollen over een stochastisch radiomedium stabiel functioneren, moeten de prestatie-indicatoren van de netwerk- en transportlaag binnen strikte limieten blijven. Op basis van de netwerkarchitecturen beschreven door \textcite{Tanenbaum2021} zijn de volgende kwantitatieve niet-functionele eisen gedefinieerd.
 
 \subsection{Minimale bandbreedte en Goodput (REQ-01)}
-Gezien het theorema van \textcite{Shannon1948}, waarin de kanaalcapaciteit inherent gelimiteerd wordt door de bandbreedte ($W$) en de signaal-ruisverhouding ($S/N$), moet de opstelling een minimale netto bitsnelheid (*goodput*) op de transportlaag garanderen.
+Gezien het theorema van \textcite{Shannon1948}, waarin de kanaalcapaciteit inherent gelimiteerd wordt door de bandbreedte ($W$) en de signaal-ruisverhouding ($S/N$), moet de opstelling een minimale netto bitsnelheid (\textit{goodput}\footnote{\textit{Goodput} is de bitsnelheid die effectief bruikbaar is voor de eigenlijke bestandsinhoud, na aftrek van protocoloverhead (headers, hertransmissies, bevestigingen). Dit ligt steeds lager dan de ruwe kanaalcapaciteit.}) op de transportlaag garanderen.
 \begin{itemize}
-    \item \textbf{Eis:} Voor smalbandige/suboptimale condities of basistesten geldt een absolute ondergrens van $100\text{ kbit/s}$ tot $1\text{ Mbit/s}$ voor tekst- en configuratiebestanden. Voor de primaire breedbandopstelling (5.6~GHz Point-to-Point) moet de effectieve doorvoersnelheid voor bestandsoverdracht minimaal $1\text{ Mbit/s}$ bedragen onder suboptimale condities en minimaal $10\text{ Mbit/s}$ onder optimale *Line-of-Sight*-condities.
+    \item \textbf{Eis:} Voor smalbandige/suboptimale condities of basistesten geldt een absolute ondergrens van $100\text{ kbit/s}$ tot $1\text{ Mbit/s}$ voor tekst- en configuratiebestanden. Voor de primaire breedbandopstelling moet de effectieve doorvoersnelheid voor bestandsoverdracht minimaal $1\text{ Mbit/s}$ bedragen onder suboptimale condities en minimaal $10\text{ Mbit/s}$ onder optimale \textit{Line-of-Sight}-condities (een onbelemmerde zichtlijn tussen zender en ontvanger, zie Sectie~\ref{subsec:line-of-sight}).
     \item \textbf{Verantwoording:} Deze bandbreedte vormt de ondergrens om moderne administratieve en technische dossiers binnen een acceptabel tijdsbestek te synchroniseren, in tegenstelling tot trage, puur op tekst gerichte legacy-systemen zoals Winlink \autocite{WinlinkOverview}.
 \end{itemize}
 
 \subsection{Maximale Latency en Jitter (REQ-02)}
-In tegenstelling tot UDP-gebaseerde mediastromen maken bestandsoverdrachtsprotocollen veelal gebruik van TCP op de transportlaag voor betrouwbare aflevering \autocite{Tanenbaum2021}. TCP-venstergrootte-algoritmen (*sliding window*) zijn uiterst gevoelig voor de *Round-Trip Time* (RTT).
+In tegenstelling tot UDP-gebaseerde mediastromen maken bestandsoverdrachtsprotocollen veelal gebruik van TCP op de transportlaag voor betrouwbare aflevering \autocite{Tanenbaum2021}. TCP-venstergrootte-algoritmen (\textit{sliding window}\footnote{Een mechanisme waarbij zender en ontvanger een "venster" van nog niet-bevestigde gegevens bijhouden; hoe langer een bevestiging erover doet om terug te komen (de RTT), hoe conservatiever dat venster moet blijven om geen dataverlies te riskeren -- wat de haalbare snelheid rechtstreeks beperkt.}) zijn uiterst gevoelig voor de \textit{Round-Trip Time} (RTT, de tijd die een pakket nodig heeft om heen en terug te reizen).
 \begin{itemize}
-    \item \textbf{Eis:} De gemiddelde RTT (latency) over de radioverbinding mag niet hoger zijn dan $150\text{ ms}$ voor de breedbandverbinding (met een absolute maximale grens van $500\text{ ms}$ voor interactief gebruik op smalband). De maximale jitter (variantie in latency) mag niet meer dan $\pm 20\text{ ms}$ bedragen.
+    \item \textbf{Eis:} De gemiddelde RTT (latency) over de radioverbinding mag niet hoger zijn dan $150\text{ ms}$ voor de breedbandverbinding (met een absolute maximale grens van $500\text{ ms}$ voor interactief gebruik op smalband). De maximale jitter (variantie in latency, dus hoe sterk de vertraging van pakket tot pakket schommelt) mag niet meer dan $\pm 20\text{ ms}$ bedragen.
     \item \textbf{Verantwoording:} Boven deze drempelwaarden treedt door de interactieve aard van protocollen zoals SMB of SFTP een exponentiële degradatie van de effectieve doorvoersnelheid op, onafhankelijk van de beschikbare rauwe bandbreedte \autocite{Pollefliet2011}.
 \end{itemize}
 
@@ -46,7 +46,7 @@ In tegenstelling tot UDP-gebaseerde mediastromen maken bestandsoverdrachtsprotoc
 Atmosferische storingen, multi-path fading en interferentie veroorzaken bitfouten op de fysieke laag van draadloze verbindingen \autocite{Tanenbaum2021}.
 \begin{itemize}
     \item \textbf{Eis:} Het netwerk moet een packet loss-percentage van maximaal $1\text{--}2\%$ tolereren tijdens continue bestandsoverdracht, zonder dat de onderliggende TCP-sessie herhaaldelijk afbreekt.
-    \item \textbf{Verantwoording:} Wanneer het pakketverlies deze grens overschrijdt, interpreteert het TCP-congestie-algoritme dit als netwerkcongestie, waarna het transmissievenster (*congestion window*) drastisch wordt gereduceerd tot een fractie van de kanaalcapaciteit.
+    \item \textbf{Verantwoording:} Wanneer het pakketverlies deze grens overschrijdt, interpreteert het TCP-congestie-algoritme dit als netwerkcongestie, waarna het transmissievenster (\textit{congestion window}, het aantal gegevens dat de zender zonder bevestiging vooruit mag sturen) drastisch wordt gereduceerd tot een fractie van de kanaalcapaciteit -- de doorvoersnelheid stort dan in, ook al is er nog voldoende ruwe bandbreedte beschikbaar.
 \end{itemize}
 
 \section{Regelgevende en Wettelijke Randvoorwaarden}
@@ -56,8 +56,8 @@ De fysieke implementatie van de radioverbinding is gebonden aan dwingende nation
 
 \subsection{Conformiteit met het BIPT-frequentieplan en Bandplannen (REQ-04 / RR1--RR3)}
 \begin{itemize}
-    \item \textbf{RR1 (Gelicentieerd spectrum):} Bij gebruik van gelicentieerde radioamateurbanden mag uitsluitend worden uitgezonden binnen de frequenties, transmissiemodi en maximale vermogensgrenzen (ERP/PEP) die het BIPT toelaat \autocite{BIPT2019}, en binnen de bandplannen van de Unie van Belgische Zendamateurs \autocite{UBAFrequenties}.
-    \item \textbf{RR2 (Licentievrije 5 GHz-band \& DFS):} Bij gebruik van de licentievrije 5~GHz ISM/RLAN-band moet het systeem ofwel een werkende *Dynamic Frequency Selection* (DFS) implementatie bevatten, ofwel expliciet beperkt worden tot kanalen buiten de radar-gereserveerde subbanden ($5250\text{--}5350\text{ MHz}$ en $5470\text{--}5725\text{ MHz}$), om storing van onder meer weerradars te vermijden.
+    \item \textbf{RR1 (Gelicentieerd spectrum):} Bij gebruik van gelicentieerde radioamateurbanden mag uitsluitend worden uitgezonden binnen de frequenties, transmissiemodi en maximale vermogensgrenzen (ERP/PEP\footnote{ERP (\textit{Effective Radiated Power}) en PEP (\textit{Peak Envelope Power}) zijn twee gestandaardiseerde manieren om het effectief uitgestraalde zendvermogen van een antenne-installatie uit te drukken, gebruikt in de Belgische en internationale radioreglementering.}) die het BIPT toelaat \autocite{BIPT2019}, en binnen de bandplannen van de Unie van Belgische Zendamateurs \autocite{UBAFrequenties}.
+    \item \textbf{RR2 (Licentievrije 5 GHz-band \& DFS):} Bij gebruik van de licentievrije 5~GHz ISM/RLAN-band moet het systeem ofwel een werkende \textit{Dynamic Frequency Selection} (DFS) implementatie bevatten, ofwel expliciet beperkt worden tot kanalen buiten de radar-gereserveerde subbanden ($5250\text{--}5350\text{ MHz}$ en $5470\text{--}5725\text{ MHz}$), om storing van onder meer weerradars te vermijden (zie Sectie~\ref{subsec:dfs} voor de volledige toedracht, met inbegrip van de weerradar bij Zaventem).
     \item \textbf{RR3 (Identificatieplicht):} Elke zender op amateurbanden moet identificeerbaar zijn conform de geldende reglementering (call-sign identificatie), voor zover van toepassing op de gekozen band en modus.
 \end{itemize}
 
@@ -66,7 +66,7 @@ De fysieke implementatie van de radioverbinding is gebonden aan dwingende nation
 
 \subsection{Omgevingsrequirements (OR1--OR3)}
 \begin{itemize}
-  \item \textbf{OR1 (Fresnelzone):} Zender en ontvanger moeten over een vrije eerste Fresnelzone beschikken, of de testafstand moet zodanig gekozen worden dat obstakels geen betekenisvolle extra verzwakking veroorzaken.
+  \item \textbf{OR1 (Fresnelzone):} Zender en ontvanger moeten over een vrije eerste Fresnelzone beschikken (het ellipsvormige volume rond de rechtstreekse zichtlijn dat grotendeels vrij van obstakels moet blijven, zie Sectie~\ref{subsec:line-of-sight}), of de testafstand moet zodanig gekozen worden dat obstakels geen betekenisvolle extra verzwakking veroorzaken.
   \item \textbf{OR2 (Antennehoogte):} De antennehoogte aan beide zijden moet voldoende zijn om de fysieke aardkromming over de beoogde testafstand te compenseren.
   \item \textbf{OR3 (Klimatologische robuustheid):} Het systeem moet minimaal functioneren onder normale, droge weersomstandigheden; de gevoeligheid voor regendemping wordt gedocumenteerd.
 \end{itemize}
@@ -77,11 +77,11 @@ De fysieke implementatie van de radioverbinding is gebonden aan dwingende nation
   \item \textbf{HR2:} Een geschikte modem/fysieke interface is vereist om digitale data om te zetten naar een RF-signaal.
   \item \textbf{HR3:} De fileserver draait bij voorkeur op een Linux-distributie vanwege de ingebouwde ondersteuning voor netwerkdiagnostiek- en emulatietools (zoals \texttt{iperf3} en \texttt{tc/netem}).
   \item \textbf{SR1:} Het gekozen protocol moet functioneren over een standaard IP-tunnel of native IP-link, onafhankelijk van de specifieke radio-linklaag.
-  \item \textbf{SR2:} De software aan client- en serverzijde moet uitvoerbaar zijn op Single-Board Computers (SBC's) of compacte laptops met beperkte rekenkracht.
+  \item \textbf{SR2:} De software aan client- en serverzijde moet uitvoerbaar zijn op Single-Board Computers (SBC's, compacte, energiezuinige computertjes zoals een Raspberry Pi) of compacte laptops met beperkte rekenkracht.
 \end{itemize}
 
 \subsection{Beveiligingsrequirements (BR1--BR3)}
-Aangezien de ether een openbaar en gedeeld medium is, gelden de volgende beveiligingseisen:
+Aangezien de ether een openbaar en gedeeld medium is -- eender wie binnen bereik kan in principe meeluisteren -- gelden de volgende beveiligingseisen:
 \begin{itemize}
   \item \textbf{BR1 (Authenticatie):} Toegang tot de fileserver moet verplicht geauthenticeerd worden (bijvoorbeeld via SSH-sleutels bij SFTP).
   \item \textbf{BR2 (Versleuteling):} Bestandsinhoud moet tijdens het transport versleuteld worden om te vermijden dat derden data kunnen afluisteren.
@@ -91,7 +91,7 @@ Aangezien de ether een openbaar en gedeeld medium is, gelden de volgende beveili
 \section{Samenvattende Requirementsmatrix}
 \label{sec:requirementsmatrix}
 
-Tabel~\ref{tab:requirementsmatrix} vat de gedefinieerde eisen samen volgens een MoSCoW-prioritering (*Must have*, *Should have*, *Could have*).
+Tabel~\ref{tab:requirementsmatrix} vat de gedefinieerde eisen samen volgens een MoSCoW-prioritering: \textit{Must have} zijn eisen waaraan de oplossing sowieso moet voldoen om als geslaagd te gelden, \textit{Should have} zijn belangrijke maar niet-blokkerende eisen, en \textit{Could have} zijn wenselijke, optionele uitbreidingen.
 
 \begin{table}[h]
   \centering
@@ -120,20 +120,20 @@ Tabel~\ref{tab:requirementsmatrix} vat de gedefinieerde eisen samen volgens een 
 \section{Systeemarchitectuur en Spectrumselectie}
 \label{sec:req-tussentijdse-conclusie}
 
-De requirementsanalyse leidt tot een eenduidige blauwdruk voor de te realiseren proof-of-concept. Om een performante en infrastructuuronafhankelijke netwerkverbinding met een fileserver op te zetten, is de combinatie van een **5.6~GHz Point-to-Point straalverbinding** op de fysieke laag en het **SFTP-protocol** op de applicatielaag de meest optimale architectuur.
+De requirementsanalyse leidt tot een eenduidige blauwdruk voor de te realiseren proof-of-concept. Om een performante en infrastructuuronafhankelijke netwerkverbinding met een fileserver op te zetten, is de combinatie van een \textbf{5.6~GHz Point-to-Point straalverbinding} op de fysieke laag en het \textbf{SFTP-protocol} op de applicatielaag de meest optimale architectuur.
 
-De 5.6~GHz-band levert via breedbandige OFDM-modulatie de noodzakelijke kanaalcapaciteit om consistent aan de hoge doorvoersnelheid (REQ-01) te voldoen. Op het vlak van regelgeving kent deze band in België een belangrijk duaal karakter conform het \textcite{BIPT2019}:
+De 5.6~GHz-band levert via breedbandige OFDM-modulatie (zie Sectie~\ref{subsec:basis-modulatie}) de noodzakelijke kanaalcapaciteit om consistent aan de hoge doorvoersnelheid (REQ-01) te voldoen. Op het vlak van regelgeving kent deze band in België een belangrijk duaal karakter conform het \textcite{BIPT2019}:
 \begin{itemize}
-    \item \textbf{Licentievrij (RLAN/ISM):} Binnen het segment $5470\text{--}5725\text{ MHz}$ is **geen radioamateurvergunning vereist**, mits het zendvermogen strikt begrensd blijft op maximaal **1~Watt ($30\text{ dBm}$) EIRP** en de hardware verplicht gebruikmaakt van *Dynamic Frequency Selection* (DFS) om interferentie met weerradars te voorkomen.
-    \item \textbf{Gelicentieerd (Amateursubband):} Indien men gebruikmaakt van het secundaire radioamateursegment ($5650\text{--}5850\text{ MHz}$) vervalt de DFS-verplichting en stijgt het wettelijke vermogensprivilege tot maximaal **200~Watt PEP** (voor Klasse A/HAREC), wat echter een strikte persoonlijke vergunningsplicht met zich meebrengt \autocite{UBAFrequenties}.
+    \item \textbf{Licentievrij (RLAN/ISM):} Binnen het segment $5470\text{--}5725\text{ MHz}$ is \textbf{geen radioamateurvergunning vereist}, mits het zendvermogen strikt begrensd blijft op maximaal \textbf{1~Watt ($30\text{ dBm}$) EIRP}\footnote{EIRP (\textit{Equivalent Isotropically Radiated Power}) is het vermogen dat een fictieve, in alle richtingen even sterk uitstralende antenne zou moeten leveren om dezelfde signaalsterkte te bereiken als de effectief gebruikte (gerichte) antenne. Het is de standaardmaat waarmee regelgevers een wettelijke vermogenslimiet opleggen, ongeacht welke antenne precies gebruikt wordt.} en de hardware verplicht gebruikmaakt van \textit{Dynamic Frequency Selection} (DFS) om interferentie met weerradars te voorkomen.
+    \item \textbf{Gelicentieerd (Amateursubband):} Indien men gebruikmaakt van het secundaire radioamateursegment ($5650\text{--}5850\text{ MHz}$) vervalt de DFS-verplichting en stijgt het wettelijke vermogensprivilege tot maximaal \textbf{200~Watt PEP} (voor Klasse A/HAREC), wat echter een strikte persoonlijke vergunningsplicht met zich meebrengt \autocite{UBAFrequenties}.
 \end{itemize}
-Voor de basisopstelling van de PoC wordt uitgegaan van de licentievrije limieten ($1\text{~W EIRP}$), zodat de oplossing universeel inzetbaar blijft.
+Voor de basisopstelling van de PoC wordt uitgegaan van de licentievrije limieten ($1\text{~W EIRP}$), zodat de oplossing universeel inzetbaar blijft, zonder dat elke gebruiker eerst een radioamateurexamen zou moeten afleggen.
 
-Op de applicatielaag is SFTP gekozen: het omzeilt de *chattiness* van protocollen zoals SMB bij latency- en jitter-fluctuaties (REQ-02). Bovendien blijft SFTP stabiel functioneren binnen het gestelde packet loss-budget van maximaal 2\% (REQ-03), terwijl het direct authenticatie en versleuteling biedt (BR1, BR2).
+Op de applicatielaag is SFTP gekozen: het omzeilt de \textit{chattiness} van protocollen zoals SMB (SMB wisselt, vóór er ook maar één byte aan bestandsinhoud verstuurd wordt, al een groot aantal korte berichten heen-en-weer uit -- elk van die uitwisselingen wordt vertraagd door de RTT, wat SMB bijzonder gevoelig maakt voor precies de latency- en jitterschommelingen uit REQ-02). Bovendien blijft SFTP stabiel functioneren binnen het gestelde packet loss-budget van maximaal 2\% (REQ-03), terwijl het direct authenticatie en versleuteling biedt (BR1, BR2).
 
-Wat betreft het operationele bereik is deze 5.6~GHz/SFTP-architectuur opgedeeld in drie afstandssegmenten:
+Wat betreft het operationele bereik is deze 5.6~GHz/SFTP-architectuur opgedeeld in drie afstandssegmenten -- dezelfde indeling die later, in Hoofdstuk~\ref{ch:proof-of-concept}, als basis dient voor de drie afstandscategorieën van de proof-of-concept:
 \begin{itemize}
-    \item \textbf{0 tot 15 kilometer (Optimaal bereik):} Zolang er een vrije optische zichtlijn (*Line-of-Sight*) en een vrije eerste Fresnel-zone is, wordt de baseline van $10\text{ Mbit/s}$ tot over de $100\text{ Mbit/s}$ stabiel behaald met minimale latency ($<10\text{ ms}$).
+    \item \textbf{0 tot 15 kilometer (Optimaal bereik):} Zolang er een vrije optische zichtlijn (\textit{Line-of-Sight}) en een vrije eerste Fresnel-zone is, wordt de baseline van $10\text{ Mbit/s}$ tot over de $100\text{ Mbit/s}$ stabiel behaald met minimale latency ($<10\text{ ms}$).
     \item \textbf{15 tot 30 kilometer (Horizonlimiet):} De verbinding blijft bruikbaar en voldoet aan de minimale ondergrens van $1\text{ Mbit/s}$ (REQ-01), mits de antennes op voldoende hoogte worden geplaatst.
     \item \textbf{Groter dan 30 kilometer (Suboptimaal/Extreme afstand):} Dit bereik valt buiten het betrouwbare toepassingsgebied voor permanente bestandstoegang wegens atmosferische onvoorspelbaarheid en de aardkromming.
 \end{itemize}
@@ -144,9 +144,9 @@ Wat betreft het operationele bereik is deze 5.6~GHz/SFTP-architectuur opgedeeld 
 Het inzetten van het licentievrije $5470\text{--}5725\text{ MHz}$ RLAN-segment legt dwingende restricties op die een directe impact hebben op de configuratie en prestaties van de PoC:
 
 \begin{enumerate}
-    \item \textbf{EIRP-Vermogenslimiet (Max. 1 Watt / $30\text{ dBm}$):} Beperkt het totale *link-budget*. Bij inzet van high-gain richtantennes moet het zendvermogen van de radiofrequentie-uitgang softwarematig worden teruggeschroefd om de 1~Watt-grens niet te overschrijden.
-    \item \textbf{DFS-Verplichting (*Dynamic Frequency Selection*):} De hardware moet passief scannen naar weerradars. Radardetectie dwingt een onmiddellijke kanaalwissel af. SFTP gevangen in TCP vangt dit op, maar dit introduceert wel incidentele latency-pieken en jitter (REQ-02).
-    \item \textbf{Gedeeld Medium (Congestie en Interferentie):} *Co-channel interferentie* verhoogt de bitfoutfrequentie (BER). Om packet loss binnen het budget van 2\% (REQ-03) te houden, dwingt dit tot het selecteren van smallere kanaalbreedtes (bijv. $20\text{ MHz}$ i.p.v. $80\text{ MHz}$).
+    \item \textbf{EIRP-Vermogenslimiet (Max. 1 Watt / $30\text{ dBm}$):} Beperkt het totale \textit{link-budget} (de som van alle vermogenswinsten en -verliezen tussen zender en ontvanger, die samen bepalen hoe ver en hoe betrouwbaar een verbinding kan reiken). Bij inzet van high-gain richtantennes moet het zendvermogen van de radiofrequentie-uitgang softwarematig worden teruggeschroefd om de 1~Watt-grens niet te overschrijden.
+    \item \textbf{DFS-Verplichting (\textit{Dynamic Frequency Selection}):} De hardware moet passief scannen naar weerradars. Radardetectie dwingt een onmiddellijke kanaalwissel af. SFTP, dat op TCP steunt, vangt dit op, maar dit introduceert wel incidentele latency-pieken en jitter (REQ-02) -- en, zoals de proof-of-concept in Hoofdstuk~\ref{ch:proof-of-concept} kwantitatief aantoont, een tijdelijke, volledige onderbreking tijdens de kanaalwissel zelf.
+    \item \textbf{Gedeeld Medium (Congestie en Interferentie):} \textit{Co-channel interferentie} (storing doordat andere, niet-gerelateerde zendtoestellen toevallig dezelfde frequentie gebruiken) verhoogt de bitfoutfrequentie (BER, het percentage bits dat foutief aankomt). Om packet loss binnen het budget van 2\% (REQ-03) te houden, dwingt dit tot het selecteren van smallere kanaalbreedtes (bijv. $20\text{ MHz}$ i.p.v. $80\text{ MHz}$).
 \end{enumerate}
 
 Tabel~\ref{tab:limiet-impact-matrix} vat de impact van de licentievrije restricties samen op de netwerkrequirements.
@@ -170,19 +170,19 @@ Tabel~\ref{tab:limiet-impact-matrix} vat de impact van de licentievrije restrict
 \section{Eerste Plan van Aanpak: Virtuele Testomgeving in VirtualBox}
 \label{sec:plan-van-aanpak-virtualbox}
 
-Vooraleer de fysieke radiohardware wordt opgebouwd en in het veld getest, wordt de protocol- en netwerkfunctionaliteit eerst gevalideerd in een gevirtualiseerde omgeving. Via VirtualBox en de Linux-utility \texttt{tc/netem} worden de niet-functionele kanaaleigenschappen (bandbreedtebeperking, latency, jitter en packet loss) kunstmatig gesimuleerd.
+Vooraleer de fysieke radiohardware wordt opgebouwd en in het veld getest, wordt de protocol- en netwerkfunctionaliteit eerst gevalideerd in een gevirtualiseerde omgeving. Via VirtualBox en de Linux-utility \texttt{tc/netem} worden de niet-functionele kanaaleigenschappen (bandbreedtebeperking, latency, jitter en packet loss) kunstmatig gesimuleerd. Dit is het \emph{eerste}, vereenvoudigde plan, opgesteld op basis van de requirements alleen; het toont het principe met een minimale opstelling van twee virtuele machines.
 
 \begin{figure}[h]
   \centering
   \includegraphics[width=\textwidth]{architectuur_virtualbox.pdf}
-  \caption{Architectuur van de virtuele testomgeving in VirtualBox: twee virtuele machines gekoppeld via een intern netwerk met \texttt{tc/netem} kanaalemulatie.}
+  \caption{Architectuur van de eerste, vereenvoudigde virtuele testomgeving: twee virtuele machines gekoppeld via een intern netwerk met \texttt{tc/netem} kanaalemulatie.}
   \label{fig:architectuur-virtualbox}
 \end{figure}
 
 \begin{figure}[h]
   \centering
   \includegraphics[width=\textwidth]{stappenplan_virtualbox.pdf}
-  \caption{Stappenplan voor het opzetten van de virtuele testomgeving.}
+  \caption{Stappenplan voor het opzetten van deze eerste virtuele testomgeving.}
   \label{fig:stappenplan-virtualbox}
 \end{figure}
 
@@ -190,7 +190,7 @@ Het stappenplan (zie Figuur~\ref{fig:stappenplan-virtualbox}) omvat de volgende 
 
 \begin{enumerate}
   \item \textbf{Installatie VM's:} Aanmaken van twee Linux-VM's (client en server) met bescheiden bronnen (1--2 vCPU's, 1--2 GB RAM) overeenkomstig HR3 en SR2.
-  \item \textbf{Netwerkconfiguratie:} Koppeling via een geïsoleerd *Internal Network* in VirtualBox.
+  \item \textbf{Netwerkconfiguratie:} Koppeling via een geïsoleerd \textit{Internal Network} in VirtualBox.
   \item \textbf{Serverconfiguratie:} Installatie van SFTP (OpenSSH), Samba (SMB) en/of WebDAV inclusief geauthenticeerde accounts (FR3, BR1).
   \item \textbf{Basismetingen:} Bepalen van de ongemoduleerde nulmeting/baseline via \texttt{iperf3} en \texttt{ping}.
   \item \textbf{Kanaalemulatie met \texttt{tc/netem}:} Invoeren van netwerkrestricties gebaseerd op Tabel~\ref{tab:requirementsmatrix}. Een representatief emulatiecommando luidt:
@@ -204,9 +204,16 @@ sudo tc qdisc add dev eth1 root netem \
   \item \textbf{Evaluatie \& Bijsturing:} Valideren of de resultaten voldoen aan de eisen in Tabel~\ref{tab:requirementsmatrix}. Eventuele knelpunten worden opgelost door protocolparameterstuning alvorens over te stappen naar fysieke radiohardware.
 \end{enumerate}
 
+\subsection{Van eerste opzet naar de effectieve implementatie}%
+\label{subsec:req-van-opzet-naar-implementatie}
+
+Dit eerste plan bleek, eenmaal in de praktijk uitgewerkt, op twee punten te moeten worden uitgebreid. Ten eerste kon de geplande fysieke 5.6~GHz airMAX-straalverbinding niet worden aangekocht binnen het tijdsbestek van dit onderzoek (zie de bijstelling van de methodologie in Sectie~\ref{subsec:meth-bijstelling-fase3}), waardoor de volledige proof-of-concept virtueel gerealiseerd werd. Ten tweede volstond een eenvoudige, statische \texttt{tc/netem}-instelling niet om de combinatie van afstand, willekeurig wisselende weersomstandigheden én een verplichte DFS-kanaalwissel (RR2) tegelijk te kunnen valideren -- elk van die factoren moet immers, zoals hierboven toegelicht, op \emph{elke} afstandscategorie kunnen optreden, niet enkel als een aparte, vaste testcase.
+
+Dit leidde tot een uitgebreidere \emph{dumbbell-topologie} met een derde, tussenliggende virtuele machine die specifiek de rol van de radioverbinding zelf overneemt, en tot een statistische testmethode die per meting een nieuwe, willekeurige combinatie van kanaalomstandigheden toepast in plaats van één vaste waarde. De volledige, effectief gerealiseerde architectuur, inclusief de motivatie voor elke ontwerpkeuze en de bijhorende meetresultaten, wordt in detail beschreven in Hoofdstuk~\ref{ch:proof-of-concept} en Hoofdstuk~\ref{ch:resultaten-en-evaluatie}.
+
 \section{Besluit}
 \label{sec:requirementsanalyse-besluit}
 
-Dit hoofdstuk vertaalde de theoretische inzichten naar een gedefinieerde set van functionele en niet-functionele eisen, aangevuld met wettelijke, omgevings- en beveiligingsrandvoorwaarden. Met de selectie van de 5.6~GHz Point-to-Point architectuur en SFTP als applicatieprotocol is een helder toetsingskader neergezet. 
+Dit hoofdstuk vertaalde de theoretische inzichten naar een gedefinieerde set van functionele en niet-functionele eisen, aangevuld met wettelijke, omgevings- en beveiligingsrandvoorwaarden. Met de selectie van de 5.6~GHz Point-to-Point architectuur en SFTP als applicatieprotocol is een helder toetsingskader neergezet, samengevat in de requirementsmatrix van Tabel~\ref{tab:requirementsmatrix}.
 
-De voorgestelde VirtualBox-testomgeving met \texttt{tc/netem} vormt de directe brug naar Hoofdstuk~\ref{ch:poc}, waarin de gesimuleerde parameters stapsgewijs vervangen zullen worden door de fysieke radio-opstelling en veldmetingen.
+De voorgestelde eerste, vereenvoudigde VirtualBox-testomgeving met \texttt{tc/netem} vormt de directe brug naar Hoofdstuk~\ref{ch:proof-of-concept}, waarin diezelfde grondgedachte -- kanaalcondities kunstmatig nabootsen in plaats van fysieke hardware te vereisen -- verder uitgewerkt wordt tot de effectief gerealiseerde, statistisch onderbouwde proof-of-concept.

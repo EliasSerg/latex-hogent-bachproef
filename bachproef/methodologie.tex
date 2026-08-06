@@ -111,16 +111,20 @@ overeind, maar kon door deze beperking niet volledig worden uitgevoerd.
  
 Om toch een tastbare en meetbare praktijkuitwerking te realiseren, wordt Fase 3
 bijgesteld naar een \emph{emulatiegebaseerde} proof-of-concept: in plaats van de
-fysieke straalverbinding wordt een volledige netwerkemulatie opgezet met twee
-(of drie) virtuele machines in VirtualBox, gekoppeld via de \texttt{tc/netem}-
-queueing discipline, zoals uitgewerkt in Sectie~\ref{sec:plan-van-aanpak-virtualbox}
-en Sectie~\ref{sec:virtuele-simulatie-airmax}. Om het verlies aan fysieke
-representativiteit zoveel mogelijk te beperken, worden de \texttt{netem}-parameters
-niet vrij gekozen, maar afgeleid uit de officiële technische specificaties van het
-airMAX-platform zelf (doorvoersnelheid, TDD-framing-latency), aangevuld met een
-expliciet scenario dat de impact van een verplichte DFS-kanaalwissel simuleert (zie
-Sectie~\ref{subsec:dfs}). Deze aanpak behoudt de kernmethode van Fase 3 --
-experimenteel-technisch ontwerponderzoek, getoetst aan de requirements uit
+fysieke straalverbinding wordt een volledige netwerkemulatie opgezet met drie virtuele
+machines in VirtualBox -- een dumbbell-topologie waarbij een centrale, toegewijde
+link-emulator-VM de rol van de twee airMAX-antennes overneemt, gekoppeld via de
+\texttt{tc/netem}-queueing discipline (zie Hoofdstuk~\ref{ch:proof-of-concept}). Om het
+verlies aan fysieke representativiteit zoveel mogelijk te beperken, worden de
+\texttt{netem}-basisparameters per afstandscategorie niet vrij gekozen, maar afgeleid
+uit de officiële technische specificaties van het airMAX-platform zelf (doorvoersnelheid,
+TDD-framing-latency). Bovenop die basiswaarden simuleert een Gilbert-Elliot-
+burstverliesmodel bovendien willekeurig variërende weersomstandigheden, en krijgt elke
+meting een kans op een verplichte DFS-kanaalwissel (Sectie~\ref{subsec:dfs}) -- beide
+onafhankelijk van de afstandscategorie, zodat de drie factoren \emph{samen} en op
+realistische, niet-deterministische wijze optreden, in plaats van als aparte, vaste
+testcases (Sectie~\ref{sec:sim-parameters}). Deze aanpak behoudt de kernmethode van
+Fase 3 -- experimenteel-technisch ontwerponderzoek, getoetst aan de requirements uit
 Hoofdstuk~\ref{ch:requirementsanalyse} -- maar vervangt de fysieke RF-laag door een
 zo getrouw mogelijk nagebootst equivalent op basis van vendor-data in plaats van
 vrij aangenomen waarden.
@@ -153,14 +157,25 @@ gebouwde proof-of-concept kwantitatief in kaart te brengen en te valideren.
     haalbaarheidsoordeel, uitgewerkt in Hoofdstuk~\ref{ch:resultaten-en-evaluatie} (Resultaten en Evaluatie).
 \end{itemize}
  
-Ingevolge de bijstelling uit Sectie~\ref{subsec:meth-bijstelling-fase3} worden de
-onafhankelijke variabelen "afstand" en "transmissie-omstandigheden" hierbij niet
-gerealiseerd via effectieve verplaatsing van fysieke antennes, maar via de drie
-\texttt{netem}-scenario's (ideaal, marginaal, DFS-kanaalwissel) uit
-Sectie~\ref{sec:virtuele-simulatie-airmax}. De meetmethode zelf -- \texttt{iperf3},
-\texttt{ping}/\texttt{mtr} en \texttt{Wireshark} -- en de te analyseren grootheden
-(bitsnelheid, TCP-venstergedrag, overdrachttijd) blijven ongewijzigd ten opzichte van
-de oorspronkelijke opzet.
+Ingevolge de bijstelling uit Sectie~\ref{subsec:meth-bijstelling-fase3} wordt de
+onafhankelijke variabele "afstand" gerealiseerd via de drie afstandscategorieën
+(0--15~km, 15--30~km, 30+~km) uit Hoofdstuk~\ref{ch:requirementsanalyse}, en de
+onafhankelijke variabele "transmissie-omstandigheden" via een per meting willekeurig
+getrokken combinatie van weersvariatie en DFS-kans (Sectie~\ref{sec:sim-parameters}), in
+plaats van via effectieve verplaatsing van fysieke antennes. Om deze
+niet-deterministische factor statistisch te kunnen onderbouwen -- een enkele meting zou
+door het toeval immers zowel een te gunstig als te ongunstig beeld kunnen geven -- werden
+per afstandscategorie honderd onafhankelijke trials uitgevoerd (in totaal 300), waarna
+gemiddelde, standaardafwijking en het aandeel trials boven de gestelde norm berekend
+werden (Hoofdstuk~\ref{ch:resultaten-en-evaluatie}). De doorvoersnelheid (REQ-01) en
+latency/jitter (REQ-02) werden afzonderlijk, via een beperkter aantal metingen per
+afstandscategorie, gevalideerd met \texttt{iperf3} en \texttt{mtr}; het packet loss
+(REQ-03) en het hervattingsgedrag na een DFS-onderbreking (FR-06) werden via de 300
+trials gemeten met \texttt{ping}. De te analyseren grootheden (bitsnelheid,
+TCP-venstergedrag, packet loss, overdrachttijd) blijven inhoudelijk ongewijzigd ten
+opzichte van de oorspronkelijke opzet; enkel de manier waarop de kanaalcondities
+gerealiseerd worden -- via statistische emulatie in plaats van fysieke veldmetingen --
+is aangepast.
  
 \section{Verantwoording van de Aanpak}
 \label{sec:meth-verantwoording}
@@ -181,4 +196,9 @@ requirements uit Fase 2 werden niet vervangen, maar dienen nu als de bron voor d
 \texttt{netem}-parameters van de emulatie, in plaats van als ontwerpcriteria voor
 fysieke hardwareselectie. De keten van Fase~1 naar Fase~4 blijft zo traceerbaar,
 zij het dat de externe validiteit van Fase~3 -- zoals hierboven toegelicht -- expliciet
-beperkt is tot een emulatie in plaats van een fysieke RF-verbinding.
+beperkt is tot een emulatie in plaats van een fysieke RF-verbinding. Het gebruik van 300
+onafhankelijke, willekeurig gevarieerde trials in Fase 4, in plaats van een klein aantal
+vaste metingen, versterkt bovendien net de statistische betrouwbaarheid van de
+conclusies binnen die emulatie: niet één toevallige meting, maar een representatieve
+steekproef van mogelijke kanaalomstandigheden per afstandscategorie bepaalt het
+uiteindelijke oordeel in Hoofdstuk~\ref{ch:resultaten-en-evaluatie}.
