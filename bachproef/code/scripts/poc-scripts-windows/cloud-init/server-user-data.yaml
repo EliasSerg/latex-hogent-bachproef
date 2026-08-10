@@ -14,7 +14,7 @@ users:
     # hieronder (geen wachtwoord nodig in de scripts). Het wachtwoord
     # blijft enkel als noodgreep beschikbaar (bv. via de VirtualBox-
     # GUI-console), en is enkel aanvaardbaar omdat dit een volledig
-    # geïsoleerd, intern VirtualBox-labnetwerk is (BR-03).
+    # geÃ¯soleerd, intern VirtualBox-labnetwerk is (BR-03).
     plain_text_passwd: "poc"
     sudo: "ALL=(ALL) NOPASSWD:ALL"
     ssh_authorized_keys:
@@ -49,10 +49,10 @@ write_files:
 
       # Vlak na het opstarten heeft de kernel niet altijd alle netwerk-
       # kaarten al klaar staan. "bridge" heeft er 3 nodig (beheer + twee
-      # linksegmenten), "host" volstaat met 2 (beheer + één linksegment).
+      # linksegmenten), "host" volstaat met 2 (beheer + Ã©Ã©n linksegment).
       # In plaats van blind verder te gaan met te weinig interfaces (met
       # als gevolg een lege interfacenaam in de netplan-configuratie en een
-      # configure-network.sh dat vroegtijdig afbreekt, vóór het het
+      # configure-network.sh dat vroegtijdig afbreekt, vÃ³Ã³r het het
       # /etc/poc-ifaces.env-bestand kan wegschrijven), wordt hier expliciet
       # gewacht tot ze er echt zijn.
       count_ifaces() {

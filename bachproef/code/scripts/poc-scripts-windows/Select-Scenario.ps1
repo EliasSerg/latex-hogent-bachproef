@@ -3,8 +3,8 @@
     Select-Scenario.ps1 <0-15|15-30|30+>
 
     Schakelt op afstand (via SSH, met de automatisch gegenereerde sleutel) de
-    link-emulator naar de VASTE basistoestand van één van de drie
-    afstandscategorieën. Voor de statistische batchtests met willekeurige
+    link-emulator naar de VASTE basistoestand van Ã©Ã©n van de drie
+    afstandscategorieÃ«n. Voor de statistische batchtests met willekeurige
     weers- en DFS-variatie, zie Run-DistanceTrials.ps1.
 #>
 

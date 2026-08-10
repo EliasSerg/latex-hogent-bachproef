@@ -2,7 +2,7 @@
 <#
     Build-PoC.ps1
 
-    Bouwt de volledige virtuele PoC-testomgeving met één script, volledig
+    Bouwt de volledige virtuele PoC-testomgeving met Ã©Ã©n script, volledig
     native op Windows -- geen WSL, geen Linux, geen extra installaties
     buiten VirtualBox zelf. Iedereen met een Windows 10/11-toestel kan dit
     uitvoeren door simpelweg 1-Build.bat te dubbelklikken.

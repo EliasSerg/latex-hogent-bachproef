@@ -14,5 +14,188 @@
 % Heeft het onderzoek geleid tot nieuwe vragen die uitnodigen tot verder 
 %onderzoek?
 
-\lipsum[76-80]
+Dit hoofdstuk beantwoordt de centrale onderzoeksvraag en de deelvragen uit
+Hoofdstuk~\ref{ch:inleiding}, op basis van de theoretische bevindingen uit
+Hoofdstuk~\ref{ch:stand-van-zaken} en de empirische resultaten uit
+Hoofdstuk~\ref{ch:resultaten-en-evaluatie}. Vervolgens wordt de bijdrage van dit
+onderzoek aan het vakgebied toegelicht, gevolgd door een kritische reflectie op de
+gehanteerde aanpak en een aanzet voor toekomstig onderzoek.
+ 
+\section{Antwoord op de centrale onderzoeksvraag}%
+\label{sec:conclusie-hoofdvraag}
+ 
+De centrale onderzoeksvraag luidde: \textit{hoe kan een verbinding worden opgezet met
+een eigen fileserver via een radioverbinding, en wat zijn de technische randvoorwaarden
+en maximale afstandsbeperkingen voor een werkende implementatie?}
+ 
+Het antwoord is genuanceerd, en net die nuance vormt de kern van de bijdrage van dit
+onderzoek. Een architectuur die een private fileserver via SFTP over een
+point-to-point-straalverbinding ontsluit, is technisch haalbaar en presteert binnen het
+optimale bereik (0--15~km) ruimschoots binnen de vooropgestelde eisen: het gemiddelde
+packet loss onder normale kanaalomstandigheden bedroeg er slechts 0{,}35\%, ruim onder
+de norm van 2\% (REQ-03, Sectie~\ref{sec:res-interpretatie}). Vanaf de horizonlimiet
+(15--30~km) schiet diezelfde kanaalkwaliteit echter reeds structureel tekort (gemiddeld
+5{,}27\% verlies), en voorbij het bereik dat in de requirementsanalyse als onbetrouwbaar
+werd bestempeld (30+~km) is die tekortkoming vrijwel universeel (20{,}38\%). De
+"maximale afstandsbeperking" uit de onderzoeksvraag is dus geen enkel harde grenswaarde,
+maar een geleidelijke, kwantitatief in kaart gebrachte overgang: de architectuur is
+\emph{geschikt} binnen ongeveer 15~km, \emph{grensgeval} tot ongeveer 30~km, en
+\emph{ongeschikt} daarbuiten voor permanente, betrouwbare bestandstoegang.
+ 
+Eén element van de architectuur bleek daarbij opmerkelijk consistent, ongeacht de
+afstand: het vermogen om een bestandsoverdracht te hervatten na een verplichte,
+wettelijk voorgeschreven kanaalonderbreking door Dynamic Frequency Selection (FR-06,
+Sectie~\ref{subsec:dfs}). Op alle drie de afstandscategorieën herstelde de combinatie
+van SFTP en TCP zich betrouwbaar van zo'n onderbreking, wat aantoont dat deze
+protocolkeuze een robuuste basis vormt, onafhankelijk van de onderliggende
+kanaalkwaliteit.
+ 
+\section{Antwoord op de deelvragen}%
+\label{sec:conclusie-deelvragen}
+ 
+\paragraph{Welke radioprotocollen zijn geschikt voor bestandsoverdracht?} De
+literatuurstudie (Hoofdstuk~\ref{ch:stand-van-zaken}) toonde aan dat klassieke
+amateurradioprotocollen zoals AX.25 en Winlink, hoewel robuust en breed inzetbaar voor
+noodcommunicatie, primair ontworpen zijn voor tekstgebaseerde berichten met een lage
+bandbreedte, en zich niet lenen tot het efficiënt overdragen van bestanden van
+enige omvang. Native IP-over-radio -- het tunnelen van gewoon IP-verkeer over een
+radioverbinding, waardoor bestaande, standaard bestandsoverdrachtsprotocollen hergebruikt
+kunnen worden -- bleek de geschiktere aanpak. Binnen die protocollen is specifiek SFTP
+gekozen boven bijvoorbeeld SMB, omwille van zijn beperkte "chattiness" (minder
+gevoelig voor latency- en jitterschommelingen, Sectie~\ref{sec:req-tussentijdse-conclusie})
+en zijn ingebouwde authenticatie en versleuteling.
+ 
+\paragraph{Welke multiplextechnieken zijn van toepassing, en welke beperkingen leggen
+zij op?} OFDM werd in de literatuurstudie geïdentificeerd als de meest geschikte
+multiplextechniek voor instabiele radiokanalen, dankzij zijn robuustheid tegen
+multipath-fading en looptijdverschillen (Sectie~\ref{sec:Multiplextechnieken in radiogebaseerde datacommunicatie}).
+Deze keuze kon in de proof-of-concept echter niet rechtstreeks empirisch geverifieerd
+worden: de gebruikte netwerkemulatie (Hoofdstuk~\ref{ch:proof-of-concept}) simuleert het
+gedrag van de fysieke laag op basis van statistische parameters (vertraging,
+doorvoersnelheid, burstverlies), maar bootst geen daadwerkelijke modulatie of
+multiplexing na. Dit blijft dan ook een aanbeveling voor verder onderzoek
+(Sectie~\ref{sec:conclusie-verder-onderzoek}).
+ 
+\paragraph{Wat is de maximale praktische afstand?} Dit is de deelvraag waarop dit
+onderzoek het meest concrete antwoord biedt, samengevat in
+Sectie~\ref{sec:conclusie-hoofdvraag} hierboven en in detail onderbouwd in
+Tabel~\ref{tab:resultaten-per-afstand} en Tabel~\ref{tab:res-toetsing}. In tegenstelling
+tot een eenmalige meting op een enkele afstand, geeft de statistische onderbouwing over
+300 trials (100 per afstandscategorie, met telkens een willekeurige weers- en
+DFS-realisatie) een betrouwbaar beeld van de \emph{spreiding} van de haalbare prestaties,
+niet enkel van een toevallig gunstig of ongunstig moment.
+ 
+\paragraph{Welke minimale infrastructuur en configuratie zijn vereist?} Hoofdstuk~\ref{ch:proof-of-concept}
+beschrijft de minimale opstelling in detail: een SFTP-server met een chroot-omgeving
+voor de gebruiker, een netwerkbrug die de radioverbinding representeert, en een client
+met standaard SFTP-, meet- en diagnosetools. De volledige opstelling -- van installatie
+tot statistisch onderbouwde meting -- is bovendien volledig geautomatiseerd, wat het
+antwoord op deze deelvraag ook onmiddellijk reproduceerbaar en overdraagbaar maakt naar
+andere onderzoekers of praktijksituaties.
+ 
+\section{Bijdrage aan het vakgebied en meerwaarde voor de doelgroep}%
+\label{sec:conclusie-bijdrage}
+ 
+De literatuurstudie in Hoofdstuk~\ref{ch:stand-van-zaken} identificeerde een lacune in
+de bestaande vakliteratuur: onderzoek naar radiogebaseerde communicatie richt zich
+overwegend op noodcommunicatie, professionele draadloze backhaul, of berichtenverkeer,
+maar niet specifiek op de toegankelijkheid van een persoonlijke of kleinschalige
+fileserver. Dit onderzoek vult die lacune op met een kwantitatief, per afstand
+gedifferentieerd antwoord, dat rechtstreeks bruikbaar is voor de in
+Sectie~\ref{sec:probleemstelling} geïdentificeerde doelgroep: maritieme operatoren,
+hulpverleningsorganisaties, onderzoekers in afgelegen gebieden en radioamateurs kunnen
+uit dit onderzoek een concreet, onderbouwd beeld meenemen van tot welke afstand een
+dergelijke opstelling betrouwbaar inzetbaar is, en welke architecturale keuzes (SFTP,
+DFS-conforme apparatuur) daarbij aangewezen zijn.
+ 
+Daarnaast levert dit onderzoek een methodologische bijdrage die verder reikt dan de
+specifieke onderzoeksvraag: de volledig geautomatiseerde, statistisch onderbouwde
+testmethodologie uit Hoofdstuk~\ref{ch:proof-of-concept} -- met een Gilbert-Elliot-
+burstverliesmodel voor weersvariatie en een stochastische DFS-simulatie, herhaald over
+honderden onafhankelijke trials -- is generiek genoeg om ook voor andere
+radiogebaseerde of draadloze netwerkonderzoeken te worden hergebruikt. Waar veel
+kleinschalige proof-of-concept-onderzoeken zich beperken tot een handvol
+puntmetingen, toont dit onderzoek aan dat een statistisch representatieve steekproef,
+ook binnen de tijdspanne van een bachelorproef, haalbaar en waardevol is.
+ 
+\section{Kritische reflectie}%
+\label{sec:conclusie-reflectie}
+ 
+Het algemene patroon van afnemende kanaalkwaliteit met toenemende afstand was verwacht:
+zowel de wet van Shannon-Hartley (Hoofdstuk~\ref{ch:stand-van-zaken}) als de
+kwalitatieve inschatting in de requirementsanalyse (Sectie~\ref{sec:req-tussentijdse-conclusie})
+voorspelden dat de 30+~km-categorie buiten het betrouwbare toepassingsgebied zou vallen.
+De mate waarin dit vermoeden nu kwantitatief bevestigd wordt -- 99\% van de trials
+overschrijdt er de norm, tegenover slechts 15\% bij 0--15~km -- was echter scherper dan
+op voorhand kon worden aangenomen. Minder verwacht was het onderscheid dat de
+DFS-opsplitsing binnen de 15--30~km-categorie blootlegde: daar bleek de
+REQ-03-overschrijding \emph{niet} voornamelijk het gevolg van de verplichte
+DFS-onderbrekingen (zoals bij 0--15~km), maar van de courante kanaalkwaliteit zelf. Dat
+onderscheid was pas zichtbaar dankzij de expliciete opsplitsing van de resultaten, en
+onderstreept het belang van een voldoende gedetailleerde statistische analyse boven een
+enkel, samengevat gemiddelde.
+ 
+De belangrijkste beperking van dit onderzoek is methodologisch van aard, en werd reeds
+uitgebreid toegelicht in Sectie~\ref{subsec:meth-bijstelling-fase3}: de voorziene
+fysieke 5.6~GHz airMAX-straalverbinding kon niet worden aangekocht, waardoor de volledige
+proof-of-concept via netwerkemulatie gerealiseerd werd. De gerapporteerde resultaten
+tonen daardoor aan of de gekozen architectuur functioneel en performant is onder
+\emph{verwachte}, uit officiële specificaties afgeleide kanaalcondities, maar
+bevestigen niet de effectieve RF-prestaties -- antennealignment, werkelijke
+signaalpropagatie, concrete weersinvloed -- van een fysieke link in het veld. De
+gebruikte Gilbert-Elliot-parameters en DFS-kans zijn plausibele, uit de literatuur en
+productspecificaties afgeleide schattingen, geen gemeten grootheden. Deze beperking
+raakt met name de deelvraag over multiplextechnieken (Sectie~\ref{sec:conclusie-deelvragen}),
+die in deze opstelling niet op fysiek niveau getoetst kon worden.
+ 
+Een tweede, kleinere kanttekening betreft de asymmetrie in meetintensiteit tussen de
+requirements: REQ-03 (packet loss) en FR-06 (DFS-herstel) werden dankzij hun
+niet-deterministische aard over 300 trials statistisch onderbouwd, terwijl REQ-01
+(doorvoersnelheid) en REQ-02 (latency/jitter) via een beperkter aantal metingen per
+afstandscategorie werden gevalideerd (Sectie~\ref{sec:sim-uitvoering}). Een even
+uitgebreide statistische onderbouwing van die laatste twee eisen zou het totaalbeeld
+verder versterken.
+ 
+\section{Aanbevelingen voor toekomstig onderzoek}%
+\label{sec:conclusie-verder-onderzoek}
+ 
+Op basis van de bevindingen en beperkingen hierboven worden de volgende richtingen voor
+vervolgonderzoek voorgesteld:
+ 
+\begin{itemize}
+  \item \textbf{Fysieke veldvalidatie.} Zodra geschikte 5.6~GHz airMAX-apparatuur (of een
+        vergelijkbaar alternatief) beschikbaar is, zou een fysieke herhaling van de
+        drie afstandscategorieën toelaten om de in dit onderzoek gebruikte
+        Gilbert-Elliot- en DFS-parameters te kalibreren aan werkelijke veldmetingen, en
+        om architecturale aspecten (antennealignment, effectieve modulatie) te
+        valideren die in een netwerkemulatie noodgedwongen buiten beschouwing bleven.
+  \item \textbf{Uitbreiding van de statistische onderbouwing naar REQ-01 en REQ-02.} Een
+        vergelijkbare batchmethodologie als voor packet loss (Hoofdstuk~\ref{ch:proof-of-concept})
+        zou ook voor doorvoersnelheid en latency toegepast kunnen worden, voor een
+        even robuust onderbouwd beeld van alle vier de netwerktechnische requirements.
+  \item \textbf{Alternatieve frequentiebanden en vermogensklassen.} Dit onderzoek
+        beperkte zich, om regelgevende redenen, tot de licentievrije 5.6~GHz-limieten
+        (1~W EIRP). Een vergelijkende studie met het gelicentieerde amateursegment
+        (tot 200~W PEP, Sectie~\ref{sec:req-tussentijdse-conclusie}) of met de 6m-band
+        uit Hoofdstuk~\ref{ch:stand-van-zaken} zou kunnen uitwijzen of een groter bereik
+        haalbaar is binnen een andere regelgevende context.
+  \item \textbf{Multi-hop-oplossingen voor het onbetrouwbare bereik.} Voor de
+        30+~km-categorie, waar dit onderzoek aantoonde dat een directe verbinding niet
+        volstaat, zou onderzocht kunnen worden of een keten van meerdere, kortere
+        straalverbindingen (relais) een uitkomst biedt -- elke afzonderlijke schakel
+        zou dan binnen het in dit onderzoek als betrouwbaar aangetoonde bereik van
+        0--15~km kunnen blijven.
+  \item \textbf{Reële, gemeten weersdata.} In plaats van willekeurig getrokken
+        Gilbert-Elliot-parameters binnen een plausibele bandbreedte, zou toekomstig
+        onderzoek de simulatie kunnen voeden met effectief gemeten meteorologische
+        gegevens (regenintensiteit, luchtvochtigheid) gekoppeld aan gelijktijdige
+        signaalmetingen, voor een nog realistischer verband tussen weer en
+        kanaalkwaliteit.
+\end{itemize}
+ 
+Samengevat toont dit onderzoek aan dat radiogebaseerde toegang tot een private
+fileserver, binnen een zorgvuldig afgebakend afstandsbereik, een technisch haalbaar en
+statistisch onderbouwd alternatief vormt voor de doelgroep uit
+Sectie~\ref{sec:probleemstelling} -- met een duidelijk, kwantitatief in kaart gebracht
+omslagpunt waarop toekomstig onderzoek verder kan bouwen.
 

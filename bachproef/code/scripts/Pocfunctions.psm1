@@ -130,7 +130,7 @@ function Wait-ForPort {
 function Get-SshCommand {
     <#
         Geeft het pad naar ssh.exe terug. Windows 10 (1809+) en Windows 11
-        hebben de OpenSSH-client standaard geïnstalleerd. Als dat niet zo is,
+        hebben de OpenSSH-client standaard geÃ¯nstalleerd. Als dat niet zo is,
         wordt geprobeerd hem automatisch te activeren (vereist geen
         beheerdersrechten op de meeste Windows 11-installaties omdat de
         component vaak al aanwezig, maar niet in PATH, staat).
@@ -178,7 +178,7 @@ function Initialize-PocSshKey {
 
 function New-PocSeedIso {
     <#
-        Bouwt de cloud-init seed-ISO voor één rol: leest het YAML-sjabloon,
+        Bouwt de cloud-init seed-ISO voor Ã©Ã©n rol: leest het YAML-sjabloon,
         vult hostnaam en publieke SSH-sleutel in, en verpakt het resultaat.
     #>
     param(
@@ -207,7 +207,7 @@ function New-PocSeedIso {
 
 function New-PocVm {
     <#
-        Maakt en start één VirtualBox-VM aan: kloont de basisschijf, bouwt de
+        Maakt en start Ã©Ã©n VirtualBox-VM aan: kloont de basisschijf, bouwt de
         cloud-init-ISO op maat van de rol, koppelt de netwerkadapters volgens
         de dumbbell-topologie, en start de VM op.
     #>

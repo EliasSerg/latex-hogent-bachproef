@@ -14,15 +14,53 @@
 \ProvidesClass{hogent-poster}[2022/11/27 Poster voor de bachelorproef toegepaste informatica @HOGENT]
 \LoadClass{article}
 
+% Motoraware laden: dit sjabloon werd oorspronkelijk enkel voor XeTeX
+% geschreven (het "papersize"-special-mechanisme werkt bijvoorbeeld
+% enkel via de xdvipdfmx-route van XeTeX). Op systemen waar de
+% XeTeX-binary zelf niet correct werkt (bv. door een ontbrekende
+% VC++-runtime op Windows), biedt LuaLaTeX een werkend alternatief --
+% mits deze class weet welke motor er draait.
+\RequirePackage{iftex}
+
 %%============================================================================
 %% Required packages
 %%============================================================================
 
-\RequirePackage[xetex,footskip=12cm]{geometry}
-\RequirePackage[xetex]{graphicx}
+\ifxetex
+  \RequirePackage[xetex,footskip=12cm]{geometry}
+\else\ifluatex
+  \RequirePackage[luatex,footskip=12cm]{geometry}
+\else
+  \RequirePackage[footskip=12cm]{geometry}
+\fi\fi
+\ifxetex
+  \RequirePackage[xetex]{graphicx}
+\else\ifluatex
+  \RequirePackage[luatex]{graphicx}
+\else
+  \RequirePackage{graphicx}
+\fi\fi
 \graphicspath{{../graphics/}} % Location of the graphics files
 
-\RequirePackage[xetex,plainpages=false,breaklinks]{hyperref}
+% Expliciete herkenningsregels voor afbeeldingsformaten. Nodig als
+% vangnet: op sommige MiKTeX-installaties faalt de automatische
+% bestandstypedetectie (bv. na een pakket-herinstallatie), waardoor
+% elke afbeelding -- ongeacht het werkelijke formaat -- ten onrechte
+% als "bmp" behandeld wordt. Deze regels dwingen de juiste herkenning
+% af, los van die automatische detectie.
+\DeclareGraphicsExtensions{.pdf,.jpg,.jpeg,.png,.eps}
+\DeclareGraphicsRule{.jpg}{jpg}{}{}
+\DeclareGraphicsRule{.jpeg}{jpg}{}{}
+\DeclareGraphicsRule{.png}{png}{}{}
+\DeclareGraphicsRule{.pdf}{pdf}{}{}
+
+\ifxetex
+  \RequirePackage[xetex,plainpages=false,breaklinks]{hyperref}
+\else\ifluatex
+  \RequirePackage[luatex,plainpages=false,breaklinks]{hyperref}
+\else
+  \RequirePackage[plainpages=false,breaklinks]{hyperref}
+\fi\fi
 \RequirePackage{booktabs} % Top and bottom rules for table
 \RequirePackage[font=small,labelfont=bf]{caption} % Required for specifying captions to tables and figures
 \RequirePackage{wrapfig} % Allows wrapping text around tables and figures
@@ -265,7 +303,7 @@
   \raggedright\titlefont\color{title}\VeryHuge\@title
 
   \if\@subtitle\@empty\else
-    \raggedright\titlefont\Huge\textit{\@subtitle}
+    \raggedright\titlefont\Huge\@subtitle
   \fi
   \endgroup
 
@@ -378,20 +416,32 @@
 
 \normalsize
 
+% Hulpmacro die de paginagrootte zet op de juiste manier voor de actief
+% draaiende motor: \special{papersize=...} werkt enkel via XeTeX's
+% xdvipdfmx-route. Voor LuaTeX/pdfTeX is dit niet nodig: het
+% geometry-pakket configureert de fysieke paginagrootte daar zelf al
+% correct op basis van \paperwidth/\paperheight, zodra deze macro
+% bevestigd heeft dat we niet onder XeTeX draaien.
+\newcommand{\PosterPapersize}[2]{%
+  \ifxetex
+    \special{papersize=#1,#2}%
+  \fi
+}
+
 \AtBeginDocument{
   \ifanullb
-    \ifportrait\special{papersize=91.4cm,129.3cm}\else\special{papersize=129.3cm,91.4cm}\fi
+    \ifportrait\PosterPapersize{91.4cm}{129.3cm}\else\PosterPapersize{129.3cm}{91.4cm}\fi
   \else\ifanull
-      \ifportrait\special{papersize=83.96cm,118.82cm}\else\special{papersize=118.82cm,83.96cm}\fi
+      \ifportrait\PosterPapersize{83.96cm}{118.82cm}\else\PosterPapersize{118.82cm}{83.96cm}\fi
     \else\ifaeins
-        \ifportrait\special{papersize=59.4cm,83.96cm}\else\special{papersize=83.96cm,59.4cm}\fi
+        \ifportrait\PosterPapersize{59.4cm}{83.96cm}\else\PosterPapersize{83.96cm}{59.4cm}\fi
       \else\ifazwei
-          \ifportrait\special{papersize=41.98cm,59.4cm}\else\special{papersize=59.4cm,41.98cm}\fi
+          \ifportrait\PosterPapersize{41.98cm}{59.4cm}\else\PosterPapersize{59.4cm}{41.98cm}\fi
         \else\ifadrei
             \ifpreview
-              \ifportrait\special{papersize=29.7cm,41.35cm}\else\special{papersize=41.98cm,29.0cm}\fi
+              \ifportrait\PosterPapersize{29.7cm}{41.35cm}\else\PosterPapersize{41.98cm}{29.0cm}\fi
             \else
-              \ifportrait\special{papersize=29.7cm,41.98cm}\else\special{papersize=41.98cm,29.7cm}\fi
+              \ifportrait\PosterPapersize{29.7cm}{41.98cm}\else\PosterPapersize{41.98cm}{29.7cm}\fi
             \fi
           \else\relax
           \fi

@@ -9,78 +9,107 @@
 % Info over de opleiding
 \course{Bachelorproef}
 \studyprogramme{toegepaste informatica}
-\academicyear{2022-2023}
+\academicyear{2025-2026} % TODO: controleer of dit klopt met je effectieve academiejaar
 \institution{Hogeschool Gent, Valentin Vaerwyckweg 1, 9000 Gent}
 
 % Info over de bachelorproef
-\title{Titel van uw bachelorproef}
-\subtitle{Ondertitel (eventueel)}
-\author{Voornaam Naam}
-\email{voornaam.familienaam@student.hogent.be}
-\supervisor{Voornaam Naam}
-\cosupervisor{Voornaam Naam (Bedrijf)}
+\title{Radiogebaseerde Toegang tot een Private Fileserver}
+\subtitle{Haalbaarheid en Afstandsgrenzen van een 5,6~GHz SFTP-Verbinding}
+\author{Elias Sergoyne}
+\email{elias.sergoyne@student.hogent.be}
+\supervisor{Peter Beke}
+\cosupervisor{Frans Van de Velde}
 
 % Indien ingevuld, wordt deze informatie toegevoegd aan het einde van de
 % abstract. Zet in commentaar als je dit niet wilt.
 \specialisation{Systeem- en Netwerkbeheer}
-\keywords{Lambda-calculus, Scheme}
-\projectrepo{https://github.com/user/repo}
+\keywords{Radiocommunicatie, SFTP, Point-to-Point, Netwerkemulatie, DFS}
+% \projectrepo{https://github.com/TODO/vul-hier-je-eigen-repository-url-in}
 
 \begin{document}
 
 \maketitle
 
 \begin{abstract}
-It's only a model.
-You don't vote for kings. Who's that then? We found them. Ni! Ni! Ni! Ni!
-The nose? On second thoughts, let's not go there. It is a silly place. Bloody Peasant! And the hat. She's a witch! Where'd you get the coconuts?
+Kan een private fileserver betrouwbaar bereikt worden via een radioverbinding, en tot
+welke afstand? Een SFTP-over-5,6~GHz-architectuur werd via netwerkemulatie gebouwd en
+over 300 statistische trials getest: geschikt tot ongeveer 15~km.
 \end{abstract}
 
-\begin{multicols}{2} % This is how many columns your poster will be broken into, a portrait poster is generally split into 2 columns
+\begin{multicols}{2}
 
-\section{Introductie}
+\section{Probleem}
 
-Be quiet! Found them? In Mercia?! The coconut's tropical! But you are dressed as one… Well, what do you want? Knights of Ni, we are but simple travelers who seek the enchanter who lives beyond these woods.
+\begin{itemize}
+  \item Geen internet op zee, in afgelegen gebieden, bij rampen
+  \item Satelliet: te duur, te trage/onbetrouwbare levering
+  \item Radioverbindingen: infrastructuuronafhankelijk, weinig onderzocht voor
+        \emph{persoonlijke fileservertoegang}
+\end{itemize}
 
-Well, what do you want? It's only a model. Camelot! We found them. We shall say `Ni' again to you, if you do not appease us.
+\textbf{Onderzoeksvraag:} tot welke afstand werkt een radioverbinding met een private
+fileserver betrouwbaar, en onder welke voorwaarden?
 
-The nose? Shut up! Burn her! I am your king. You don't vote for kings.
-
-You can't expect to wield supreme power just `cause some watery tart threw a sword at you! Well, we did do the nose. I don't want to talk to you no more, you empty-headed animal food trough water! I fart in your general direction! Your mother was a hamster and your father smelt of elderberries! Now leave before I am forced to taunt you a second time!
-
-Why do you think that she is a witch? We want a shrubbery!! I don't want to talk to you no more, you empty-headed animal food trough water! I fart in your general direction! Your mother was a hamster and your father smelt of elderberries! Now leave before I am forced to taunt you a second time!
-
-\section{Experimenten}
-
-A newt? Camelot! Why? No, no, no! Yes, yes. A bit. But she's got a wart.
-
-Shut up! I dunno. Must be a king. Who's that then? Look, my liege! On second thoughts, let's not go there. It is a silly place.
-
-Shut up! Will you shut up?! No, no, no! Yes, yes. A bit. But she's got a wart. He hasn't got shit all over him. It's only a model. It's only a model.
-
-Bring her forward! I don't want to talk to you no more, you empty-headed animal food trough water! I fart in your general direction! Your mother was a hamster and your father smelt of elderberries! Now leave 
-
-\section{Sectie met figuur}
-
-De {\LaTeX} figure-omgeving bepaalt zelf waar een afbeelding komt en dat is meestal niet op de plek in de tekst waar de figure-omgeving gedefinieerd wordt. Als je wilt forceren dat afbeeldingen toch in de flow van de tekst blijven, dan kan je dat zoals hieronder:
+\section{Architectuur}
 
 \begin{center}
   \captionsetup{type=figure}
-  \includegraphics[width=1.0\linewidth]{grail}
-  \captionof{figure}{He hasn't got shit all over him. The nose? Where'd you get the coconuts? What do you mean? We shall say `Ni' again to you, if you do not appease us}
+  \includegraphics[width=1.0\linewidth]{../graphics/poster_fig1_test.pdf}
+  \captionof{figure}{Server en client, gekoppeld via een point-to-point
+  straalverbinding tussen twee antennes.}
 \end{center}
 
-Let er wel op dat dit tot problemen met bladschikking kan leiden.
+\begin{itemize}
+  \item \textbf{Protocol:} SFTP (authenticatie + versleuteling, weinig "chatty")
+  \item \textbf{Band:} 5,6~GHz, licentievrij (max. 1~W EIRP)
+  \item \textbf{Verplicht:} Dynamic Frequency Selection (radar-detectie)
+\end{itemize}
 
-\section{Conclusies}
+\begin{center}
+  \captionsetup{type=figure}
+  \includegraphics[width=1.0\linewidth]{../graphics/spectrum_overzicht.pdf}
+  \captionof{figure}{Het radiospectrum: bereik en bandbreedte per frequentieband,
+  met de DFS-gereserveerde 5~GHz-subbanden.}
+\end{center}
 
-Don't underestimate the Force. Oh God, my uncle. How am I ever gonna explain this? I suggest you try it again, Luke. This time, let go your conscious self and act on instinct. Don't be too proud of this technological terror you've constructed. The ability to destroy a planet is insignificant next to the power of the Force.
+\section{Methode}
 
-\section{Toekomstig onderzoek}
+\begin{itemize}
+  \item Fysieke airMAX-hardware niet tijdig beschikbaar $\rightarrow$
+        \textbf{volledig gevirtualiseerde} netwerkemulatie (3 VM's, \texttt{tc/netem})
+  \item Parameters afgeleid uit officiële productspecificaties
+  \item \textbf{Weer:} Gilbert-Elliot-burstverliesmodel (willekeurig per meting)
+  \item \textbf{DFS:} stochastische onderbrekingskans, los van afstand
+  \item \textbf{3 afstandscategorieën} $\times$ 100 trials = 300 metingen
+  \item Volledig geautomatiseerd: enkele dubbelklikbare Windows-scripts
+\end{itemize}
 
-I care. So, what do you think of her, Han? No! Alderaan is peaceful. We have no weapons. You can't possibly… I have traced the Rebel spies to her. Now she is my only link to finding their secret base.
+\section{Resultaten}
 
-Kid, I've flown from one side of this galaxy to the other. I've seen a lot of strange stuff, but I've never seen anything to make me believe there's one all-powerful Force controlling everything. There's no mystical energy field that controls my destiny. It's all a lot of simple tricks and nonsense. You are a part of the Rebel Alliance and a traitor! Take her away! 
+\begin{center}
+  \captionsetup{type=figure}
+  \includegraphics[width=1.0\linewidth]{../graphics/packetloss_per_afstand.pdf}
+  \captionof{figure}{Gemiddeld packet loss per afstandscategorie. Groen: normale
+  werking. Rood: tijdens een DFS-onderbreking. Stippellijn: norm van 2\%.}
+\end{center}
+
+\begin{itemize}
+  \item \textbf{0--15~km:} 0,35\% verlies -- ruim binnen de norm
+  \item \textbf{15--30~km:} 5,27\% -- norm structureel overschreden
+  \item \textbf{30+~km:} 20,38\% -- vrijwel altijd overschreden
+  \item DFS-herstel werkt betrouwbaar op \textbf{elke} afstand
+\end{itemize}
+
+\section{Conclusie}
+
+\begin{itemize}
+  \item Radiogebaseerde fileservertoegang: haalbaar tot \textbf{$\pm$15~km}
+  \item Geen harde grens, maar een geleidelijke overgang
+  \item Herbruikbare, statistisch onderbouwde testmethodologie
+\end{itemize}
+
+\textbf{Vervolgonderzoek:} fysieke veldvalidatie, gelicentieerd spectrum, multi-hop
+relais, gemeten (i.p.v.\ geschatte) weersdata.
 
 \end{multicols}
 \end{document}

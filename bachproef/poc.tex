@@ -371,6 +371,47 @@ samen, met hun locatie onder \texttt{code/scripts/} en hun rol in de opbouw.
   \label{tab:scriptoverzicht-poc}
 \end{table}
 
+
+\subsection{Mappenstructuur van de digitale bijlagen}%
+\label{subsec:poc-mappenstructuur}
+
+Alle scripts, cloud-init-manifesten en documentatie uit dit hoofdstuk bevinden zich in
+één zelfstandige, verplaatsbare map, zodat de volledige opstelling zonder verdere
+aanpassingen op elk Windows 10/11-toestel gereproduceerd kan worden. Figuur/Listing
+hieronder toont de structuur:
+
+\begin{lstlisting}[language=, basicstyle=\ttfamily\small, frame=single,
+                    caption={Mappenstructuur van \texttt{code/scripts/poc-scripts-windows/}},
+                    label={lst:mappenstructuur}]
+poc-scripts-windows/
+|-- 1-Build.bat                          (host: opbouw)
+|-- 2-Kies-Scenario.bat                  (host: vaste afstandscategorie)
+|-- 3-Voer-Tests-Uit.bat                 (host: enkelvoudige teststeekproef)
+|-- 4-Voer-Batchtest-Uit.bat             (host: statistische batchtest)
+|-- Build-PoC.ps1                        (masterscript)
+|-- Select-Scenario.ps1
+|-- Run-Tests.ps1
+|-- Run-DistanceTrials.ps1
+|-- Analyze-Trials.ps1
+|-- LEES-MIJ.txt                         (gebruiksaanwijzing)
+|-- Modules/
+|   `-- PocFunctions.psm1                (herbruikbare functiebibliotheek)
+|-- cloud-init/
+|   |-- server-user-data.yaml
+|   |-- link-emulator-user-data.yaml
+|   `-- client-user-data.yaml
+`-- work/                                (gegenereerd bij uitvoering, niet meegeleverd)
+    |-- ssh/                             (SSH-sleutelpaar)
+    |-- base/                            (Ubuntu cloud-image + VDI)
+    |-- disks/, seeds/                   (per-VM schijven en cloud-init-ISO's)
+    `-- results/                         (CSV-uitvoer van batchtests)
+\end{lstlisting}
+
+De map \texttt{work/} wordt door \texttt{Build-PoC.ps1} zelf aangemaakt en bevat enkel
+gegenereerde, machine- en sessiespecifieke bestanden (schijfkopieën, sleutels,
+meetresultaten); ze maakt geen deel uit van de meegeleverde broncode en wordt daarom niet
+in Bijlage~\ref{app:broncode} opgenomen.
+
 \subsection{Belangrijke technische inzichten uit de implementatie}%
 \label{subsec:technische-inzichten}
 

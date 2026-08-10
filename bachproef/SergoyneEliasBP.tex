@@ -52,6 +52,31 @@
   morestring=[b]"
 }
 
+% Define Batch (.bat) support for the PoC startup scripts (Bijlage broncode)
+\lstdefinestyle{batchstyle}{
+  basicstyle=\small\ttfamily,
+  commentstyle=\color{gray}\itshape,
+  keywordstyle=\color{blue}\bfseries,
+  morekeywords={echo,set,if,errorlevel,choice,pause,title,for},
+  morecomment=[l]{::},
+  morecomment=[l]{REM},
+  breaklines=true
+}
+
+% Define PowerShell support for the PoC automation scripts (Bijlage broncode)
+\lstdefinestyle{powershellstyle}{
+  basicstyle=\small\ttfamily,
+  commentstyle=\color{gray}\itshape,
+  keywordstyle=\color{blue}\bfseries,
+  stringstyle=\color{teal},
+  morekeywords={function,param,if,else,foreach,while,return,throw,try,catch,
+                Write-Host,Import-Module,New-Item,Test-Path,Join-Path,Split-Path},
+  morecomment=[l]{\#},
+  morestring=[b]',
+  morestring=[b]",
+  breaklines=true
+}
+
 % Alias listings captions to Dutch/English template settings
 \renewcommand\lstlistingname{\IfLanguageName{dutch}{Codefragment}{Listing}}
 \renewcommand\lstlistlistingname{\IfLanguageName{dutch}{Lijst van codefragmenten}{List of listings}}
@@ -63,11 +88,11 @@
 
 %%---------- Document metadata -------------------------------------------------
 % TODO: Replace this with your own information
-\author{Ernst Aarden}
-\supervisor{Dhr. F. Van Houte}
-\cosupervisor{Mevr. S. Beeckman}
-\title[Optionele ondertitel]%
-    {Titel van de bachelorproef}
+\author{Elias Sergoyne}
+\supervisor{Peter Beke}
+\cosupervisor{Frans Van de Velde}
+\title[Haalbaarheid en Afstandsgrenzen van een 5,6 GHz SFTP-Straalverbinding, Statistisch Gevalideerd via Netwerkemulatie]%
+    {Radiogebaseerde Toegang tot een Private Fileserver}
 \academicyear{\advance\year by -1 \the\year--\advance\year by 1 \the\year}
 \examperiod{1}
 \degreesought{\IfLanguageName{dutch}{Professionele bachelor in de toegepaste informatica}{Bachelor of applied computer science}}
@@ -109,7 +134,6 @@
 %% Generates title page content
 \maketitle
 \hypersetup{pageanchor=true}
-% \input{Requirementsanalyse en Systeemarchitectuur}
 \input{voorwoord}
 \input{samenvatting}
 
@@ -154,13 +178,9 @@
 % vormen. De structuur en titels hangen af van je eigen onderzoek. Je kan bv.
 % elke fase in je onderzoek in een apart hoofdstuk bespreken.
 
-%\input{...}
-%\input{...}
-%...
 \input{Requirementsanalyse en Systeemarchitectuur}
-% \input{simulatie_airmax_poc}
-% \input{automatisering_poc}
 \input{poc}
+\input{Resultaten en evaluatie}
 \input{conclusie}
 
 %---------- Bijlagen -----------------------------------------------------------
@@ -182,7 +202,7 @@ Het onderwerp van deze bachelorproef is gebaseerd op een onderzoeksvoorstel dat 
 %%---------- Andere bijlagen --------------------------------------------------
 % TODO: Voeg hier eventuele andere bijlagen toe. Bv. als je deze BP voor de
 % tweede keer indient, een overzicht van de verbeteringen t.o.v. het origineel.
-%\input{...}
+\input{bijlage-broncode}
 
 %%---------- Backmatter, referentielijst ---------------------------------------
 

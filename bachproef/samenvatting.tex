@@ -45,4 +45,58 @@
 
 \chapter*{\IfLanguageName{dutch}{Samenvatting}{Abstract}}
 
-\lipsum[1-4]
+Betrouwbare toegang tot digitale bestanden veronderstelt doorgaans een stabiele
+internetverbinding -- een aanname die niet standhoudt op zee, in afgelegen gebieden of
+tijdens rampen waarbij de netwerkinfrastructuur wegvalt. Commerciële alternatieven zoals
+satellietverbindingen zijn voor particulieren en kleine organisaties vaak financieel of
+praktisch ontoereikend. Radioverbindingen worden in de literatuur herhaaldelijk naar
+voren geschoven als infrastructuuronafhankelijk alternatief, maar hun specifieke
+toepasbaarheid voor toegang tot een \emph{eigen, persoonlijke fileserver} -- in
+tegenstelling tot de courant onderzochte toepassingen zoals noodcommunicatie of
+professionele backhaul -- was tot dusver niet grondig onderzocht.
+ 
+Deze bachelorproef onderzoekt daarom hoe een verbinding met een private fileserver via
+een radioverbinding kan worden opgezet, en wat de technische randvoorwaarden en
+maximale afstandsbeperkingen zijn voor een werkende implementatie. De doelgroep bestaat
+uit maritieme operatoren, hulpverleningsorganisaties, onderzoekers in afgelegen gebieden
+en radioamateurs. Het onderzoek streeft een werkende proof-of-concept na, beoordeeld aan
+de hand van meetbare criteria: doorvoersnelheid, packet loss, verbindingsstabiliteit en
+operationele afstand.
+ 
+Op basis van een literatuurstudie naar signaalpropagatie, modulatietechnieken en
+bestaande radioprotocollen (Winlink, AX.25) is een architectuur geselecteerd die SFTP
+combineert met een 5.6~GHz point-to-point-straalverbinding binnen de licentievrije
+ISM-band. Omdat de voorziene fysieke apparatuur niet binnen het beschikbare
+tijdsbestek kon worden aangekocht, is deze architectuur gerealiseerd als een volledig
+geautomatiseerde, virtuele netwerkemulatie: een dumbbell-topologie van drie virtuele
+machines, waarbij een centrale link-emulator via \texttt{tc/netem} het gedrag van de
+straalverbinding nabootst. Om de emulatie zo realistisch mogelijk te houden, zijn de
+kanaalparameters niet vrij gekozen, maar afgeleid uit officiële productspecificaties,
+aangevuld met een Gilbert-Elliot-burstverliesmodel voor willekeurig variërende
+weersomstandigheden en een stochastische kans op een wettelijk verplichte
+DFS-kanaalonderbreking -- beide onafhankelijk van de afstand. Voor elk van drie
+afstandscategorieën (0--15~km, 15--30~km en 30+~km) zijn honderd onafhankelijke
+metingen uitgevoerd, in totaal 300 trials, waarna de resultaten statistisch
+geanalyseerd en per categorie getoetst zijn aan de vooraf gedefinieerde
+netwerkrequirements.
+ 
+De resultaten tonen een duidelijk, oplopend patroon. Binnen het optimale bereik
+(0--15~km) voldoet de architectuur ruim aan de norm voor packet loss (gemiddeld
+0{,}35\% onder normale omstandigheden), met overschrijdingen die vrijwel uitsluitend het
+rechtstreekse gevolg zijn van een verplichte DFS-onderbreking. Vanaf de horizonlimiet
+(15--30~km) schiet de courante kanaalkwaliteit zelf reeds structureel tekort (gemiddeld
+5{,}27\%), en voorbij het bereik dat als onbetrouwbaar werd ingeschat (30+~km) is die
+tekortkoming vrijwel universeel (20{,}38\%). Onafhankelijk van de afstand toont de
+architectuur zich wel steeds in staat om een bestandsoverdracht te hervatten na een
+DFS-onderbreking, wat de robuustheid van de gekozen combinatie van SFTP en TCP
+bevestigt.
+ 
+Deze bachelorproef concludeert dat radiogebaseerde toegang tot een private fileserver
+technisch haalbaar is binnen een zorgvuldig afgebakend afstandsbereik van ongeveer
+15~km, met een geleidelijke overgang naar onbetrouwbaarheid daarna, in plaats van een
+enkele harde grens. Naast dit inhoudelijke antwoord levert het onderzoek een generiek
+herbruikbare, statistisch onderbouwde testmethodologie op. De belangrijkste beperking
+is dat de resultaten voortkomen uit een netwerkemulatie op basis van plausibele,
+literatuurgebaseerde parameters, niet uit fysieke veldmetingen; fysieke validatie van de
+architectuur, zodra geschikte apparatuur beschikbaar is, vormt dan ook de voornaamste
+aanbeveling voor vervolgonderzoek.

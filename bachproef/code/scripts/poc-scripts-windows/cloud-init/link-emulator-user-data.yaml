@@ -35,10 +35,10 @@ write_files:
 
       # Vlak na het opstarten heeft de kernel niet altijd alle netwerk-
       # kaarten al klaar staan. "bridge" heeft er 3 nodig (beheer + twee
-      # linksegmenten), "host" volstaat met 2 (beheer + één linksegment).
+      # linksegmenten), "host" volstaat met 2 (beheer + Ã©Ã©n linksegment).
       # In plaats van blind verder te gaan met te weinig interfaces (met
       # als gevolg een lege interfacenaam in de netplan-configuratie en een
-      # configure-network.sh dat vroegtijdig afbreekt, vóór het het
+      # configure-network.sh dat vroegtijdig afbreekt, vÃ³Ã³r het het
       # /etc/poc-ifaces.env-bestand kan wegschrijven), wordt hier expliciet
       # gewacht tot ze er echt zijn.
       count_ifaces() {
@@ -124,7 +124,7 @@ write_files:
     permissions: "0755"
     content: |
       #!/usr/bin/env bash
-      # Stelt de VASTE basistoestand in voor één van de drie afstandscategorieën
+      # Stelt de VASTE basistoestand in voor Ã©Ã©n van de drie afstandscategorieÃ«n
       # uit Sectie sec:req-tussentijdse-conclusie (geen weer/DFS-variatie -- dat
       # zit in poc-run-trial.sh, voor de statistische batchtests).
       set -euo pipefail
@@ -165,7 +165,7 @@ write_files:
     permissions: "0755"
     content: |
       #!/usr/bin/env bash
-      # Eén trial voor de statistische batchtests (Sectie sec:sim-trials): past
+      # EÃ©n trial voor de statistische batchtests (Sectie sec:sim-trials): past
       # de basisparameters van de gevraagde afstandscategorie toe, maar met
       # willekeurige weersvariatie (Gilbert-Elliot burstverliesmodel + jitter op
       # delay/rate) en een kans op een DFS-onderbreking -- op ELKE afstand,

@@ -2,7 +2,7 @@
 <#
     Run-DistanceTrials.ps1
 
-    Voert een reeks onafhankelijke trials uit voor één afstandscategorie
+    Voert een reeks onafhankelijke trials uit voor Ã©Ã©n afstandscategorie
     (0-15 | 15-30 | 30+). Bij elke trial krijgt de link-emulator een verse,
     willekeurige weers- en DFS-realisatie (via poc-run-trial.sh), waarna de
     client gedurende het meetvenster het effectieve packet loss meet. Na

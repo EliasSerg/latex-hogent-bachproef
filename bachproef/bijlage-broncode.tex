@@ -1,0 +1,45 @@
+\chapter{Broncode van de PoC-automatiseringsscripts}%
+\label{app:broncode}
+
+Dit hoofdstuk bevat de volledige broncode van de scripts die in
+Hoofdstuk~\ref{ch:proof-of-concept} worden besproken en toegelicht. De code wordt hier
+ter referentie letterlijk weergegeven; voor de functionele uitleg per script wordt
+verwezen naar Sectie~\ref{subsec:scriptoverzicht} en Tabel~\ref{tab:scriptoverzicht-poc}.
+
+\section{Dubbelklikbare startpunten (.bat)}%
+\label{sec:app-bat}
+
+\lstinputlisting[style=batchstyle, caption={1-Build.bat}, label={lst:app-1-build}]
+  {code/scripts/poc-scripts-windows/1-Build.bat}
+\lstinputlisting[style=batchstyle, caption={2-Kies-Scenario.bat}, label={lst:app-2-kies}]
+  {code/scripts/poc-scripts-windows/2-Kies-Scenario.bat}
+\lstinputlisting[style=batchstyle, caption={3-Voer-Tests-Uit.bat}, label={lst:app-3-tests}]
+  {code/scripts/poc-scripts-windows/3-Voer-Tests-Uit.bat}
+\lstinputlisting[style=batchstyle, caption={4-Voer-Batchtest-Uit.bat}, label={lst:app-4-batch}]
+  {code/scripts/poc-scripts-windows/4-Voer-Batchtest-Uit.bat}
+
+\section{PowerShell-scripts}%
+\label{sec:app-ps1}
+
+\lstinputlisting[style=powershellstyle, caption={Build-PoC.ps1}, label={lst:app-build-poc}]
+  {code/scripts/poc-scripts-windows/Build-PoC.ps1}
+\lstinputlisting[style=powershellstyle, caption={Select-Scenario.ps1}, label={lst:app-select-scenario}]
+  {code/scripts/poc-scripts-windows/Select-Scenario.ps1}
+\lstinputlisting[style=powershellstyle, caption={Run-Tests.ps1}, label={lst:app-run-tests}]
+  {code/scripts/poc-scripts-windows/Run-Tests.ps1}
+\lstinputlisting[style=powershellstyle, caption={Run-DistanceTrials.ps1}, label={lst:app-run-distance-trials}]
+  {code/scripts/poc-scripts-windows/Run-DistanceTrials.ps1}
+\lstinputlisting[style=powershellstyle, caption={Analyze-Trials.ps1}, label={lst:app-analyze-trials}]
+  {code/scripts/poc-scripts-windows/Analyze-Trials.ps1}
+\lstinputlisting[style=powershellstyle, caption={Modules/PocFunctions.psm1}, label={lst:app-pocfunctions}]
+  {code/scripts/poc-scripts-windows/Modules/PocFunctions.psm1}
+
+\section{Cloud-init-manifesten}%
+\label{sec:app-cloudinit}
+
+\lstinputlisting[language=yaml, basicstyle=\small\ttfamily, caption={cloud-init/server-user-data.yaml}, label={lst:app-cloudinit-server}]
+  {code/scripts/poc-scripts-windows/cloud-init/server-user-data.yaml}
+\lstinputlisting[language=yaml, basicstyle=\small\ttfamily, caption={cloud-init/link-emulator-user-data.yaml}, label={lst:app-cloudinit-linkemu}]
+  {code/scripts/poc-scripts-windows/cloud-init/link-emulator-user-data.yaml}
+\lstinputlisting[language=yaml, basicstyle=\small\ttfamily, caption={cloud-init/client-user-data.yaml}, label={lst:app-cloudinit-client}]
+  {code/scripts/poc-scripts-windows/cloud-init/client-user-data.yaml}

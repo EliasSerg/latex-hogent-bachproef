@@ -2,7 +2,7 @@
 <#
     Build-PoC.ps1
 
-    Bouwt de volledige virtuele PoC-testomgeving met één script, volledig
+    Bouwt de volledige virtuele PoC-testomgeving met Ã©Ã©n script, volledig
     native op Windows -- geen WSL, geen Linux, geen extra installaties
     buiten VirtualBox zelf. Iedereen met een Windows 10/11-toestel kan dit
     uitvoeren door simpelweg 1-Build.bat te dubbelklikken.
@@ -96,7 +96,7 @@ foreach ($vm in @('poc-server', 'poc-link-emulator', 'poc-client')) {
         # Dat kan mislukken (bv. een handmatig al verwijderd bestand) terwijl
         # de VM-registratie zelf toch al wel verwijderd werd -- de opdracht
         # geeft dan nog steeds een foutcode terug. Daarom wordt hier eerst
-        # gecontroleerd of de VM ondanks die foutcode al verdwenen is, vóór
+        # gecontroleerd of de VM ondanks die foutcode al verdwenen is, vÃ³Ã³r
         # de fallback ("unregistervm" zonder --delete) geprobeerd wordt.
         $prevPref = $ErrorActionPreference
         $ErrorActionPreference = 'Continue'
@@ -120,7 +120,7 @@ foreach ($vm in @('poc-server', 'poc-link-emulator', 'poc-client')) {
 
 # Verwijder ook eventuele overgebleven schijf- en ISO-bestanden expliciet.
 # Dit is de belangrijkste garantie tegen "Permission denied (publickey)"
-# door een VM die per ongeluk verder draait op een oude schijf van vóór de
+# door een VM die per ongeluk verder draait op een oude schijf van vÃ³Ã³r de
 # huidige SSH-sleutel: na deze regel kan dat niet meer voorkomen.
 Remove-Item -LiteralPath (Join-Path $WorkDir 'disks'), (Join-Path $WorkDir 'seeds') -Recurse -Force -ErrorAction SilentlyContinue
 
@@ -165,7 +165,7 @@ Wait-ForCloudInit -Ssh $sshCmd -KeyPath $SshKeyPath -Port $SshPortLinkEmu
 Wait-ForCloudInit -Ssh $sshCmd -KeyPath $SshKeyPath -Port $SshPortClient
 
 # Extra garantie bovenop "cloud-init status --wait": controleer expliciet
-# dat /etc/poc-ifaces.env op de link-emulator effectief bestaat, vóór het
+# dat /etc/poc-ifaces.env op de link-emulator effectief bestaat, vÃ³Ã³r het
 # script "klaar" meldt. Dit sluit een resterend tijdvenster uit waarin
 # cloud-init zichzelf al als voltooid rapporteert terwijl
 # Select-Scenario.ps1 dat bestand toch nog niet aantreft.

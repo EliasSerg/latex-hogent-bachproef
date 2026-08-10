@@ -20,7 +20,8 @@ overzicht van de huidige stand van zaken binnen het onderzoeksdomein. Achtereenv
 komen de connectiviteitsproblematiek in afgelegen gebieden, de fysische eigenschappen
 van radiofrequenties en atmosferische signaalpropagatie aan bod. Vervolgens worden
 multiplextechnieken, modulatieschema's en protocollen voor radiogebaseerde datacommunicatie
-geanalyseerd. Tot slot worden de technische trade-offs van straalverbindingen in zowel
+geanalyseerd, met bijzondere aandacht voor het onderscheid tussen in-band en out-of-band
+signalering op de applicatielaag. Tot slot worden de technische trade-offs van straalverbindingen in zowel
 het gelicentieerde als het licentievrije spectrum (inclusief WiFi- en millimetergolfbanden)
 en de wettelijke randvoorwaarden voor radioamateurs in België besproken, met bijzondere
 aandacht voor de line-of-sight-beperkingen van hogere frequentiebanden en de verplichte
@@ -44,7 +45,31 @@ beschikbaar of betaalbaar~\autocite{Zaballos2022}.
 
 Commerciële satellietoplossingen bieden weliswaar globale dekking, maar kampen met hoge
 abonnementskosten en aanzienlijke latency, waardoor ze voor particulieren en kleine
-organisaties vaak financieel of praktisch ontoereikend zijn~\autocite{Xia2022}.
+organisaties vaak financieel of praktisch ontoereikend zijn~\autocite{Xia2022}. Die
+latency verschilt sterk naargelang het baantype van de satelliet. Geostationaire
+satellieten (GEO) bevinden zich op ongeveer 35.786~km hoogte, wat een gemeten
+retourtijd (\textit{round-trip time}, RTT) van doorgaans 500 tot 700~ms oplevert,
+hoofdzakelijk bepaald door de loutere signaalvoortplantingstijd over die afstand, ook
+al reist het signaal met de lichtsnelheid~\autocite{MegaSatNetworks2021}. Satellieten in
+een middelhoge baan (MEO, zoals het O3b-systeem op ongeveer 8.000~km) bevinden zich
+dichter bij de aarde en halen een RTT van ongeveer 130~ms~\autocite{FACOM2021}, terwijl
+satellieten in een lage baan (LEO, zoals Starlink op 340--570~km) een RTT van slechts
+20 tot 60~ms bereiken~\autocite{MegaSatNetworks2021} -- vergelijkbaar met een
+terrestrische breedbandverbinding.
+
+Deze latency is niet enkel een storende bijkomstigheid, maar heeft een rechtstreekse
+impact op de bruikbaarheid voor bestandsoverdracht. Het opzetten van een verbinding
+vereist immers geen \emph{enkele}, maar \emph{meerdere opeenvolgende} retourtrajecten
+tussen client en server, nog vóór er één byte aan bestandsinhoud wordt uitgewisseld: de
+TCP-driewegshandshake (SYN, SYN-ACK, ACK) alleen al vergt anderhalve retourtijd, en een
+versleutelde verbinding (bijvoorbeeld via TLS, zoals gebruikt door SFTP over SSH) voegt
+daar nog een eigen onderhandelingsfase aan toe. Bij een GEO-verbinding, waar één enkele
+retourtijd al 500 tot 700~ms bedraagt, kan de opbouw van zo'n verbinding er daardoor
+alleen al enkele seconden over doen, nog voor de eigenlijke overdracht start. Dit
+verklaart waarom protocollen met een hoge \textit{chattiness} (Sectie~\ref{sec:req-tussentijdse-conclusie})
+bijzonder slecht presteren over satellietverbindingen met een hoge baan, en waarom de
+keuze van baantype (en dus van satellietoperator) een directe invloed heeft op de
+praktische bruikbaarheid van een dergelijke oplossing.
 \textcite{Chaoub2021} argumenteren dat draadloze connectiviteit in afgelegen gebieden
 een sleutelrol zal spelen in toekomstige communicatiegeneraties, waarbij de nadruk ligt
 op robuuste, gedistribueerde systemen die zonder vaste infrastructuur kunnen
@@ -138,13 +163,45 @@ zichtlijn:
         LOS-afstand tussen twee antennes op hoogte $h_1$ en $h_2$ (in meter) bij
         benadering $d \approx 3{,}57 \left(\sqrt{h_1} + \sqrt{h_2}\right)$ kilometer.
         Hogere antenneposities (bijvoorbeeld op een mast of dak) vergroten dus
-        rechtstreeks het haalbare bereik.
+        rechtstreeks het haalbare bereik. Deze formule geeft de zuiver optische
+        (visuele) horizon; radiogolven reiken in de praktijk een stuk verder. De
+        onderste luchtlagen van de atmosfeer hebben een dichtheid die geleidelijk
+        afneemt met de hoogte, waardoor radiogolven er licht in afbuigen (breking) en
+        zo enigszins "meebuigen" met de kromming van de aarde. Dit fenomeen wordt
+        gewoonlijk gemodelleerd door in dezelfde formule een effectieve aardstraal te
+        gebruiken die $4/3$ van de werkelijke aardstraal bedraagt, wat neerkomt op een
+        \textit{radiohorizon} die ongeveer 15\% verder reikt dan de visuele
+        horizon~\autocite{Tanenbaum2021}.
   \item \textbf{Fresnelzone}: naast een volledig vrije zichtlijn moet ook een
         ellipsvormig volume rond die rechte lijn -- de eerste Fresnelzone -- grotendeels
         vrij van obstakels blijven (bomen, gebouwen, terreinreliëf). Een gedeeltelijke
         blokkering van deze zone veroorzaakt bijkomende signaalverzwakking, zelfs wanneer
-        er strikt genomen nog een directe zichtlijn bestaat.
+        er strikt genomen nog een directe zichtlijn bestaat. Deze verzwakking is echter
+        geen alles-of-niets-effect: wanneer enkel het onderste deel van de eerste
+        Fresnelzone versperd is (bijvoorbeeld door de kromming van het wateroppervlak bij
+        een verbinding over zee, of een lager obstakel), verzwakt het signaal wel enigszins,
+        maar blijft de verbinding perfect stabiel bruikbaar met een licht gereduceerde
+        signaal-ruisverhouding, zolang de rechtstreekse zichtlijn zelf vrij blijft.
 \end{itemize}
+
+Figuur~\ref{fig:35km-verbinding} illustreert dit onderscheid tussen visuele en
+radiohorizon aan de hand van een concreet voorbeeld: twee antennes op een hoogte van
+20~meter, opgesteld over zee (waar tussenliggende obstakels per definitie afwezig
+zijn). Op basis van de zuiver optische aardkromming zou de zichtlijn hier net
+geblokkeerd zijn -- de aarde "steekt" op de helft van het traject ongeveer 24~meter boven
+de rechte lijn tussen beide voetpunten uit, meer dan de 20~meter antennehoogte.
+Rekening houdend met de radiohorizon (effectieve aardstraal $4/3R$) bedraagt diezelfde
+obstructie nog maar ongeveer 18~meter -- net onder de antennehoogte -- waardoor een
+verbinding van ongeveer 35~kilometer in de praktijk wél haalbaar is.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=0.85\textwidth]{35km_verbinding.pdf}
+  \caption{Line-of-sight tussen twee antennes van 20~m op zee: de visuele horizon
+  (werkelijke aardkromming) blokkeert de verbinding net, terwijl de radiohorizon
+  (met atmosferische breking) een bereik van ongeveer 35~km toelaat.}
+  \label{fig:35km-verbinding}
+\end{figure}
 
 Voor de 6m-band geldt, net zoals voor hogere VHF- en UHF-banden, dat de normale
 propagatie sterk LOS-gebonden is, zij het met een iets grotere diffractie rond obstakels
@@ -152,6 +209,17 @@ dankzij de langere golflengte. Dit legt een harde bovengrens op aan de haalbare 
 van de proof-of-concept, behalve tijdens de hierboven beschreven, onvoorspelbare
 Sporadic-E- of troposferische openingen. Deze randvoorwaarde wordt meegenomen bij het
 bepalen van de testlocaties in Hoofdstuk~\ref{ch:proof-of-concept}.
+
+Een tweede, praktische beperking van de 6m-band is de ruisvloer, die geografisch sterk
+wisselvallig is. Een groeiend aantal zonnepaneelinstallaties gebruikt omvormers die,
+door hun schakelende werking, een aanzienlijke hoeveelheid breedbandige elektrische
+ruis uitstralen. Die ruis situeert zich mee in het onderste deel van het VHF-spectrum
+en verhoogt zo lokaal de achtergrondruis op de 6m-band. Aangezien de haalbare
+signaal-ruisverhouding rechtstreeks de bruikbare bandbreedte bepaalt
+(Vergelijking~\eqref{eq:shannon-hartley}), kan de concrete ligging van een testlocatie
+-- met name de nabijheid van dergelijke omvormers -- in de praktijk een merkbare impact
+hebben op de haalbare datasnelheid, onafhankelijk van de afstand of de gekozen
+apparatuur.
 
 \subsection{Vergelijking van frequentiebanden}%
 \label{subsec:vergelijking-frequentiebanden}
@@ -342,6 +410,68 @@ routeren~\autocite{WinlinkEmcomm}. Hoewel systemen zoals Winlink uitermate robuu
 doorvoersnelheden door de beperkte bandbreedte laag. Voor applicaties die veel data verbruiken,
 zoals gecentraliseerde cloudomgevingen, zijn breedbandige alternatieven noodzakelijk~\autocite{Creeger2009}.
 
+\subsection{Out-of-band signalering: waarom klassieke FTP zich slecht leent tot een radioverbinding}%
+\label{subsec:oob-signalering}
+
+Naast de keuze van modulatie en protocol op de fysieke en datalinklaag (hierboven
+besproken), speelt ook een architecturaal kenmerk op de applicatielaag een rol die
+specifiek voor een radiogebaseerde verbinding problematisch is: het onderscheid tussen
+\textit{in-band} en \textit{out-of-band signalering}. Bij in-band signalering worden
+besturingsinformatie (bijvoorbeeld authenticatie, commando's, bestandsmetadata) en de
+eigenlijke gegevensinhoud over \'e\'en en dezelfde verbinding getransporteerd. Bij
+out-of-band signalering daarentegen wordt een aparte, logisch gescheiden verbinding
+gebruikt voor de besturingsinformatie, los van de verbinding waarover de eigenlijke data
+stroomt~\autocite{Tanenbaum2021}.
+
+Het klassieke \textit{File Transfer Protocol} (FTP) is het schoolvoorbeeld van deze
+laatste aanpak. FTP zet bij het opstarten van een sessie een controlekanaal op (standaard
+TCP-poort 21), waarover uitsluitend commando's en statusmeldingen lopen. Voor elke
+effectieve bestandsoverdracht wordt vervolgens een \emph{tweede}, aparte TCP-verbinding
+opgezet -- in \textit{actieve modus} initieert de server die datverbinding terug naar een
+door de client opgegeven poort, in \textit{passieve modus} initieert de client ze naar een
+door de server aangekondigde, willekeurige poort. Dit ontwerp dateert uit een tijd waarin
+netwerkadressering eenvoudiger was, en botst op minstens drie problemen die specifiek
+zwaarder doorwegen op een radiogebaseerde verbinding dan op een gewoon bekabeld netwerk:
+
+\begin{itemize}
+  \item \textbf{Twee onafhankelijke verbindingsopbouwen in plaats van \'e\'en.} Elke
+        TCP-verbinding vereist een eigen driewegshandshake, die -- net zoals eerder
+        toegelicht voor satellietverbindingen (Sectie~\ref{sec:Connectiviteit in afgelegen gebieden en noodsituaties})
+        -- een veelvoud van de RTT kost. Op een radiokanaal met een reeds verhoogde en
+        variabele latency (Sectie~\ref{sec:Radiofrequenties en signaalpropagatie})
+        verdubbelt dit in de praktijk de opstartoverhead per bestandsoverdracht.
+  \item \textbf{Dynamische poorten zijn moeilijk te combineren met een smal, gecontroleerd
+        kanaal.} Een radioverbinding wordt typisch, net als in de proof-of-concept van
+        deze bachelorproef (Hoofdstuk~\ref{ch:proof-of-concept}), opgezet als een
+        strikt getunnelde of gebridgde puntverbinding met een beperkte, voorspelbare
+        set aan toegelaten stromen. Het dynamisch onderhandelen van een willekeurige
+        tweede poort per overdracht -- zoals FTP vereist -- verhoogt de complexiteit van
+        een dergelijke opzet aanzienlijk, en kan bovendien botsen met firewall- of
+        NAT-achtige filtering die net omwille van de beperkte bandbreedte en het gedeelde
+        karakter van het medium wenselijk is (vergelijk BR1--BR3,
+        Sectie~\ref{sec:randvoorwaarden-overig} in Hoofdstuk~\ref{ch:requirementsanalyse}).
+  \item \textbf{Twee verbindingen die elk apart kunnen falen bij kanaalonderbrekingen.}
+        Bij een tijdelijke, volledige onderbreking zoals een verplichte DFS-kanaalwissel
+        (Sectie~\ref{subsec:dfs}) moeten bij FTP in principe zowel het controle- als het
+        datakanaal afzonderlijk herstellen en resynchroniseren, wat het
+        herstelgedrag (vergelijkbaar met FR6 uit
+        Hoofdstuk~\ref{ch:requirementsanalyse}) onnodig fragiel maakt in vergelijking met
+        een protocol dat met \'e\'en enkele, in-band verbinding werkt.
+\end{itemize}
+
+SFTP (\textit{SSH File Transfer Protocol}) -- niet te verwarren met klassieke FTP over
+een versleutelde laag (FTPS), wat nog steeds het dubbele-kanaalontwerp erft -- vermijdt
+deze problematiek volledig: het is een subprotocol dat volledig \emph{in-band} over een
+enkele, reeds bestaande SSH-verbinding loopt. Authenticatie, commando's (zoals
+\texttt{ls}, \texttt{put}, \texttt{get}) en de eigenlijke bestandsinhoud delen dezelfde
+onderliggende TCP-sessie en dezelfde versleutelde kanaalvoorzieningen van SSH zelf. Dit
+sluit rechtstreeks aan bij de keuze voor SFTP die verderop, in
+Sectie~\ref{sec:req-tussentijdse-conclusie}, wordt onderbouwd vanuit het oogpunt van
+\textit{chattiness}: de afwezigheid van out-of-band signalering is, naast die
+chattiness-overweging, een tweede, structurele reden waarom SFTP zich beter leent tot een
+smalbandige, potentieel instabiele radioverbinding dan protocollen die -- zoals klassieke
+FTP -- van oudsher ontworpen zijn voor stabiele, breed beschikbare bekabelde netwerken.
+
 \section{Straalverbindingen: Privileges, ISM-banden en Millimetergolven}
 \label{sec:Straalverbindingen als proof-of-concept}
 
@@ -388,6 +518,65 @@ De UBA stemt de nationale frequentieverdelingen af met de International Amateur 
 en de overheid om ervoor te zorgen dat experimentele datacommunicatie binnen de wettelijk
 vastgelegde grenzen blijft. Een succesvolle proof-of-concept moet derhalve expliciet ontworpen worden
 binnen de vermogens- en frequentiebeperkingen die door deze instanties zijn opgelegd~\autocite{BIPT2019, UBAFrequenties}.
+
+\subsection{Netwerkverkeer over radiogolven}%
+\label{subsec:netwerkverkeer-radio}
+
+Een specifieke vraag voor dit onderzoek is of het transporteren van IP-netwerkverkeer --
+in tegenstelling tot klassieke spraak- of telegrafieverbindingen -- een aparte
+wettelijke status heeft. Dat is niet het geval: het BIPT maakt in zijn algemene
+machtigingsregeling geen onderscheid naar het type inhoud dat over een toegelaten
+frequentieband en transmissiemodus verstuurd wordt, zolang de technische
+gebruiksvoorwaarden (frequentieband, bandbreedte, zendvermogen) worden
+gerespecteerd~\autocite{BIPT2019}. Packet radio en het onderliggende AX.25-protocol
+(Sectie~\ref{sec:Protocollen voor radiogebaseerde dataoverdracht}) genieten dan ook al
+decennialang een gevestigde, aanvaarde plaats binnen de amateurband, net als het
+tunnelen van IP-verkeer daarover via het AMPRNet.
+
+Er geldt wel een belangrijke, relevante nuance in de algemene machtigingsregeling: indien
+de gebruikte frequenties ingezet worden om een \emph{openbaar} elektronisch-
+communicatienetwerk of een voor het publiek beschikbare elektronische-communicatiedienst
+aan te bieden, moet daarvan vooraf kennisgeving gebeuren aan het BIPT, conform artikel~9
+van de wet van 13~juni~2005 betreffende de elektronische communicatie~\autocite{BIPT2019}.
+Deze verplichting is voor de scope van deze bachelorproef niet van toepassing: de
+beoogde toepassing -- een individuele gebruiker die via een eigen radioverbinding
+toegang krijgt tot een eigen, private fileserver -- is een persoonlijke, niet-openbare
+toepassing, en valt daarmee binnen de gewone algemene machtiging zonder bijkomende
+kennisgevingsplicht. Zou dezelfde architectuur echter ingezet worden om bijvoorbeeld een
+gedeelde internettoegang voor meerdere, onafhankelijke derden aan te bieden, dan zou die
+kennisgevingsplicht wél gelden.
+
+\subsection{Frequentieplan voor Belgische radioamateurs}%
+\label{subsec:frequentieplan}
+
+Tabel~\ref{tab:frequentieplan} geeft een overzicht van de voor dit onderzoek relevante
+banden uit het Belgische amateurbandplan, met hun toegelaten maximale
+zendvermogen~\autocite{BIPT2019, UBAFrequenties}. Het volledige bandplan omvat
+daarnaast nog een groot aantal smallere HF-segmenten die niet rechtstreeks relevant
+zijn voor de in dit onderzoek beoogde breedbandige datacommunicatie, en is daarom hier
+niet in detail weergegeven.
+
+\begin{table}[h]
+  \centering
+  \small
+  \begin{tabular}{p{2.6cm}p{3.2cm}p{2.6cm}p{5.2cm}}
+    \toprule
+    \textbf{Band} & \textbf{Frequentiesegment} & \textbf{Max. vermogen} & \textbf{Bijzonderheden} \\
+    \midrule
+    80~m (HF)     & 3.500--3.800~MHz   & 100~W & Klassieke, smalbandige HF-band \\
+    6~m (VHF)     & 50.000--52.000~MHz & 100~W & Zie Sectie~\ref{subsec:vergelijking-frequentiebanden}; occasionele Sporadic-E \\
+    2~m (VHF)     & 144.000--146.000~MHz & 100~W & Ook bruikbaar voor satellietverbindingen \\
+    70~cm (UHF)   & 430.000--440.000~MHz & 100~W (200~W voor (D)ATV in 433.05--434.79~MHz) & Meest gebruikte band voor lokale packet radio \\
+    13~cm (SHF)   & 2400.000--2450.000~MHz & 100~W & Overlapt met de licentievrije 2.4~GHz ISM-band \\
+    5~cm (SHF)    & 5650.000--5670.000~MHz (satelliet: enkel aarde--ruimte) / 5725--5875~MHz (gedeeld met ISM) & 100~W & Amateursubband binnen het brede 5~GHz-segment uit Sectie~\ref{sec:req-tussentijdse-conclusie} \\
+    \bottomrule
+  \end{tabular}
+  \caption{Overzicht van de voor dit onderzoek relevante banden uit het Belgische
+  amateurbandplan. Vermogens zijn maximale waarden voor de hoogste
+  vergunningsklasse; lagere klassen en specifieke subbanden kunnen strengere
+  limieten opleggen.}
+  \label{tab:frequentieplan}
+\end{table}
 
 \subsection{Dynamic Frequency Selection en de radar van Zaventem}%
 \label{subsec:dfs}

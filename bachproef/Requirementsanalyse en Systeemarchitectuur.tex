@@ -131,6 +131,19 @@ Voor de basisopstelling van de PoC wordt uitgegaan van de licentievrije limieten
 
 Op de applicatielaag is SFTP gekozen: het omzeilt de \textit{chattiness} van protocollen zoals SMB (SMB wisselt, vóór er ook maar één byte aan bestandsinhoud verstuurd wordt, al een groot aantal korte berichten heen-en-weer uit -- elk van die uitwisselingen wordt vertraagd door de RTT, wat SMB bijzonder gevoelig maakt voor precies de latency- en jitterschommelingen uit REQ-02). Bovendien blijft SFTP stabiel functioneren binnen het gestelde packet loss-budget van maximaal 2\% (REQ-03), terwijl het direct authenticatie en versleuteling biedt (BR1, BR2).
 
+Naast deze chattiness-overweging speelt ook de architecturale keuze tussen in-band en
+out-of-band signalering een rol in de theoretische onderbouwing van deze protocolkeuze
+(Sectie~\ref{subsec:oob-signalering}): SFTP loopt, in tegenstelling tot klassieke FTP,
+volledig in-band over een enkele SSH-verbinding, wat het in principe minder kwetsbaar
+maakt voor de dynamische poortonderhandeling en de dubbele verbindingsopbouw die FTP
+kenmerken. Deze overweging blijft binnen de scope van dit onderzoek echter zuiver
+theoretisch: de netwerkemulatie in Hoofdstuk~\ref{ch:proof-of-concept} test enkel de
+gekozen SFTP-architectuur zelf, en bevat geen vergelijkende meting met klassieke FTP of
+een andere out-of-band-gebaseerde overdracht. De in-band/out-of-band-overweging wordt dan
+ook uitsluitend aangehaald als bijkomende, literatuurgebaseerde motivatie voor de
+protocolkeuze, niet als een empirisch geverifieerd onderdeel van de resultaten in
+Hoofdstuk~\ref{ch:resultaten-en-evaluatie}.
+
 Wat betreft het operationele bereik is deze 5.6~GHz/SFTP-architectuur opgedeeld in drie afstandssegmenten -- dezelfde indeling die later, in Hoofdstuk~\ref{ch:proof-of-concept}, als basis dient voor de drie afstandscategorieën van de proof-of-concept:
 \begin{itemize}
     \item \textbf{0 tot 15 kilometer (Optimaal bereik):} Zolang er een vrije optische zichtlijn (\textit{Line-of-Sight}) en een vrije eerste Fresnel-zone is, wordt de baseline van $10\text{ Mbit/s}$ tot over de $100\text{ Mbit/s}$ stabiel behaald met minimale latency ($<10\text{ ms}$).

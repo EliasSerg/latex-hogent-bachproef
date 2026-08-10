@@ -4,8 +4,8 @@
 
     Voert, via SSH (met de automatisch gegenereerde sleutel) naar de
     client-VM, de standaard teststeekproef uit: REQ-01 doorvoersnelheid,
-    REQ-02 latency, en een reële SFTP-overdracht voor FR-01/FR-02, tegen de
-    server op het geëmuleerde linksegment (10.0.0.1).
+    REQ-02 latency, en een reÃ«le SFTP-overdracht voor FR-01/FR-02, tegen de
+    server op het geÃ«muleerde linksegment (10.0.0.1).
 #>
 
 param(
