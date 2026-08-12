@@ -1,0 +1,116 @@
+\chapter{Technische specificaties van het airMAX-platform}%
+\label{app:airmax-specs}
+
+Deze bijlage bundelt de technische specificaties van Ubiquiti's airMAX-platform die als
+referentie dienden bij het bepalen van de \texttt{netem}-basisparameters van de
+netwerkemulatie (Sectie~\ref{sec:sim-parameters}), en die de keuze voor airMAX als
+architectuur onderbouwen (Sectie~\ref{subsec:meth-airmax-keuze}). Alle waarden zijn
+overgenomen uit de publieke productdocumentatie van de
+fabrikant~\autocite{AirMaxTDMA,UISPGPSSync}.
+
+\section{Toegangsprotocol en frequentieband}%
+\label{sec:app-airmax-toegang}
+
+\begin{table}[h]
+  \centering
+  \small
+  \begin{tabular}{p{4.0cm}p{9.5cm}}
+    \toprule
+    \textbf{Kenmerk} & \textbf{Specificatie} \\
+    \midrule
+    Kanaaltoegangsprotocol & Proprietair TDMA (\textit{Time Division Multiple Access}),
+      in tegenstelling tot CSMA/CA van standaard IEEE~802.11-hardware. Elk station
+      krijgt een vooraf toegewezen tijdslot, wat het \textit{hidden node}-probleem van
+      klassieke Wi-Fi structureel vermijdt. \\
+    Frequentieband & 5.6~GHz-segment, gebruikt binnen zowel de licentievrije ISM/RLAN-
+      band ($5470$--$5725$~MHz) als de gelicentieerde radioamateursubband
+      ($5650$--$5850$~MHz), conform Sectie~\ref{sec:req-tussentijdse-conclusie}. \\
+    Modulatie & Adaptieve modulatie: schakelt automatisch terug naar een robuustere,
+      minder efficiënte modulatiewijze naarmate de signaal-ruisverhouding daalt (bv.\
+      bij toenemende afstand), overeenkomstig het algemene principe uit
+      Vergelijking~\eqref{eq:shannon-hartley}. \\
+    Duplexmodus & TDD (\textit{Time Division Duplex}): zenden en ontvangen gebeurt op
+      dezelfde frequentie, afgewisseld in tijdsloten (\textit{framing}). \\
+    \bottomrule
+  \end{tabular}
+  \caption{Toegangsprotocol- en frequentiespecificaties van het airMAX-platform.}
+  \label{tab:app-airmax-toegang}
+\end{table}
+
+\section{Doorvoersnelheid en latency}%
+\label{sec:app-airmax-prestaties}
+
+\begin{table}[h]
+  \centering
+  \small
+  \begin{tabular}{p{4.0cm}p{9.5cm}}
+    \toprule
+    \textbf{Kenmerk} & \textbf{Specificatie} \\
+    \midrule
+    Reële TCP/IP-doorvoersnelheid & $> 150$~Mbit/s in punt-tot-puntmodus, onder goede
+      omstandigheden (korte afstand, vrije Fresnelzone, hoge modulatie). \\
+    Latency bij 5~ms TDD-framing & Gemiddeld 10 tot 15~ms. \\
+    Latency bij 8~ms TDD-framing & Gemiddeld 16 tot 24~ms. \\
+    \bottomrule
+  \end{tabular}
+  \caption{Doorvoersnelheid- en latencyspecificaties, in functie van de ingestelde
+  TDD-framingduur.}
+  \label{tab:app-airmax-prestaties}
+\end{table}
+
+Deze gedocumenteerde koppeling tussen TDD-framingduur en latency verklaart rechtstreeks
+de basiswaarden van de drie afstandscategorieën in Sectie~\ref{sec:sim-parameters}: een
+kortere framing (5~ms) levert de lagere latency van het 0--15~km-scenario
+(\texttt{delay 12ms}), terwijl een langere framing, gecombineerd met de teruggeschakelde
+modulatie op grotere afstand, de hogere latency van de 15--30~km- en
+30+~km-scenario's verklaart (\texttt{delay 22ms} respectievelijk \texttt{delay 35ms}).
+
+\section{Regelgevingsconformiteit en aanvullende functies}%
+\label{sec:app-airmax-regelgeving}
+
+\begin{table}[h]
+  \centering
+  \small
+  \begin{tabular}{p{4.0cm}p{9.5cm}}
+    \toprule
+    \textbf{Kenmerk} & \textbf{Specificatie} \\
+    \midrule
+    Dynamic Frequency Selection & Ingebouwde, werkende DFS-implementatie, conform de
+      wettelijke vereiste voor de licentievrije 5~GHz-band (RR2,
+      Sectie~\ref{sec:req-wettelijk}; zie ook Sectie~\ref{subsec:dfs} voor de volledige
+      regelgevingscontext). \\
+    GPS-synchronisatie & Optionele synchronisatie van de TDMA-tijdsloten tussen
+      meerdere, nabijgelegen airMAX-links via GPS, ter voorkoming van onderlinge
+      zelfstoring wanneer meerdere installaties in dezelfde regio actief zijn. \\
+    \bottomrule
+  \end{tabular}
+  \caption{Regelgevings- en synchronisatiefuncties van het airMAX-platform.}
+  \label{tab:app-airmax-regelgeving}
+\end{table}
+
+\section{Van specificatie naar netem-parameter}%
+\label{sec:app-airmax-vertaling}
+
+Tabel~\ref{tab:app-airmax-vertaling} toont expliciet hoe de hierboven vermelde
+fabrikantsspecificaties werden vertaald naar de basiswaarden van de drie
+\texttt{netem}-scenario's uit Sectie~\ref{sec:sim-parameters}.
+
+\begin{table}[h]
+  \centering
+  \small
+  \begin{tabular}{p{2.6cm}p{4.2cm}p{2.2cm}p{2.2cm}}
+    \toprule
+    \textbf{Afstands-categorie} & \textbf{Afgeleid van} & \textbf{delay} & \textbf{rate} \\
+    \midrule
+    0--15~km & Korte framing (5~ms) $\to$ 10--15~ms latency; hoge modulatie $\to$
+      volledige $>150$~Mbit/s-doorvoersnelheid & 12~ms & 150~mbit \\
+    15--30~km & Langere framing en teruggeschakelde modulatie bij lagere
+      signaal-ruisverhouding & 22~ms & 35~mbit \\
+    30+~km & Verder gereduceerde modulatie en beperkte marge, buiten het door de
+      fabrikant gegarandeerde optimale bereik & 35~ms & 5~mbit \\
+    \bottomrule
+  \end{tabular}
+  \caption{Vertaling van de airMAX-fabrikantsspecificaties naar de basiswaarden van elke
+  \texttt{netem}-afstandscategorie.}
+  \label{tab:app-airmax-vertaling}
+\end{table}

@@ -75,7 +75,69 @@ worden gedefinieerd.
     \item \textbf{Deliverable:} Een gestructureerde architectuur- en requirementsmatrix die de 
     basis vormt voor het hierop volgende Hoofdstuk~\ref{ch:requirementsanalyse} (Requirementsanalyse).
 \end{itemize}
- 
+
+\subsection{Waarom airMAX: van generieke 5.6~GHz-hardware naar een specifiek platform}%
+\label{subsec:meth-airmax-keuze}
+
+De requirementsanalyse in Hoofdstuk~\ref{ch:requirementsanalyse} onderbouwt de keuze
+voor de 5.6~GHz-band en het SFTP-protocol op basis van propagatie- en
+regelgevingsargumenten. Die keuze legt echter enkel de \emph{frequentieband} vast, niet
+de specifieke \emph{hardware} binnen die band. Voor deze bachelorproef is bewust
+gekozen voor Ubiquiti's airMAX-productlijn als referentiearchitectuur, om drie
+onderling samenhangende redenen.
+
+\paragraph{Ten eerste: TDMA in plaats van CSMA/CA.} Standaard IEEE~802.11 Wi-Fi-hardware
+regelt kanaaltoegang via CSMA/CA (\textit{Carrier Sense Multiple Access with Collision
+Avoidance}), waarbij elk station eerst luistert of het kanaal vrij is vooraleer te
+zenden~\autocite{Tanenbaum2021}. Bij een langeafstands point-to-point-verbinding met
+sterk gerichte antennes ontstaat hierbij het klassieke \textit{hidden node}-probleem: de
+twee uiteinden van de link kunnen elkaar onderling niet altijd horen zenden, wat tot
+botsingen en onvoorspelbare doorvoersnelheden leidt. AirMAX vermijdt dit probleem
+volledig door een eigen, proprietaire TDMA-planning (\textit{Time Division Multiple
+Access}) te gebruiken: elk station krijgt een vooraf toegewezen, niet-overlappend
+tijdslot om te zenden, ongeacht of het de andere kant al dan niet rechtstreeks kan
+detecteren~\autocite{AirMaxTDMA}. Voor een punt-tot-puntverbinding zoals in deze
+bachelorproef -- met precies twee, vaste eindpunten -- is dit een structureel
+betrouwbaarder ontwerp dan generieke CSMA/CA-hardware, en het verklaart ook waarom
+airMAX gedocumenteerde, voorspelbare prestatiewaarden kan garanderen in plaats van enkel
+een theoretisch maximum.
+
+\paragraph{Ten tweede: gedocumenteerde, meetbare prestaties.} Precies omdat airMAX
+deterministisch tijdgeschakeld werkt, publiceert de fabrikant concrete, meetbare
+prestatiecijfers in plaats van louter theoretische bovengrenzen. In
+punt-tot-puntmodus haalt airMAX-apparatuur een reële TCP/IP-doorvoersnelheid van meer
+dan 150~Mbit/s onder goede omstandigheden~\autocite{AirMaxTDMA}. De latency is
+rechtstreeks gekoppeld aan de ingestelde TDD-framingduur (\textit{Time Division
+Duplex}, de tijd die één zend-ontvangstcyclus in beslag neemt): bij een framing van
+5~ms bedraagt de gemiddelde latency ongeveer 10 tot 15~ms, en bij een framing van 8~ms
+ongeveer 16 tot 24~ms~\autocite{UISPGPSSync}. Deze publieke, door de fabrikant
+gegarandeerde cijfers zijn precies wat een emulatiegebaseerde proof-of-concept nodig
+heeft: in plaats van de \texttt{netem}-basisparameters (Sectie~\ref{sec:sim-parameters})
+vrij te kiezen of louter op algemene literatuur te baseren, kunnen ze rechtstreeks
+worden afgeleid uit reële, voor deze exacte hardware gepubliceerde
+vendor-specificaties. Dit versterkt de interne validiteit van de emulatie aanzienlijk
+ten opzichte van een emulatie op basis van vrij aangenomen waarden.
+
+\paragraph{Ten derde: ingebouwde DFS-ondersteuning en GPS-synchronisatie.} AirMAX-
+apparatuur bevat, conform de wettelijke vereiste uit Sectie~\ref{subsec:dfs}, een
+werkende \textit{Dynamic Frequency Selection}-implementatie, wat het toestel zonder
+verdere aanpassing geschikt maakt voor de licentievrije 5.6~GHz-band (RR2,
+Sectie~\ref{sec:req-wettelijk}). Optioneel ondersteunt het platform bovendien
+GPS-synchronisatie tussen de TDMA-tijdsloten van meerdere, nabijgelegen
+links~\autocite{UISPGPSSync}, wat zelfstoring tussen verschillende airMAX-installaties
+in dezelfde omgeving voorkomt -- relevant voor de beoogde doelgroep uit
+Sectie~\ref{sec:probleemstelling}, waar meerdere onafhankelijke gebruikers (bijvoorbeeld
+verschillende radioamateurs of hulpverleningsposten) in dezelfde regio actief kunnen
+zijn.
+
+Samen maken deze drie eigenschappen -- een hidden-node-vrij toegangsprotocol,
+publiek gedocumenteerde en dus verifieerbare prestatiecijfers, en ingebouwde
+regelgevingsconformiteit -- airMAX tot een geschikte referentiearchitectuur voor deze
+bachelorproef: niet enkel als \emph{voorbeeld} van 5.6~GHz-hardware, maar als de
+concrete bron van de datasheetwaarden die, na de bijstelling van Fase~3
+(Sectie~\ref{subsec:meth-bijstelling-fase3}), de basis vormen voor de
+\texttt{netem}-parameters van de netwerkemulatie zelf.
+
 \section{Fase 3: Ontwerp en Realisatie van de Proof-of-Concept}
 \label{sec:meth-fase3}
  
@@ -102,12 +164,15 @@ een draadloos radiomedium, is een representatieve fysieke testomgeving onmisbaar
  
 De hierboven beschreven onderzoeksmethode ging uit van een volledig fysieke PoC, opgebouwd
 rond de in Hoofdstuk~\ref{ch:requirementsanalyse} geselecteerde 5.6~GHz airMAX
-Point-to-Point-apparatuur. Deze specifieke hardware bleek echter niet binnen het
-beschikbare budget en tijdsbestek van deze bachelorproef aan te kopen. Dit is een
-praktische, niet-theoretische beperking: de argumentatie voor een fysieke opstelling
-boven een zuiver gesimuleerde omgeving -- namelijk dat reële atmosferische demping en
-hardware-overhead moeilijk betrouwbaar te modelleren zijn -- blijft principieel
-overeind, maar kon door deze beperking niet volledig worden uitgevoerd.
+Point-to-Point-apparatuur -- een keuze die, zoals toegelicht in
+Sectie~\ref{subsec:meth-airmax-keuze}, specifiek gemotiveerd is door airMAX's
+TDMA-gebaseerde toegangsprotocol en publiek gedocumenteerde prestatiewaarden. Deze
+specifieke hardware kon echter niet binnen het beschikbare budget en tijdsbestek van
+deze bachelorproef worden aangekocht. Dit is een praktische, niet-theoretische
+beperking: de argumentatie voor een fysieke opstelling boven een zuiver gesimuleerde
+omgeving -- namelijk dat reële atmosferische demping en hardware-overhead moeilijk
+betrouwbaar te modelleren zijn -- blijft principieel overeind, maar kon door deze
+beperking niet volledig worden uitgevoerd.
  
 Om toch een tastbare en meetbare praktijkuitwerking te realiseren, wordt Fase 3
 bijgesteld naar een \emph{emulatiegebaseerde} proof-of-concept: in plaats van de
@@ -127,7 +192,14 @@ testcases (Sectie~\ref{sec:sim-parameters}). Deze aanpak behoudt de kernmethode 
 Fase 3 -- experimenteel-technisch ontwerponderzoek, getoetst aan de requirements uit
 Hoofdstuk~\ref{ch:requirementsanalyse} -- maar vervangt de fysieke RF-laag door een
 zo getrouw mogelijk nagebootst equivalent op basis van vendor-data in plaats van
-vrij aangenomen waarden.
+vrij aangenomen waarden. 
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{dumbbell_linkemulator.png}
+  \caption{Dumbbell topologie voorstelling.}
+  \label{fig:dumbbell-linkemulator-meth}
+\end{figure}
  
 Deze bijstelling wordt in dit onderzoek expliciet erkend als een beperking van de
 externe validiteit: de resultaten in Hoofdstuk~\ref{ch:resultaten-en-evaluatie}

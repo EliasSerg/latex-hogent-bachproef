@@ -14,10 +14,10 @@ op Windows 10/11 -- er is geen WSL, geen Linux-hostomgeving en geen enkele extra
 installatie nodig buiten VirtualBox zelf, zodat de opstelling door eender wie op een
 gewoon Windows-toestel gereproduceerd kan worden. Alle scripts waarnaar in dit hoofdstuk
 wordt verwezen, bevinden zich in de map \texttt{code/scripts/} van de digitale bijlagen
-en zijn hieronder telkens als klikbare link opgenomen.\footnote{De links in dit
-hoofdstuk zijn relatief ten opzichte van de plaats van dit PDF-bestand. Zorg er bij het
-compileren voor dat de map \texttt{code/scripts/} naast (of op het pad relatief aan) het
-einddocument staat.}
+en zijn hieronder telkens als klikbare link opgenomen. Om steeds duidelijk te maken op welk deel van de opstelling een
+bepaalde stap precies inwerkt, wordt bij elk codefragment een klein schema van de
+dumbbell-topologie herhaald, met het betrokken component (host, \texttt{poc-server},
+\texttt{poc-link-emulator} of \texttt{poc-client}) telkens gemarkeerd.
 
 \section{Probleemstelling en Methodologische Verantwoording}%
 \label{sec:sim-verantwoording}
@@ -60,7 +60,7 @@ centrale netwerkemulator-VM (zie Figuur~\ref{fig:dumbbell-linkemulator}).
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=\textwidth]{dumbbell_linkemulator.pdf}
+  \includegraphics[width=\textwidth]{dumbbell_linkemulator.png}
   \caption{Dumbbell-topologie met een aparte link-emulator-VM die de twee
   airMAX-antennes vervangt. Enkel de link-emulator past \texttt{tc/netem} toe op de
   gebridgde interfaces.}
@@ -110,8 +110,20 @@ gebruiker hoeft geen PowerShell-, VirtualBox- of Linux-kennis te hebben: elk scr
 verpakt in een \texttt{.bat}-bestand dat de bijhorende PowerShell-code met de juiste
 uitvoeringsrechten aanroept.
 
+\paragraph{Component: host.} Onderstaand script wordt uitsluitend op de Windows-host
+uitgevoerd; het raakt op dit moment nog geen enkele VM rechtstreeks aan, maar start wel
+het volledige opbouwproces dat verderop in deze sectie de drie VM's aanmaakt.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{poc_host.png}
+  \caption{Onderdeel aanduiding.}
+  \label{fig:poc_host}
+\end{figure}
+
+
 \begin{listing}[h]
-\begin{minted}{bat}
+\begin{lstlisting}[style=batchstyle]
 @echo off
 title PoC-omgeving opbouwen
 echo.
@@ -125,10 +137,11 @@ echo ============================================================
 echo  Klaar. Dit venster kan je nu sluiten.
 echo ============================================================
 pause
-\end{minted}
+\end{lstlisting}
 \caption[De dubbelklikbare startknop]{\texttt{1-Build.bat}: omzeilt PowerShell's
 standaard uitvoeringsbeleid (\texttt{-ExecutionPolicy Bypass}) zodat de gebruiker geen
-beveiligingsprompt te zien krijgt, en houdt het consolevenster open tot na afloop.}
+beveiligingsprompt te zien krijgt, en houdt het consolevenster open tot na afloop.
+Uitgevoerd op: de host.}
 \label{lst:build-bat}
 \end{listing}
 
@@ -154,11 +167,12 @@ stappen:
         Sectie~\ref{subsec:technische-inzichten}).
 \end{enumerate}
 
-Onderstaand fragment toont hoe de drie VM's, elk met hun eigen rol en netwerktopologie,
-worden aangemaakt:
+\paragraph{Component: host, met aanmaak van alle drie VM's.} Stap 5 hierboven is het
+moment waarop de drie VM's effectief tot stand komen. Onderstaand fragment toont hoe elk
+van hen, met hun eigen rol en netwerktopologie, wordt aangemaakt vanaf de host:
 
 \begin{listing}[h]
-\begin{minted}{powershell}
+\begin{lstlisting}[style=powershellstyle]
 $commonArgs = @{
     VBoxManage    = $VBoxManage
     BaseVdi       = $BaseVdi
@@ -175,10 +189,12 @@ New-PocVm @commonArgs -VmName 'poc-link-emulator' -Role 'link-emulator' -Hostnam
 
 New-PocVm @commonArgs -VmName 'poc-client' -Role 'client' -Hostname 'poc-client' `
     -MgmtSshHostPort $SshPortClient -LinkANet $NetLinkB
-\end{minted}
+\end{lstlisting}
 \caption[Aanmaak van de drie PoC-VM's]{Fragment uit \texttt{Build-PoC.ps1}: aanroep van
 de \texttt{New-PocVm}-functie voor elk van de drie rollen. Enkel de link-emulator krijgt
-een \texttt{LinkBNet}, aangezien alleen zij op beide segmenten tegelijk moet aansluiten.}
+een \texttt{LinkBNet}, aangezien alleen zij op beide segmenten tegelijk moet aansluiten.
+Uitgevoerd op: de host, ter aanmaak van \texttt{poc-server}, \texttt{poc-link-emulator}
+en \texttt{poc-client}.}
 \label{lst:create-vm-calls}
 \end{listing}
 
@@ -186,10 +202,23 @@ De functie \texttt{New-PocVm} zelf (in
 \href{code/scripts/Modules/PocFunctions.psm1}{\texttt{Modules/PocFunctions.psm1}}) kloont
 de basisschijf, genereert een cloud-init-\textit{seed}-ISO op maat van de rol (zie
 Sectie~\ref{subsec:automatisering-cloudinit}), en roept vervolgens \texttt{VBoxManage}
-aan om de VM effectief te configureren en op te starten:
+aan om de VM effectief te configureren en op te starten.
+
+\paragraph{Component: host, met specifieke netwerkconfiguratie voor de link-emulator.}
+Onderstaand fragment draait, net als hierboven, op de host, maar de \texttt{if
+(\$LinkBNet)}-tak is specifiek van toepassing op \texttt{poc-link-emulator} -- enkel die
+VM krijgt een derde netwerkadapter (\texttt{nic3}), aangezien enkel zij tegelijk op
+\textit{Internal Network A} en \textit{Internal Network B} moet aansluiten.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{poc_link.png}
+  \caption{Onderdeel aanduiding.}
+  \label{fig:poc_link}
+\end{figure}
 
 \begin{listing}[h]
-\begin{minted}{powershell}
+\begin{lstlisting}[style=powershellstyle]
 Invoke-Vbox $VBoxManage createvm --name $VmName --ostype Ubuntu_64 --register
 Invoke-Vbox $VBoxManage modifyvm $VmName `
     --memory $MemoryMb --cpus $Cpus `
@@ -205,11 +234,12 @@ if ($LinkBNet) {
     # bestemd zijn -- zonder promiscuous mode komt dat verkeer nooit binnen.
     Invoke-Vbox $VBoxManage modifyvm $VmName --nic3 intnet --intnet3 $LinkBNet --nicpromisc3 allow-all
 }
-\end{minted}
+\end{lstlisting}
 \caption[VBoxManage-aanroepen voor VM-aanmaak]{Kern van de \texttt{New-PocVm}-functie:
 VM-definitie, netwerkadapters (met verplichte promiscuous mode) en opstart.
 \texttt{Invoke-Vbox} is een eigen hulpfunctie die de exitcode van \texttt{VBoxManage}
-correct controleert (zie Sectie~\ref{subsec:technische-inzichten}).}
+correct controleert (zie Sectie~\ref{subsec:technische-inzichten}). Uitgevoerd op: de
+host; de \texttt{nic3}-tak is specifiek voor \texttt{poc-link-emulator}.}
 \label{lst:vboxmanage-create}
 \end{listing}
 
@@ -222,12 +252,19 @@ pakketten geïnstalleerd worden, welke gebruikers aangemaakt worden, en welke
 configuratiebestanden weggeschreven worden -- volledig onbewaakt, zonder enige
 installatiewizard.
 
-Op de server-VM installeert
-\href{code/scripts/cloud-init/server-user-data.yaml}{\texttt{cloud-init/server-user-data.yaml}}
-onder meer een SFTP-gebruiker met een \texttt{chroot}-omgeving (FR3, BR1, BR2):
+\paragraph{Component: poc-server.} Onderstaand fragment configureert uitsluitend de
+server-VM: het installeert er een SFTP-gebruiker met een \texttt{chroot}-omgeving
+(FR3, BR1, BR2).
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{poc_server.png}
+  \caption{Onderdeel aanduiding.}
+  \label{fig:poc_server}
+\end{figure}
 
 \begin{listing}[h]
-\begin{minted}{yaml}
+\begin{lstlisting}[language=yaml, basicstyle=\small\lstmonofont]
   - path: /etc/ssh/sshd_config.d/99-poc-sftp.conf
     permissions: "0644"
     content: |
@@ -236,25 +273,27 @@ onder meer een SFTP-gebruiker met een \texttt{chroot}-omgeving (FR3, BR1, BR2):
           ForceCommand internal-sftp
           AllowTcpForwarding no
           X11Forwarding no
-\end{minted}
+\end{lstlisting}
 \caption[Cloud-init: SFTP-chroot op de server-VM]{Fragment uit
 \texttt{server-user-data.yaml}: een SFTP-gebruiker die volledig binnen
 \texttt{/srv/sftp} opgesloten blijft. Enkel de submap \texttt{/srv/sftp/upload} is
 effectief schrijfbaar; de chroot-\emph{root} zelf moet, opdat OpenSSH de chroot-sessie
-toelaat, eigendom van \texttt{root} blijven.}
+toelaat, eigendom van \texttt{root} blijven. Uitgevoerd op: \texttt{poc-server}, bij
+eerste boot.}
 \label{lst:cloudinit-server-sftp}
 \end{listing}
 
-Op de link-emulator-VM moet het verkeer tussen \textit{Internal Network A} en
-\textit{Internal Network B} op Layer~2 transparant doorgestuurd worden. Hiervoor
-genereert
+\paragraph{Component: poc-link-emulator.} Op de link-emulator-VM moet het verkeer tussen
+\textit{Internal Network A} en \textit{Internal Network B} op Layer~2 transparant
+doorgestuurd worden. Hiervoor genereert
 \href{code/scripts/cloud-init/link-emulator-user-data.yaml}{\texttt{cloud-init/link-emulator-user-data.yaml}}
 via Netplan een softwarematige netwerkbrug, en detecteert het onderliggende
-\texttt{configure-network.sh}-script welke fysieke interfaces daarvoor gebruikt moeten
-worden:
+\texttt{configure-network.sh}-script -- dat eveneens enkel op de link-emulator draait --
+welke fysieke interfaces daarvoor gebruikt moeten worden:
+
 
 \begin{listing}[h]
-\begin{minted}{bash}
+\begin{lstlisting}[style=bashstyle]
 IFACES=()
 for _f in /sys/class/net/*; do
     _name="$(basename "$_f")"
@@ -265,17 +304,19 @@ for _f in /sys/class/net/*; do
     [ -e "/sys/class/net/${_name}/device" ] || continue
     IFACES+=("$_name")
 done
-\end{minted}
+\end{lstlisting}
 \caption[Cloud-init: interfacedetectie op de link-emulator]{Fragment van
 \texttt{configure-network.sh}: interfaces worden geïdentificeerd via hun
 \texttt{device}-symlink, niet louter via hun naam of positie in
 \texttt{/sys/class/net}, zodat een reeds actieve brug de detectie niet verstoort (zie
-Sectie~\ref{subsec:technische-inzichten}).}
+Sectie~\ref{subsec:technische-inzichten}). Uitgevoerd op: \texttt{poc-link-emulator},
+bij eerste boot.}
 \label{lst:cloudinit-ifacedetect}
 \end{listing}
 
+
 \begin{listing}[h]
-\begin{minted}{yaml}
+\begin{lstlisting}[language=yaml, basicstyle=\small\lstmonofont]
 bridges:
   br0:
     interfaces: [${LINK_A_IF}, ${LINK_B_IF}]
@@ -283,26 +324,35 @@ bridges:
     parameters:
       stp: false
       forward-delay: 0
-\end{minted}
+\end{lstlisting}
 \caption[Cloud-init: L2-brug op de link-emulator]{Fragment van de gegenereerde
 Netplan-configuratie. Spanning Tree Protocol wordt expliciet uitgeschakeld: een brug met
 slechts twee poorten kan nooit een lus vormen, waardoor STP's standaard-
-doorschakelvertraging van ongeveer 30~seconden pure, ongewenste opstarttijd zou zijn.}
+doorschakelvertraging van ongeveer 30~seconden pure, ongewenste opstarttijd zou zijn.
+Uitgevoerd op: \texttt{poc-link-emulator}, bij eerste boot.}
 \label{lst:cloudinit-bridge}
 \end{listing}
 
 Bovenop de brug installeert cloud-init twee scripts die samen de kanaalemulatie regelen:
 \texttt{poc-set-scenario.sh} (een vaste basistoestand per afstandscategorie) en
 \texttt{poc-run-trial.sh} (dezelfde basistoestand, maar met willekeurige weers- en
-DFS-variatie voor de statistische batchtests). Beide worden in detail toegelicht in
+DFS-variatie voor de statistische batchtests). Beide draaien, net als de brug hierboven,
+uitsluitend op \texttt{poc-link-emulator}, en worden in detail toegelicht in
 Sectie~\ref{sec:sim-parameters}.
 
-Op de client-VM installeert
+\paragraph{Component: poc-client.} Op de client-VM installeert
 \href{code/scripts/cloud-init/client-user-data.yaml}{\texttt{cloud-init/client-user-data.yaml}}
 de meetinstrumentatie (\texttt{iperf3}, \texttt{mtr-tiny}, \texttt{sshpass}) en
 configureert het adres op \textit{Internal Network B}, zodat de VM bij eerste boot
 onmiddellijk klaar staat om de teststeekproef uit Sectie~\ref{sec:sim-uitvoering} uit te
 voeren zonder verdere manuele tussenkomst.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{poc_client.png}
+  \caption{Onderdeel aanduiding.}
+  \label{fig:poc_client}
+\end{figure}
 
 \subsection{Overzicht en links naar de scriptbestanden}%
 \label{subsec:scriptoverzicht}
@@ -371,7 +421,6 @@ samen, met hun locatie onder \texttt{code/scripts/} en hun rol in de opbouw.
   \label{tab:scriptoverzicht-poc}
 \end{table}
 
-
 \subsection{Mappenstructuur van de digitale bijlagen}%
 \label{subsec:poc-mappenstructuur}
 
@@ -380,7 +429,7 @@ Alle scripts, cloud-init-manifesten en documentatie uit dit hoofdstuk bevinden z
 aanpassingen op elk Windows 10/11-toestel gereproduceerd kan worden. Figuur/Listing
 hieronder toont de structuur:
 
-\begin{lstlisting}[language=, basicstyle=\ttfamily\small, frame=single,
+\begin{lstlisting}[language=, basicstyle=\lstmonofont\small, frame=single,
                     caption={Mappenstructuur van \texttt{code/scripts/poc-scripts-windows/}},
                     label={lst:mappenstructuur}]
 poc-scripts-windows/
@@ -421,92 +470,97 @@ niet enkel omdat de bijhorende oplossingen in de code zitten, maar omdat ze op z
 relevante inzichten opleveren over de samenwerking tussen Windows, VirtualBox en
 cloud-init.
 
-\paragraph{Native ISO-opbouw vereist de Joliet-extensie.} De cloud-init \textit{seed}-ISO
-wordt zonder externe tools opgebouwd via \texttt{IMAPI2FS}, een COM-component die al
-sinds Windows Vista ingebouwd zit. Pure ISO9660 (\textit{Level~1}) staat enkel
-8.3-bestandsnamen in hoofdletters toe; cloud-init's bestanden heten echter letterlijk
-\texttt{user-data} en \texttt{meta-data} (kleine letters, met een koppelteken). Zonder de
-Joliet-extensie werden die stilzwijgend herschreven, waardoor cloud-init zijn eigen
-configuratie nooit terugvond en de volledige seed-ISO negeerde alsof ze leeg was. De
-oplossing combineert ISO9660 met Joliet (\texttt{FileSystemsToCreate = 3}), wat de
-originele bestandsnamen intact laat.
+\paragraph{Native ISO-opbouw vereist de Joliet-extensie (component: host).} De cloud-init
+\textit{seed}-ISO wordt zonder externe tools opgebouwd via \texttt{IMAPI2FS}, een
+COM-component die al sinds Windows Vista ingebouwd zit. Pure ISO9660 (\textit{Level~1})
+staat enkel 8.3-bestandsnamen in hoofdletters toe; cloud-init's bestanden heten echter
+letterlijk \texttt{user-data} en \texttt{meta-data} (kleine letters, met een
+koppelteken). Zonder de Joliet-extensie werden die stilzwijgend herschreven, waardoor
+cloud-init zijn eigen configuratie nooit terugvond en de volledige seed-ISO negeerde
+alsof ze leeg was. De oplossing combineert ISO9660 met Joliet
+(\texttt{FileSystemsToCreate = 3}), wat de originele bestandsnamen intact laat.
 
-\paragraph{Een UTF-8 BOM breekt de cloud-config-herkenning.} \texttt{Set-Content
--Encoding utf8} schrijft in Windows PowerShell 5.1 een UTF-8 \textit{byte-order mark}
-vóór de inhoud. Cloud-init verwacht dat \texttt{user-data} letterlijk begint met
-\texttt{\#cloud-config}; een onzichtbare BOM ervoor doet cloud-init het bestand niet
-herkennen. De bestanden worden daarom via \texttt{[System.IO.File]::WriteAllText} met een
-expliciet BOM-loze UTF-8-\texttt{Encoding} weggeschreven.
+\paragraph{Een UTF-8 BOM breekt de cloud-config-herkenning (component: host, treft alle
+drie VM's bij eerste boot).} \texttt{Set-Content -Encoding utf8} schrijft in Windows
+PowerShell 5.1 een UTF-8 \textit{byte-order mark} vóór de inhoud. Cloud-init verwacht dat
+\texttt{user-data} letterlijk begint met \texttt{\#cloud-config}; een onzichtbare BOM
+ervoor doet cloud-init het bestand niet herkennen. De bestanden worden daarom via
+\texttt{[System.IO.File]::WriteAllText} met een expliciet BOM-loze
+UTF-8-\texttt{Encoding} weggeschreven.
 
-\paragraph{Een lege SSH-wachtwoordzin doorgeven is versie-afhankelijk onbetrouwbaar.} Het
-genereren van een sleutel zonder wachtwoordzin (\texttt{ssh-keygen -N ""}) via
-PowerShell's eigen manier van argumenten doorgeven aan een \texttt{.exe} is een gekend
-probleemgeval: afhankelijk van de PowerShell-/.NET-versie wordt de lege waarde soms
-letterlijk als de tekenreeks \texttt{""} doorgegeven in plaats van als een echte lege
-waarde -- met een sleutel die alsnog een wachtwoordzin krijgt tot gevolg, wat zich uit als
-"Permission denied". De uiteindelijke oplossing gebruikt \texttt{cmd.exe} als
-tussenpersoon: diens eenvoudigere ontleding van een commandoregel interpreteert twee
-aaneengesloten aanhalingstekens altijd correct als een lege argumentwaarde, ongeacht de
-PowerShell- of .NET-versie.
+\paragraph{Een lege SSH-wachtwoordzin doorgeven is versie-afhankelijk onbetrouwbaar
+(component: host).} Het genereren van een sleutel zonder wachtwoordzin
+(\texttt{ssh-keygen -N ""}) via PowerShell's eigen manier van argumenten doorgeven aan
+een \texttt{.exe} is een gekend probleemgeval: afhankelijk van de PowerShell-/.NET-versie
+wordt de lege waarde soms letterlijk als de tekenreeks \texttt{""} doorgegeven in plaats
+van als een echte lege waarde -- met een sleutel die alsnog een wachtwoordzin krijgt tot
+gevolg, wat zich uit als "Permission denied". De uiteindelijke oplossing gebruikt
+\texttt{cmd.exe} als tussenpersoon: diens eenvoudigere ontleding van een commandoregel
+interpreteert twee aaneengesloten aanhalingstekens altijd correct als een lege
+argumentwaarde, ongeacht de PowerShell- of .NET-versie.
 
-\paragraph{VirtualBox houdt "verweesde" registraties bij.} VirtualBox onthoudt, los van
-het bestandssysteem, welke schijven en VM's het ooit heeft aangemaakt. Handmatig
-verwijderen van bestanden laat die interne registraties ongemoeid, wat later leidt tot
-fouten als \texttt{"hard disk ... already exists"} of een \texttt{createvm} die faalt op
-een reeds bestaand instellingenbestand. \texttt{Clear-StaleVBoxMedium} en
+\paragraph{VirtualBox houdt "verweesde" registraties bij (component: host).} VirtualBox
+onthoudt, los van het bestandssysteem, welke schijven en VM's het ooit heeft aangemaakt.
+Handmatig verwijderen van bestanden laat die interne registraties ongemoeid, wat later
+leidt tot fouten als \texttt{"hard disk ... already exists"} of een \texttt{createvm} die
+faalt op een reeds bestaand instellingenbestand. \texttt{Clear-StaleVBoxMedium} en
 \texttt{Remove-StaleVmFolder} sporen zulke achtergebleven registraties expliciet op en
 verwijderen ze vóór een nieuwe schijf of VM met dezelfde naam wordt aangemaakt.
 
-\paragraph{SSH-bereikbaarheid is geen bewijs dat cloud-init klaar is.} De SSH-daemon
-start doorgaans al enkele seconden na het opstarten, terwijl cloud-init zelf
-(pakketupdates, \texttt{write\_files}, \texttt{runcmd}) daarna nog verscheidene minuten
-kan doorlopen. Het buildscript wacht daarom niet enkel op SSH-bereikbaarheid, maar
-expliciet op \texttt{cloud-init status --wait}, aangevuld met een gerichte controle of
-het bestand \texttt{/etc/poc-ifaces.env} op de link-emulator effectief bestaat vóór de
-opstelling als "klaar" gemeld wordt -- een dubbele garantie die bleek nodig te zijn nadat
-een eerdere versie, die enkel op cloud-init's eigen statusrapportage vertrouwde, in de
-praktijk toch af en toe een te vroeg "klaar" gaf.
+\paragraph{SSH-bereikbaarheid is geen bewijs dat cloud-init klaar is (component: host,
+controleert alle drie VM's).} De SSH-daemon start doorgaans al enkele seconden na het
+opstarten, terwijl cloud-init zelf (pakketupdates, \texttt{write\_files},
+\texttt{runcmd}) daarna nog verscheidene minuten kan doorlopen. Het buildscript wacht
+daarom niet enkel op SSH-bereikbaarheid, maar expliciet op \texttt{cloud-init status
+--wait}, aangevuld met een gerichte controle of het bestand \texttt{/etc/poc-ifaces.env}
+op de link-emulator effectief bestaat vóór de opstelling als "klaar" gemeld wordt -- een
+dubbele garantie die bleek nodig te zijn nadat een eerdere versie, die enkel op
+cloud-init's eigen statusrapportage vertrouwde, in de praktijk toch af en toe een te
+vroeg "klaar" gaf.
 
-\paragraph{Spanning Tree Protocol blokkeert een verse brug tot 30~seconden.} Linux-bruggen
-schakelen standaard Spanning Tree Protocol in. Elke poort doorloopt dan een
-\textit{listening}-, \textit{learning}- en pas dan een \textit{forwarding}-fase, in totaal
-zo'n 30~seconden, ook al toont \texttt{ip a} de poort meteen als "UP". Voor een brug met
-slechts twee poorten, die nooit een lus kan vormen, is dat pure, ongewenste vertraging die
-zich uitte als tijdelijke, moeilijk reproduceerbare pakketverliezen net na het opstarten.
-STP wordt daarom expliciet uitgeschakeld (Listing~\ref{lst:cloudinit-bridge}).
+\paragraph{Spanning Tree Protocol blokkeert een verse brug tot 30~seconden (component:
+poc-link-emulator).} Linux-bruggen schakelen standaard Spanning Tree Protocol in. Elke
+poort doorloopt dan een \textit{listening}-, \textit{learning}- en pas dan een
+\textit{forwarding}-fase, in totaal zo'n 30~seconden, ook al toont \texttt{ip a} de poort
+meteen als "UP". Voor een brug met slechts twee poorten, die nooit een lus kan vormen, is
+dat pure, ongewenste vertraging die zich uitte als tijdelijke, moeilijk reproduceerbare
+pakketverliezen net na het opstarten. STP wordt daarom expliciet uitgeschakeld
+(Listing~\ref{lst:cloudinit-bridge}).
 
-\paragraph{VirtualBox filtert "vreemd" verkeer op interne netwerken.} VirtualBox laat op
-een \textit{Internal Network}-adapter standaard enkel frames door die voor het eigen
-MAC-adres van die VM bestemd zijn. Een brug moet echter net frames doorsturen die voor
-andere MAC-adressen bestemd zijn. Zonder \texttt{--nicpromiscN allow-all} op de
-link-emulator's adapters leek de volledige Linux-configuratie (brug, netem, routes)
-foutloos, maar kwam er nooit werkelijk verkeer aan: \texttt{ping} gaf consequent
-\texttt{"Destination Host Unreachable"} (een lokale fout, gegenereerd door een mislukte
-ARP-resolutie, nog vóór er iets de kabel op ging).
+\paragraph{VirtualBox filtert "vreemd" verkeer op interne netwerken (component:
+poc-link-emulator).} VirtualBox laat op een \textit{Internal Network}-adapter standaard
+enkel frames door die voor het eigen MAC-adres van die VM bestemd zijn. Een brug moet
+echter net frames doorsturen die voor andere MAC-adressen bestemd zijn. Zonder
+\texttt{--nicpromiscN allow-all} op de link-emulator's adapters leek de volledige
+Linux-configuratie (brug, netem, routes) foutloos, maar kwam er nooit werkelijk verkeer
+aan: \texttt{ping} gaf consequent \texttt{"Destination Host Unreachable"} (een lokale
+fout, gegenereerd door een mislukte ARP-resolutie, nog vóór er iets de kabel op ging).
 
-\paragraph{Interfacedetectie mag een reeds bestaande brug niet meetellen.} Bij een
-herhaalde uitvoering van \texttt{configure-network.sh} (bijvoorbeeld voor handmatige
-foutopsporing) verscheen de eerder aangemaakte brug \texttt{br0} zelf tussen de
-gedetecteerde netwerkinterfaces. Omdat de interfaces alfabetisch gesorteerd worden om
-consequent dezelfde volgorde te garanderen, schoof \texttt{br0} (dat vóór \texttt{enp0sX}
-sorteert) de hele indexering op, waardoor het beheersinterface per ongeluk als
-brugpoort werd behandeld. De oplossing (Listing~\ref{lst:cloudinit-ifacedetect}) herkent
-enkel interfaces met een \texttt{device}-symlink in \texttt{/sys/class/net} -- een
-kenmerk van fysieke of virtuele PCI-netwerkkaarten dat een puur softwarematige brug
-nooit heeft.
+\paragraph{Interfacedetectie mag een reeds bestaande brug niet meetellen (component:
+poc-link-emulator).} Bij een herhaalde uitvoering van \texttt{configure-network.sh}
+(bijvoorbeeld voor handmatige foutopsporing) verscheen de eerder aangemaakte brug
+\texttt{br0} zelf tussen de gedetecteerde netwerkinterfaces. Omdat de interfaces
+alfabetisch gesorteerd worden om consequent dezelfde volgorde te garanderen, schoof
+\texttt{br0} (dat vóór \texttt{enp0sX} sorteert) de hele indexering op, waardoor het
+beheersinterface per ongeluk als brugpoort werd behandeld. De oplossing
+(Listing~\ref{lst:cloudinit-ifacedetect}) herkent enkel interfaces met een
+\texttt{device}-symlink in \texttt{/sys/class/net} -- een kenmerk van fysieke of
+virtuele PCI-netwerkkaarten dat een puur softwarematige brug nooit heeft.
 
-\paragraph{Drie gelijktijdige VM's kunnen de hostschijf verzadigen.} Op hostmachines met
-beperkte schijfprestaties kan het gelijktijdig opstarten van drie VM's, die elk
-pakketten installeren en cloud-init-bestanden wegschrijven, de schijf-I/O van de host
-tijdelijk verzadigen, wat zich uit als SSH-verbindingen die halverwege de
-protocolhandshake blijven hangen. Dit is een omgevingsgebonden beperking eerder dan een
-softwarefout in de scripts zelf, en wordt in Hoofdstuk~\ref{ch:conclusie} vermeld als
-aandachtspunt bij reproductie op minder performante hardware.
+\paragraph{Drie gelijktijdige VM's kunnen de hostschijf verzadigen (component: host,
+tijdens gelijktijdige opstart van alle drie VM's).} Op hostmachines met beperkte
+schijfprestaties kan het gelijktijdig opstarten van drie VM's, die elk pakketten
+installeren en cloud-init-bestanden wegschrijven, de schijf-I/O van de host tijdelijk
+verzadigen, wat zich uit als SSH-verbindingen die halverwege de protocolhandshake blijven
+hangen. Dit is een omgevingsgebonden beperking eerder dan een softwarefout in de scripts
+zelf, en wordt in Hoofdstuk~\ref{ch:conclusie} vermeld als aandachtspunt bij reproductie
+op minder performante hardware.
 
-\paragraph{Twee kleinere, praktische kanttekeningen.} \texttt{iperf3} geeft soms
-\texttt{"unable to send control message: Bad file descriptor"} wanneer het
-niet-interactief via SSH wordt uitgevoerd; dit wordt vermeden door stdin expliciet naar
-\texttt{/dev/null} om te leiden. Daarnaast moet een SFTP-upload naar de
+\paragraph{Twee kleinere, praktische kanttekeningen (componenten: poc-client en
+poc-server).} \texttt{iperf3} geeft soms \texttt{"unable to send control message: Bad
+file descriptor"} wanneer het niet-interactief via SSH wordt uitgevoerd op
+\texttt{poc-client}; dit wordt vermeden door stdin expliciet naar \texttt{/dev/null} om
+te leiden. Daarnaast moet een SFTP-upload op \texttt{poc-server} naar de
 \texttt{/upload}-submap gericht worden, niet naar de chroot-\textit{root} zelf, die
 eigendom van \texttt{root} moet blijven opdat OpenSSH de chroot-sessie toelaat.
 
@@ -532,18 +586,22 @@ Deze basiswaarden alleen volstaan echter niet om een realistische verbinding na 
 bootsen: in de praktijk variëren weersomstandigheden voortdurend en op willekeurige
 wijze, en kan op elke afstand een DFS-kanaalwissel optreden (Sectie~\ref{subsec:dfs}).
 De emulatie voorziet daarom twee complementaire toepassingsmodi voor elke
-afstandscategorie.
+afstandscategorie. Beide draaien, zoals hieronder telkens aangeduid, uitsluitend op
+\texttt{poc-link-emulator}: dat is de enige plaats in de opstelling waar
+\texttt{tc/netem} wordt toegepast.
 
 \subsection{Vaste basistoestand: \texttt{poc-set-scenario.sh}}%
 \label{subsec:vaste-toestand}
 
-Voor snelle, deterministische controles (via
+\paragraph{Component: poc-link-emulator.} Voor snelle, deterministische controles (via
 \href{code/scripts/2-Kies-Scenario.bat}{\texttt{2-Kies-Scenario.bat}} of
-\href{code/scripts/Select-Scenario.ps1}{\texttt{Select-Scenario.ps1}}) past
+\href{code/scripts/Select-Scenario.ps1}{\texttt{Select-Scenario.ps1}}, beide uitgevoerd
+vanaf de host, maar met de effectieve wijziging op de link-emulator) past
 \texttt{poc-set-scenario.sh} enkel de vaste basiswaarden toe, zonder verdere variatie:
 
+
 \begin{listing}[h]
-\begin{minted}{bash}
+\begin{lstlisting}[style=bashstyle]
 case "${DISTANCE}" in
   0-15)  apply "${LINK_A_IF}" 12ms 2ms 0.1% 150mbit
          apply "${LINK_B_IF}" 12ms 2ms 0.1% 150mbit ;;
@@ -552,10 +610,10 @@ case "${DISTANCE}" in
   30+)   apply "${LINK_A_IF}" 35ms 5ms 5% 5mbit
          apply "${LINK_B_IF}" 35ms 5ms 5% 5mbit ;;
 esac
-\end{minted}
+\end{lstlisting}
 \caption[poc-set-scenario.sh]{Kern van \texttt{poc-set-scenario.sh}: één vaste
 \texttt{netem}-instelling per afstandscategorie, bedoeld voor snelle, herhaalbare
-controles.}
+controles. Aangeroepen vanaf de host, uitgevoerd op: \texttt{poc-link-emulator}.}
 \label{lst:poc-set-scenario}
 \end{listing}
 
@@ -565,23 +623,26 @@ controles.}
 Voor de statistische batchtests (Sectie~\ref{sec:sim-trials}) legt
 \texttt{poc-run-trial.sh} bij elke aanroep een \emph{nieuwe} willekeurige realisatie van
 de kanaalomstandigheden op, op basis van dezelfde afstandscategorie. Twee onafhankelijke
-willekeurige mechanismen werken hierbij samen.
+willekeurige mechanismen werken hierbij samen, allebei uitgevoerd op
+\texttt{poc-link-emulator}.
 
-\paragraph{Weer: het Gilbert-Elliot-burstverliesmodel.} Een eenvoudig, vast
-verliespercentage (zoals in de vaste basistoestand) verliest pakketten onafhankelijk van
-elkaar, terwijl reële fading -- door regendemping, multipath-effecten of
-Fresnelzone-obstructie -- net \emph{aaneengesloten} pakketverlies in korte bursts
-veroorzaakt wanneer het signaal tijdelijk onder de ontvangstdrempel zakt. Het
-Gilbert-Elliot-model bootst dit na met een tweetoestandsmodel: een "goede" toestand met
-laag achtergrondverlies, en een "slechte" toestand met hoog verlies, met telkens een
-kans om van de ene naar de andere over te schakelen. \texttt{tc netem} ondersteunt dit
-rechtstreeks via de parameter \texttt{loss gemodel}. Per trial worden de
+\paragraph{Weer: het Gilbert-Elliot-burstverliesmodel (component: poc-link-emulator).}
+Een eenvoudig, vast verliespercentage (zoals in de vaste basistoestand) verliest
+pakketten onafhankelijk van elkaar, terwijl reële fading -- door regendemping,
+multipath-effecten of Fresnelzone-obstructie -- net \emph{aaneengesloten} pakketverlies
+in korte bursts veroorzaakt wanneer het signaal tijdelijk onder de ontvangstdrempel
+zakt. Het Gilbert-Elliot-model bootst dit na met een tweetoestandsmodel: een "goede"
+toestand met laag achtergrondverlies, en een "slechte" toestand met hoog verlies, met
+telkens een kans om van de ene naar de andere over te schakelen. \texttt{tc netem}
+ondersteunt dit rechtstreeks via de parameter \texttt{loss gemodel}. Per trial worden de
 overschakelkansen, de vertraging en de doorvoersnelheid bovendien binnen een
 plausibele bandbreedte willekeurig getrokken (respectievelijk $\pm 30\%$ en $\pm 25\%$
 rond de basiswaarde), zodat opeenvolgende trials nooit identiek zijn:
 
+
+
 \begin{listing}[h]
-\begin{minted}{bash}
+\begin{lstlisting}[style=bashstyle]
 rand_range() {
     awk -v seed="$RANDOM$RANDOM$$" -v lo="$1" -v hi="$2" \
         'BEGIN{srand(seed); printf "%.2f", lo + rand()*(hi-lo)}'
@@ -595,23 +656,25 @@ tc qdisc replace dev "${IFACE}" root netem \
     delay "${DELAY}ms" "${J}ms" distribution normal \
     loss gemodel "${P_G2B}%" "${P_B2G}%" "${LOSS_SLECHT}%" "${LOSS_GOED}%" \
     rate "${NEW_RATE}mbit"
-\end{minted}
+\end{lstlisting}
 \caption[Willekeurige weersvariatie]{Fragment uit \texttt{poc-run-trial.sh}: de
 Gilbert-Elliot-parameters (\texttt{loss gemodel}: kans goed→slecht, kans slecht→goed,
 verlies in slechte toestand, verlies in goede toestand) en de vertraging/doorvoersnelheid
 worden per trial opnieuw willekeurig getrokken binnen de bandbreedte van de gekozen
-afstandscategorie.}
+afstandscategorie. Uitgevoerd op: \texttt{poc-link-emulator}.}
 \label{lst:weer-variatie}
 \end{listing}
 
-\paragraph{DFS: een kans op radardetectie, op elke afstand.} Onafhankelijk van de
-afstandscategorie krijgt elke trial een kans van 8\% op een DFS-gebeurtenis, op een
-willekeurig moment binnen het meetvenster. Zoals toegelicht in Sectie~\ref{subsec:dfs}
-gedraagt dit zich niet als verhoogde latency, maar als een volledige, tijdelijke
-onderbreking:
+\paragraph{DFS: een kans op radardetectie, op elke afstand (component:
+poc-link-emulator).} Onafhankelijk van de afstandscategorie krijgt elke trial een kans
+van 8\% op een DFS-gebeurtenis, op een willekeurig moment binnen het meetvenster. Zoals
+toegelicht in Sectie~\ref{subsec:dfs} gedraagt dit zich niet als verhoogde latency, maar
+als een volledige, tijdelijke onderbreking:
+
+
 
 \begin{listing}[h]
-\begin{minted}{bash}
+\begin{lstlisting}[style=bashstyle]
 DFS_ROLL=$(( RANDOM % 100 ))
 if [ "${DFS_ROLL}" -lt 8 ]; then
     DFS_START=$(( RANDOM % 8 ))
@@ -626,12 +689,13 @@ if [ "${DFS_ROLL}" -lt 8 ]; then
     ) </dev/null >/tmp/poc-dfs-event.log 2>&1 &
     disown
 fi
-\end{minted}
+\end{lstlisting}
 \caption[Willekeurige DFS-onderbreking]{Fragment uit \texttt{poc-run-trial.sh}: bij 8\%
 van de trials treedt, op een willekeurig moment binnen de eerste 8~seconden, een volledige
 onderbreking van 10~seconden op (Channel Move + Channel Availability Check), waarna het
 kanaal automatisch herstelt. De achtergrondtaak wordt met \texttt{disown} losgekoppeld
-zodat ze de SSH-sessie die haar opstartte overleeft.}
+zodat ze de SSH-sessie die haar opstartte overleeft. Uitgevoerd op:
+\texttt{poc-link-emulator}.}
 \label{lst:dfs-variatie}
 \end{listing}
 
@@ -639,23 +703,29 @@ zodat ze de SSH-sessie die haar opstartte overleeft.}
 \label{sec:sim-trials}
 
 Eén enkele meting per afstandscategorie zegt weinig over de betrouwbaarheid van de
-architectuur onder wisselende omstandigheden. \href{code/scripts/Run-DistanceTrials.ps1}{\texttt{Run-DistanceTrials.ps1}}
-automatiseert daarom een reeks van $N$ (standaard honderd) onafhankelijke trials voor één
-afstandscategorie: bij elke trial wordt eerst een nieuwe willekeurige weers-/DFS-realisatie
-aangevraagd (Sectie~\ref{subsec:willekeurige-trial}), waarna gedurende een meetvenster
-van 30~seconden het effectieve packet loss tussen client en server gemeten wordt met
-\texttt{ping}. Dat venster is ruim voldoende om een eventuele DFS-onderbreking (die
-uiterlijk 18~seconden na de start van de trial is afgerond) volledig binnen de meting op
-te vangen.
+architectuur onder wisselende omstandigheden.
 
-Na afloop van alle trials berekent het script de statistische verdeling van het gemeten
-packet loss -- gemiddelde, standaardafwijking, minimum, maximum, en het aandeel trials
-dat de REQ-03-norm (maximaal 2\% verlies) overschrijdt -- en schrijft elk individueel
-resultaat weg naar een CSV-bestand voor verdere analyse in
+\paragraph{Component: host, met aansturing van poc-link-emulator en poc-client.}
+\href{code/scripts/Run-DistanceTrials.ps1}{\texttt{Run-DistanceTrials.ps1}} draait op de
+host en automatiseert een reeks van $N$ (standaard honderd) onafhankelijke trials voor
+één afstandscategorie: bij elke trial wordt eerst, via SSH naar
+\texttt{poc-link-emulator}, een nieuwe willekeurige weers-/DFS-realisatie aangevraagd
+(Sectie~\ref{subsec:willekeurige-trial}), waarna vanaf \texttt{poc-client} gedurende een
+meetvenster van 30~seconden het effectieve packet loss naar \texttt{poc-server} gemeten
+wordt met \texttt{ping}. Dat venster is ruim voldoende om een eventuele
+DFS-onderbreking (die uiterlijk 18~seconden na de start van de trial is afgerond)
+volledig binnen de meting op te vangen.
+
+
+
+Na afloop van alle trials berekent het script -- opnieuw op de host -- de statistische
+verdeling van het gemeten packet loss -- gemiddelde, standaardafwijking, minimum,
+maximum, en het aandeel trials dat de REQ-03-norm (maximaal 2\% verlies) overschrijdt --
+en schrijft elk individueel resultaat weg naar een CSV-bestand voor verdere analyse in
 Hoofdstuk~\ref{ch:resultaten-en-evaluatie}:
 
 \begin{listing}[h]
-\begin{minted}{powershell}
+\begin{lstlisting}[style=powershellstyle]
 for ($i = 1; $i -le $Count; $i++) {
     $trialInfo = Invoke-OnLinkEmulator "sudo /usr/local/bin/poc-run-trial.sh $Distance"
     $pingOutput = Invoke-OnClient 'ping -c 30 10.0.0.1'
@@ -667,10 +737,12 @@ $results | Export-Csv -LiteralPath $OutputCsv -NoTypeInformation
 $mean   = ($lossValues | Measure-Object -Average).Average
 $stddev = [math]::Sqrt(...)
 $exceedingReq03 = ($results | Where-Object { $_.PacketLossPct -gt 2 }).Count
-\end{minted}
+\end{lstlisting}
 \caption[Run-DistanceTrials.ps1]{Vereenvoudigde kern van \texttt{Run-DistanceTrials.ps1}:
 $N$ onafhankelijke trials, elk met een verse willekeurige realisatie, gevolgd door de
-berekening van gemiddelde, standaardafwijking en het aandeel trials boven REQ-03.}
+berekening van gemiddelde, standaardafwijking en het aandeel trials boven REQ-03.
+Uitgevoerd op: de host, die \texttt{poc-link-emulator} (\texttt{Invoke-OnLinkEmulator})
+en \texttt{poc-client} (\texttt{Invoke-OnClient}) via SSH aanstuurt.}
 \label{lst:run-distance-trials}
 \end{listing}
 
@@ -695,31 +767,45 @@ analysetools:
         validatie van FR-01/FR-02.
 \end{itemize}
 
+\paragraph{Component: host, met aansturing van poc-client (en, via het testverkeer zelf,
+poc-server).} Onderstaand fragment draait op de host en stuurt, via SSH, alle vier
+meetstappen uit op \texttt{poc-client}; het gemeten TCP/SFTP-verkeer loopt vervolgens
+over \texttt{poc-link-emulator} naar \texttt{poc-server}.
+
+
+
 \begin{listing}[h]
-\begin{minted}{powershell}
+\begin{lstlisting}[style=powershellstyle]
 Invoke-OnClient "iperf3 -c $ServerIp -t 10 </dev/null"
 Invoke-OnClient "mtr -r -c 20 $ServerIp"
 Invoke-OnClient 'dd if=/dev/urandom of=/tmp/testfile.bin bs=1M count=20 status=none'
 Invoke-OnClient "sshpass -p sftp sftp -o StrictHostKeyChecking=no sftpuser@$ServerIp <<< `$'put /tmp/testfile.bin /upload/testfile.bin\nbye'"
-\end{minted}
+\end{lstlisting}
 \caption[Run-Tests.ps1]{Kern van \texttt{Run-Tests.ps1}: de vier meetstappen voor één
-enkelvoudige teststeekproef, uitgevoerd via SSH op de client-VM.}
+enkelvoudige teststeekproef, aangeroepen vanaf de host en uitgevoerd op:
+\texttt{poc-client}, waarbij het testverkeer zelf via \texttt{poc-link-emulator} naar
+\texttt{poc-server} loopt.}
 \label{lst:workflow-volledig}
 \end{listing}
 
 De volledige workflow -- van installatie tot een statistisch onderbouwde evaluatie -- is
 daarmee herleid tot vier commando's (of, voor een niet-technische gebruiker, vier
-dubbelklikken):
+dubbelklikken), die samen elk van de vier componenten van de opstelling aan bod laten
+komen:
+
 
 \begin{listing}[h]
-\begin{minted}{powershell}
+\begin{lstlisting}[style=powershellstyle]
 .\Build-PoC.ps1                            # bouwt en start de drie VM's (eenmalig, ~10-15 min)
 .\Select-Scenario.ps1 15-30                # (optioneel) zet een vaste toestand voor een snelle controle
 .\Run-Tests.ps1                            # (optioneel) enkelvoudige teststeekproef
 .\Run-DistanceTrials.ps1 15-30 -Count 100  # statistische batchtest: 100 trials, willekeurige weer/DFS-variatie
-\end{minted}
+\end{lstlisting}
 \caption[Volledige workflow]{De volledige workflow van installatie tot statistisch
-onderbouwde evaluatie.}
+onderbouwde evaluatie: alle vier commando's worden vanaf de host uitgevoerd, en sturen
+achtereenvolgens alle drie VM's (bij de opbouw), \texttt{poc-link-emulator} (scenario),
+\texttt{poc-client} (teststeekproef), en \texttt{poc-link-emulator}~+~\texttt{poc-client}
+(batchtest) aan.}
 \label{lst:workflow-kort}
 \end{listing}
 

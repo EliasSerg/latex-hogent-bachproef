@@ -41,7 +41,15 @@ bijzonder hoge eisen stellen aan communicatiesystemen op het vlak van flexibilit
 mobiliteit, betrouwbaarheid en snelheid van inzet. Tegelijkertijd zijn net in dergelijke
 situaties de conventionele communicatie-infrastructuren het meest kwetsbaar: mobiele
 netwerken overbelasten, kabelinfrastructuur valt weg en satellietdiensten zijn niet altijd
-beschikbaar of betaalbaar~\autocite{Zaballos2022}.
+beschikbaar of betaalbaar~\autocite{Zaballos2022}. 
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{Satelietoplossing.png}
+  \caption{Visualisatie klassieke satelietoplossing.}
+  \label{fig:Satelietoplossing}
+\end{figure}
+
 
 Commerciële satellietoplossingen bieden weliswaar globale dekking, maar kampen met hoge
 abonnementskosten en aanzienlijke latency, waardoor ze voor particulieren en kleine
@@ -56,6 +64,13 @@ dichter bij de aarde en halen een RTT van ongeveer 130~ms~\autocite{FACOM2021}, 
 satellieten in een lage baan (LEO, zoals Starlink op 340--570~km) een RTT van slechts
 20 tot 60~ms bereiken~\autocite{MegaSatNetworks2021} -- vergelijkbaar met een
 terrestrische breedbandverbinding.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{latencyvoorbeeld.png}
+  \caption{Visualisatie oorzaak latency.}
+  \label{fig:latencyvoorbeeld}
+\end{figure}
 
 Deze latency is niet enkel een storende bijkomstigheid, maar heeft een rechtstreekse
 impact op de bruikbaarheid voor bestandsoverdracht. Het opzetten van een verbinding
@@ -95,6 +110,13 @@ obstakels buigt, hoe ver het reikt, en welke antennegrootte nodig is -- wat verk
 waarom radioamateurs banden vaak naar hun golflengte noemen (zoals de "6m-band"
 verderop in dit hoofdstuk) in plaats van naar hun frequentie.
 
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{frequencytabel.png}
+  \caption{Visualisatie van het electromagnetische spectrum.}
+  \label{fig:frequencytabel}
+\end{figure}
+
 Om data succesvol via radiogolven te transporteren, is een fundamenteel begrip van de
 fysische laag van computercommunicatie essentieel, waarbij elektromagnetische golven worden
 gebruikt om bitstromen door de ether te sturen~\autocite{Tanenbaum2021}. De capaciteit
@@ -125,6 +147,14 @@ geïoniseerde wolken in de E-laag van de ionosfeer, waardoor signalen met relati
 over extreme afstanden gereflecteerd kunnen worden. Hoewel dit toestaat om duizenden kilometers
 te overbruggen, zijn deze condities inherent onvoorspelbaar en seizoensgebonden.
 
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{ionosphere.png}
+  \caption{Visualisatie basisprincipe ionosferische reflectie.}
+  \label{fig:ionosphere}
+\end{figure}
+
+
 Voor kortere afstanden op hogere frequenties, zoals de VHF- en UHF-banden (bijvoorbeeld 70 centimeter),
 is de propagatie in principe beperkt tot de visuele horizon, tenzij er zich *troposferische propagatie* voordoet. Door specifieke meteorologische omstandigheden, zoals temperatuurinversies, ontstaan er
 brekingsindices in de lagere atmosfeer (*troposferische ducting*). Dit fenomeen stelt breedbandige
@@ -132,6 +162,13 @@ radiosignalen in staat om de kromming van de aarde te volgen en honderden kilome
 In tegenstelling tot ionosferische HF-reflecties vertoont troposferische propagatie in gematigde
 klimaten een relatief hoge en stabiele regelmaat, waardoor het bruikbaar is voor semi-permanente
 datacommunicatie over middellange afstanden.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{tropospheric_ducting.png}
+  \caption{Visualisatie basisprincipe troposferische ducting.}
+  \label{fig:tropospheric_ducting}
+\end{figure}
 
 \subsection{Waarom de frequentieband de haalbare bandbreedte begrenst}%
 \label{subsec:frequentie-kanaalbreedte}
@@ -147,6 +184,13 @@ tientallen MHz gebruikelijk zijn~\autocite{BIPT2019,UBAFrequenties}. De keuze va
 frequentieband is dus niet enkel een propagatiekeuze (zoals hierboven beschreven via
 Sporadic-E en troposferische ducting), maar tegelijk een keuze die rechtstreeks de
 haalbare datasnelheid van de proof-of-concept begrenst.
+
+%\begin{figure}[h!]
+%  \centering
+%  \includegraphics[width=\textwidth]{Shannon_Hartley.png}
+%  \caption{Visualisatie Shannon Hartley theorem.}
+%  \label{fig:Shannon_Hartley}
+%\end{figure}
 
 \subsection{Line of sight, aardkromming en de Fresnelzone}%
 \label{subsec:line-of-sight}
@@ -184,7 +228,7 @@ zichtlijn:
         signaal-ruisverhouding, zolang de rechtstreekse zichtlijn zelf vrij blijft.
 \end{itemize}
 
-Figuur~\ref{fig:35km-verbinding} illustreert dit onderscheid tussen visuele en
+Figuur~\ref{fig:35km_verbinding} illustreert dit onderscheid tussen visuele en
 radiohorizon aan de hand van een concreet voorbeeld: twee antennes op een hoogte van
 20~meter, opgesteld over zee (waar tussenliggende obstakels per definitie afwezig
 zijn). Op basis van de zuiver optische aardkromming zou de zichtlijn hier net
@@ -194,14 +238,13 @@ Rekening houdend met de radiohorizon (effectieve aardstraal $4/3R$) bedraagt die
 obstructie nog maar ongeveer 18~meter -- net onder de antennehoogte -- waardoor een
 verbinding van ongeveer 35~kilometer in de praktijk wél haalbaar is.
 
-\begin{figure}[h]
+\begin{figure}[h!]
   \centering
-  \includegraphics[width=0.85\textwidth]{35km_verbinding.pdf}
-  \caption{Line-of-sight tussen twee antennes van 20~m op zee: de visuele horizon
-  (werkelijke aardkromming) blokkeert de verbinding net, terwijl de radiohorizon
-  (met atmosferische breking) een bereik van ongeveer 35~km toelaat.}
-  \label{fig:35km-verbinding}
+  \includegraphics[width=\textwidth]{35km_verbinding.png}
+  \caption{Visualisatie 35 km verbinding.}
+  \label{fig:35km_verbinding}
 \end{figure}
+
 
 Voor de 6m-band geldt, net zoals voor hogere VHF- en UHF-banden, dat de normale
 propagatie sterk LOS-gebonden is, zij het met een iets grotere diffractie rond obstakels
@@ -221,15 +264,22 @@ signaal-ruisverhouding rechtstreeks de bruikbare bandbreedte bepaalt
 hebben op de haalbare datasnelheid, onafhankelijk van de afstand of de gekozen
 apparatuur.
 
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{6mnoise.png}
+  \caption{Visualisatie ruis op 6m-band.}
+  \label{fig:6mnoise}
+\end{figure}
+
 \subsection{Vergelijking van frequentiebanden}%
 \label{subsec:vergelijking-frequentiebanden}
 
-Tabel~\ref{tab:frequentiebanden} en Figuur~\ref{fig:spectrum} vatten de
+Tabel~\ref{tab:frequentiebanden} en Figuur~\ref{fig:radiospectrum} vatten de
 propagatie-eigenschappen van de hierboven besproken banden samen, aangevuld met de
 6m-amateurband (50--54~MHz) en de microgolfbanden die verderop in
 Sectie~\ref{sec:Straalverbindingen als proof-of-concept} aan bod komen.
 
-\begin{table}[h]
+\begin{table}[h!]
   \centering
   \small
   \begin{tabular}{p{2.1cm}p{2.3cm}p{4.3cm}p{4.3cm}}
@@ -263,12 +313,12 @@ Sectie~\ref{sec:Straalverbindingen als proof-of-concept} aan bod komen.
   \label{tab:frequentiebanden}
 \end{table}
 
-\begin{figure}[h]
+\begin{figure}[h!]
   \centering
-  \includegraphics[width=\textwidth]{spectrum_overzicht.pdf}
+  \includegraphics[width=\textwidth]{radiospectrum.png}
   \caption{Overzicht van het radiospectrum, met aanduiding van de 6m-amateurband en de
   5~GHz-banden waarin Dynamic Frequency Selection verplicht is.}
-  \label{fig:spectrum}
+  \label{fig:radiospectrum}
 \end{figure}
 
 Deze vergelijking verklaart waarom de 6m-amateurband in deze bachelorproef bijzondere
@@ -280,16 +330,16 @@ omstandigheden gedraagt als een stabiele, voorspelbare LOS-band, eerder dan als 
 variabele klassieke HF-banden. De occasionele Sporadic-E-propagatie die hierboven werd
 beschreven, is voor een permanente, betrouwbare datalink eerder een interessant
 neveneffect dan een bruikbare basis, aangezien deze openingen onvoorspelbaar en van
-beperkte duur zijn. Figuur~\ref{fig:shannon-hartley} illustreert bovendien nogmaals
+beperkte duur zijn. Figuur~\ref{fig:Shannon_Hartley-2} illustreert bovendien nogmaals
 concreet hoeveel de bredere kanalen van hogere banden kunnen opleveren in termen van
 kanaalcapaciteit.
 
-\begin{figure}[h]
+\begin{figure}[h!]
   \centering
-  \includegraphics[width=0.95\textwidth]{shannon_hartley.pdf}
+  \includegraphics[width=\textwidth]{Shannon_Hartley.png}
   \caption{Kanaalcapaciteit in functie van bandbreedte (links) en signaal-ruisverhouding
   (rechts), volgens de wet van Shannon-Hartley uit Vergelijking~\eqref{eq:shannon-hartley}.}
-  \label{fig:shannon-hartley}
+  \label{fig:Shannon_Hartley-2}
 \end{figure}
 
 \section{Multiplex- en modulatietechnieken in datacommunicatie}
@@ -318,6 +368,13 @@ grootheden:
         nauw verwant aan FM.
 \end{itemize}
 
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{modulatie.png}
+  \caption{Visualisatie modulatie.}
+  \label{fig:modulatie}
+\end{figure}
+
 Voor digitale communicatie worden deze analoge principes vertaald naar hun discrete
 tegenhangers: \textbf{ASK} (\textit{Amplitude Shift Keying}, de digitale tegenhanger van
 AM), \textbf{FSK} (\textit{Frequency Shift Keying}, waarbij de draaggolf schakelt tussen
@@ -326,12 +383,26 @@ zie Sectie~\ref{subsec:rtty}) en \textbf{PSK} (\textit{Phase Shift Keying}, waar
 fase van de draaggolf schakelt tussen discrete waarden). Deze basisprincipes vormen het
 uitgangspunt voor de meer geavanceerde technieken die hieronder aan bod komen.
 
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{digital_on_wave.png}
+  \caption{Visualisatie phase shift keying.}
+  \label{fig:digital_on_wave}
+\end{figure}
+
 Wanneer meerdere knooppunten binnen een radionetwerk gelijktijdig gebruikmaken van het
 beschikbare spectrum, moeten multiplextechnieken worden toegepast om interferentie te voorkomen.
 \textcite{Tanenbaum2021} beschrijven hoe traditionele technieken zoals *Frequency Division Multiplexing* (FDM) en *Time Division Multiplexing* (TDM) het fysieke kanaal opdelen in aparte frequentiebanden of
 tijdsloten. Binnen moderne draadloze netwerkinfrastructuren wordt de capaciteit verder vergroot via
 spectrumaggregatie, waarbij niet-aaneengesloten frequentiebanden dynamisch worden gecombineerd
 tot één logisch kanaal~\autocite{MicrowavePtP5G}.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{Frequency_division_multiplexing.png}
+  \caption{Visualisatie frequency division multiplexing.}
+  \label{fig:Frequency_division_multiplexing}
+\end{figure}
 
 Bij het overdragen van data via atmosferische kanalen speelt de keuze van het modulatieschema een
 sleutelrol. Binnen toepassingen zoals Digitale Amateur Televisie (D-ATV\footnote{D-ATV is
@@ -375,11 +446,20 @@ bestandsoverdracht -- is RTTY dan ook vooral van belang als uitgangspunt: het
 illustreert de eenvoudigste vorm van digitale FSK-modulatie en verklaart meteen waarom
 de pakketgebaseerde protocollen hieronder werden ontwikkeld.
 
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{Baudot_code.png}
+  \caption{5 bit Baudot-code kaart.}
+  \label{fig:Baudot_code}
+\end{figure}
+
 Binnen de amateurradio- en noodcommunicatiewereld is *packet radio* historisch gezien de standaard
 voor data-over-radio~\autocite{ICTPPacketRadio}. Packet radio maakt gebruik van het AX.25-protocol
 om data op te delen in frames, wat efficiënt hergebruik van de frequentie mogelijk maakt en bovendien
 toestaat om het TCP/IP-protocol in te kapselen~\autocite{QSLPacketTCPIP}. Hierdoor kunnen standaard
 internetapplicaties draaien via het zogeheten AMPRNet (*Amateur Packet Radio Network*).
+
+
 
 AX.25 (\textit{Amateur X.25}) is zelf afgeleid van het HDLC-protocol (\textit{High-Level
 Data Link Control}\footnote{HDLC is een generieke, wijdverspreide methode om een
@@ -399,6 +479,13 @@ sessieopbouw, genummerde en bevestigde frames, en automatische hertransmissie va
 verloren frames -- conceptueel dicht bij TCP). Op de fysieke laag wordt AX.25 doorgaans
 gedragen door AFSK (\textit{Audio Frequency Shift Keying}) op 1200~baud in de VHF/UHF-
 banden, of door FSK op 300~baud op de HF-banden.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{ax25Frame.png}
+  \caption{Visualisatie ax.25 protocol frame.}
+  \label{fig:ax25Frame}
+\end{figure}
 
 Voor grootschalige, gedistribueerde noodcommunicatie heeft het Winlink-ecosysteem zich ontwikkeld
 tot de wereldwijde standaard~\autocite{WinlinkOverview}. Winlink fungeert als een wereldwijd
@@ -482,6 +569,13 @@ straalverbindingen zijn in staat om gigabit-capaciteiten te overbruggen met mini
 latency~\autocite{HighCapacityLongDistance}. Bij het ontwerp van zo'n netwerkarchitectuur moet
 een fundamentele afweging worden gemaakt tussen het gebruik van exclusieve radioamateurfrequenties
 en licentievrije spectrumalternatieven.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth]{los.png}
+  \caption{Theoretische Visualisatie line-of-sight verbinding.}
+  \label{fig:los}
+\end{figure}
 
 Het gebruik van de amateurbanden biedt unieke privileges, zoals hogere toegestane vermogens en
 specifieke propagatievoordelen, maar vereist dat elke gebruiker in het bezit is van een geldige
@@ -590,6 +684,15 @@ frequenties later ook voor Wi-Fi en andere puntverbindingen werden vrijgegeven, 
 ingevoerd: een zendtoestel moet voortdurend controleren of de gebruikte frequentie niet
 ook door een radar wordt gebruikt, en moet bij detectie van een radarsignaal
 onmiddellijk overschakelen naar een andere, vrije frequentie.
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=\textwidth, height=0.6\textheight, keepaspectratio]{buienradar.png}
+  \caption{Visueel effect DFS}
+  \label{fig:buienradar}
+\end{figure}
+\FloatBarrier
+
 
 Deze problematiek is voor deze bachelorproef niet louter theoretisch. Het Belgisch
 Instituut voor Postdiensten en Telecommunicatie werkt samen met het Koninklijk

@@ -23,9 +23,36 @@
 \usepackage{listings}
 \usepackage{xcolor}
 
+% Voorkomt dat figuren naar een aparte floatpagina aan het einde van een
+% hoofdstuk verschuiven wanneer er te veel floats kort na elkaar staan
+% (bv. meerdere figuren binnen enkele pagina's tekst, zoals in Stand van
+% zaken). \FloatBarrier kan direct na een figuur geplaatst worden om te
+% garanderen dat ze niet verder verschuift dan dat punt in de tekst.
+\usepackage{placeins}
+
+% Forceer een gegarandeerd beschikbaar monospace-lettertype voor
+% codefragmenten, ter omzeiling van een gebroken Fira Code-pad in
+% hogentreport.cls (\setmonofont laadt daar een niet-bestaand pad,
+% wat \ttfamily stil laat terugvallen op nullfont).
+\IfFontExistsTF{Consolas}{%
+  \newfontfamily\lstmonofont{Consolas}
+}{%
+  \IfFontExistsTF{Cascadia Mono}{%
+    \newfontfamily\lstmonofont{Cascadia Mono}
+  }{%
+    \newfontfamily\lstmonofont{DejaVu Sans Mono}
+  }
+}
+
+% \texttt{} gebruikt intern \ttfamily, dat door de gebroken Fira Code-laadroutine
+% in hogentreport.cls op nullfont uitkomt. Herdefinieer \ttfamily zelf zodat elke
+% \texttt{}-aanroep in het hele document (bestandsnamen, commando's, enz.)
+% automatisch het werkende \lstmonofont gebruikt.
+\renewcommand{\ttfamily}{\lstmonofont}
+
 % Configure listings to visually match HOGENT minted style
 \lstset{
-  basicstyle=\small\ttfamily,
+  basicstyle=\small\lstmonofont,
   numbers=left,
   numberstyle=\tiny\color{gray},
   stepnumber=1,
@@ -43,7 +70,7 @@
 \lstdefinelanguage{yaml}{
   keywords={true,false,null,y,n},
   keywordstyle=\color{blue}\bfseries,
-  basicstyle=\small\ttfamily,
+  basicstyle=\small\lstmonofont,
   sensitive=false,
   comment=[l]{\#},
   commentstyle=\color{gray}\itshape,
@@ -54,7 +81,7 @@
 
 % Define Batch (.bat) support for the PoC startup scripts (Bijlage broncode)
 \lstdefinestyle{batchstyle}{
-  basicstyle=\small\ttfamily,
+  basicstyle=\small\lstmonofont,
   commentstyle=\color{gray}\itshape,
   keywordstyle=\color{blue}\bfseries,
   morekeywords={echo,set,if,errorlevel,choice,pause,title,for},
@@ -65,12 +92,25 @@
 
 % Define PowerShell support for the PoC automation scripts (Bijlage broncode)
 \lstdefinestyle{powershellstyle}{
-  basicstyle=\small\ttfamily,
+  basicstyle=\small\lstmonofont,
   commentstyle=\color{gray}\itshape,
   keywordstyle=\color{blue}\bfseries,
   stringstyle=\color{teal},
   morekeywords={function,param,if,else,foreach,while,return,throw,try,catch,
                 Write-Host,Import-Module,New-Item,Test-Path,Join-Path,Split-Path},
+  morecomment=[l]{\#},
+  morestring=[b]',
+  morestring=[b]",
+  breaklines=true
+}
+
+% Define Bash/shell support for the cloud-init- and netem-scripts (poc.tex)
+\lstdefinestyle{bashstyle}{
+  basicstyle=\small\lstmonofont,
+  commentstyle=\color{gray}\itshape,
+  keywordstyle=\color{blue}\bfseries,
+  stringstyle=\color{teal},
+  morekeywords={if,then,else,fi,for,do,done,case,esac,in,function,local,return,exit,while},
   morecomment=[l]{\#},
   morestring=[b]',
   morestring=[b]",
@@ -84,6 +124,17 @@
 % Ensure \listoflistings works in main.tex without breaking
 \let\listoflistings\lstlistoflistings
 
+% Verruim LaTeX's standaard floatlimieten, zodat figuren minder snel naar
+% een aparte floatpagina aan het einde van een hoofdstuk verschuiven
+% wanneer er meerdere figuren kort na elkaar in de tekst staan.
+\setcounter{topnumber}{9}
+\setcounter{bottomnumber}{9}
+\setcounter{totalnumber}{20}
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.9}
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\floatpagefraction}{0.8}
+
 % Other packages not already included can be imported here
 
 %%---------- Document metadata -------------------------------------------------
@@ -91,7 +142,7 @@
 \author{Elias Sergoyne}
 \supervisor{Peter Beke}
 \cosupervisor{Frans Van de Velde}
-\title[Haalbaarheid en Afstandsgrenzen van een 5,6 GHz SFTP-Straalverbinding, Statistisch Gevalideerd via Netwerkemulatie]%
+\title[Haalbaarheid en Afstandsgrenzen van een 5,6 GHz SFTP-Straalverbinding]%
     {Radiogebaseerde Toegang tot een Private Fileserver}
 \academicyear{\advance\year by -1 \the\year--\advance\year by 1 \the\year}
 \examperiod{1}
@@ -203,6 +254,7 @@ Het onderwerp van deze bachelorproef is gebaseerd op een onderzoeksvoorstel dat 
 % TODO: Voeg hier eventuele andere bijlagen toe. Bv. als je deze BP voor de
 % tweede keer indient, een overzicht van de verbeteringen t.o.v. het origineel.
 \input{bijlage-broncode}
+\input{bijlage-airmax}
 
 %%---------- Backmatter, referentielijst ---------------------------------------
 

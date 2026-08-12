@@ -12,15 +12,46 @@ De requirements worden opgedeeld in functionele requirements (\emph{wat} het sys
 \section{Functionele Requirements}
 \label{sec:functionele-requirements}
 
-De functionele requirements (FR) beschrijven het gewenste systeemgedrag om bruikbaar te zijn voor een infrastructuuronafhankelijke fileservertoepassing, onafhankelijk van de specifieke onderliggende radiotechnologie:
+De functionele requirements (FR) beschrijven het gewenste systeemgedrag om bruikbaar te
+zijn voor een infrastructuuronafhankelijke fileservertoepassing, onafhankelijk van de
+specifieke onderliggende radiotechnologie. Elke requirement is SMART geformuleerd:
+Specifiek en Meetbaar via een concreet acceptatiecriterium, Acceptabel binnen de scope
+van deze bachelorproef, Realistisch gezien de gekozen architectuur
+(Sectie~\ref{sec:req-tussentijdse-conclusie}), en Tijdsgebonden doordat elke eis binnen
+de looptijd van de proof-of-concept (Hoofdstuk~\ref{ch:proof-of-concept}) getoetst wordt.
 
 \begin{itemize}
-  \item \textbf{FR1 (Download):} Een clientstation moet bestanden kunnen opvragen en downloaden van de private fileserver via de radioverbinding.
-  \item \textbf{FR2 (Upload):} Een clientstation moet bestanden kunnen versturen en uploaden naar de private fileserver via de radioverbinding.
-  \item \textbf{FR3 (Standaardprotocollen):} De verbinding moet minstens één standaard bestandsoverdrachtsprotocol ondersteunen (zoals SFTP, SMB of WebDAV), zodat bestaande clientsoftware herbruikt kan worden zonder aangepaste applicaties te moeten ontwikkelen.
-  \item \textbf{FR4 (Directory Listing):} De gebruiker moet de mapstructuur van de fileserver kunnen doorbladeren alvorens een overdracht te starten.
-  \item \textbf{FR5 (Multi-client):} Het systeem moet minstens één actieve clientverbinding ondersteunen; ondersteuning voor meerdere gelijktijdige clients is een wenselijke uitbreiding.
-  \item \textbf{FR6 (Hervatten van overdrachten):} Een onderbroken bestandsoverdracht (bijvoorbeeld door een tijdelijke propagatie-onderbreking of kanaalwissel) moet hervat kunnen worden zonder de volledige overdracht opnieuw te starten.
+  \item \textbf{FR1 (Download):} Een clientstation moet, binnen de duur van de
+        teststeekproef (Sectie~\ref{sec:sim-uitvoering}), een bestand van minstens
+        20~MB succesvol en volledig kunnen downloaden van de private fileserver via de
+        radioverbinding, geverifieerd door een sluitende bestandsgrootte- en
+        integriteitscontrole na overdracht.
+  \item \textbf{FR2 (Upload):} Een clientstation moet, binnen dezelfde teststeekproef,
+        een bestand van minstens 20~MB succesvol en volledig kunnen uploaden naar de
+        private fileserver via de radioverbinding, eveneens geverifieerd via een
+        sluitende bestandsgrootte- en integriteitscontrole na overdracht (zie
+        Listing~\ref{lst:workflow-volledig}).
+  \item \textbf{FR3 (Standaardprotocollen):} De verbinding moet, bij oplevering van de
+        proof-of-concept, minstens één standaard bestandsoverdrachtsprotocol
+        ondersteunen (SFTP, SMB of WebDAV), aantoonbaar doordat een ongewijzigde,
+        courante clienttoepassing (bijvoorbeeld een standaard SFTP-client) zich zonder
+        aangepaste software kan verbinden en bestanden kan overdragen.
+  \item \textbf{FR4 (Directory Listing):} De gebruiker moet, vóór het starten van een
+        overdracht, de mapstructuur van de fileserver binnen maximaal enkele seconden
+        kunnen doorbladeren via het gekozen protocol, geverifieerd door een succesvolle
+        \texttt{ls}/\texttt{dir}-aanvraag op de SFTP-chroot van de server-VM.
+  \item \textbf{FR5 (Multi-client):} Het systeem moet, op het moment van de metingen,
+        minstens één actieve, stabiele clientverbinding kunnen onderhouden gedurende de
+        volledige duur van een teststeekproef; ondersteuning voor meerdere
+        gelijktijdige clients is een wenselijke, maar voor deze bachelorproef niet
+        vereiste uitbreiding.
+  \item \textbf{FR6 (Hervatten van overdrachten):} Een onderbroken bestandsoverdracht
+        (bijvoorbeeld door de in Sectie~\ref{subsec:dfs} beschreven, wettelijk
+        verplichte DFS-kanaalonderbreking) moet, binnen dezelfde SFTP-sessie of via een
+        automatische herverbinding, hervat kunnen worden zonder de volledige overdracht
+        opnieuw te starten -- gemeten via het aandeel batchtrials met een
+        DFS-gebeurtenis waarbij de overdracht na herstel alsnog volledig en correct
+        wordt afgerond (Sectie~\ref{sec:res-interpretatie}).
 \end{itemize}
 
 \section{Netwerktechnische Requirements (RFC-Stijl)}
@@ -187,14 +218,14 @@ Vooraleer de fysieke radiohardware wordt opgebouwd en in het veld getest, wordt 
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=\textwidth]{architectuur_virtualbox.pdf}
+  \includegraphics[width=\textwidth]{architectuur_virtualbox.png}
   \caption{Architectuur van de eerste, vereenvoudigde virtuele testomgeving: twee virtuele machines gekoppeld via een intern netwerk met \texttt{tc/netem} kanaalemulatie.}
   \label{fig:architectuur-virtualbox}
 \end{figure}
 
 \begin{figure}[h]
   \centering
-  \includegraphics[width=\textwidth]{stappenplan_virtualbox.pdf}
+  \includegraphics[width=\textwidth]{stappenplan_virtualbox.png}
   \caption{Stappenplan voor het opzetten van deze eerste virtuele testomgeving.}
   \label{fig:stappenplan-virtualbox}
 \end{figure}
@@ -223,6 +254,13 @@ sudo tc qdisc add dev eth1 root netem \
 Dit eerste plan bleek, eenmaal in de praktijk uitgewerkt, op twee punten te moeten worden uitgebreid. Ten eerste kon de geplande fysieke 5.6~GHz airMAX-straalverbinding niet worden aangekocht binnen het tijdsbestek van dit onderzoek (zie de bijstelling van de methodologie in Sectie~\ref{subsec:meth-bijstelling-fase3}), waardoor de volledige proof-of-concept virtueel gerealiseerd werd. Ten tweede volstond een eenvoudige, statische \texttt{tc/netem}-instelling niet om de combinatie van afstand, willekeurig wisselende weersomstandigheden én een verplichte DFS-kanaalwissel (RR2) tegelijk te kunnen valideren -- elk van die factoren moet immers, zoals hierboven toegelicht, op \emph{elke} afstandscategorie kunnen optreden, niet enkel als een aparte, vaste testcase.
 
 Dit leidde tot een uitgebreidere \emph{dumbbell-topologie} met een derde, tussenliggende virtuele machine die specifiek de rol van de radioverbinding zelf overneemt, en tot een statistische testmethode die per meting een nieuwe, willekeurige combinatie van kanaalomstandigheden toepast in plaats van één vaste waarde. De volledige, effectief gerealiseerde architectuur, inclusief de motivatie voor elke ontwerpkeuze en de bijhorende meetresultaten, wordt in detail beschreven in Hoofdstuk~\ref{ch:proof-of-concept} en Hoofdstuk~\ref{ch:resultaten-en-evaluatie}.
+
+\begin{figure}[h]
+  \centering
+  \includegraphics[width=\textwidth]{dumbbell_linkemulator.png}
+  \caption{Nieuwe dumbbell topologie.}
+  \label{fig:dumbbell-linkemulator-req}
+\end{figure}
 
 \section{Besluit}
 \label{sec:requirementsanalyse-besluit}
